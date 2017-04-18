@@ -1,12 +1,14 @@
 package com.example.mborzenkov.readlaterlist;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
 /**
  * Неизменяемый АТД, представляющий элемент списка ReadLater
  * Обладает заголовком (label), описанием (description) и цветом (color).
  */
-public class ReadLaterItem {
+public class ReadLaterItem implements Parcelable {
 
     /** Заголовок */
     private final String label;
@@ -110,4 +112,40 @@ public class ReadLaterItem {
         return label + "\n" + description + "\n(Цвет: " + String.format("#%06X", (0xFFFFFF & color)) + ")";
     }
 
+    //////////////////////////////
+    // Интерфейс Parcelable далее
+
+    /** Константа для использования в Intent в качестве ключа */
+    public static final String KEY_EXTRA = "com.mborzenkov.readlaterlist.readlateritem.extra";
+    public static final String KEY_UID = "com.mborzenkov.readlaterlist.readlateritem.uid";
+
+    public static final Parcelable.Creator<ReadLaterItem> CREATOR = new Parcelable.Creator<ReadLaterItem>() {
+        @Override
+        public ReadLaterItem createFromParcel(Parcel source) {
+            return new ReadLaterItem(source);
+        }
+
+        @Override
+        public ReadLaterItem[] newArray(int size) {
+            return new ReadLaterItem[size];
+        }
+    };
+
+    private ReadLaterItem(Parcel source) {
+        label = source.readString();
+        description = source.readString();
+        color = source.readInt();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(label);
+        dest.writeString(description);
+        dest.writeInt(color);
+    }
 }
