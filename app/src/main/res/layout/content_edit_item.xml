@@ -8,10 +8,19 @@
     tools:context="com.example.mborzenkov.readlaterlist.EditItem"
     tools:showIn="@layout/activity_edit_item">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"
-        android:text="@string/large_text" />
+        android:layout_below="@+id/fNameLayout"
+        android:layout_marginTop="10dp">
+
+        <EditText
+            android:id="@+id/et_edit_item_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="Title"
+            android:inputType="textMultiLine"/>
+    </android.support.design.widget.TextInputLayout>
 
 </android.support.v4.widget.NestedScrollView>
