@@ -22,6 +22,10 @@ public class MainList extends AppCompatActivity {
     // TODO: Когда список пуст, показать сообщение о необходимости добавления (лучше layout)
     // TODO: Запихать все в ресурсы
 
+    private List<ReadLaterItem> mAllData;
+    private ListView mItemListView;
+    private ItemListAdapter mItemListAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,19 +42,19 @@ public class MainList extends AppCompatActivity {
             }
         });
 
-        ListView itemListView = (ListView) findViewById(R.id.itemListView);
-        List<ReadLaterItem> data = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            data.add(new ReadLaterItem("Заголовок 1", "Описание 1", Color.RED));
-            data.add(new ReadLaterItem("Заголовок 2", "Описание 2", Color.GREEN));
-            data.add(new ReadLaterItem("Заголовок 3", "Описание 3", Color.BLUE));
-        }
-        ItemListAdapter itemListAdapter = new ItemListAdapter(this, R.layout.content_main_list_item, data);
-        itemListView.setAdapter(itemListAdapter);
-        itemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mItemListView = (ListView) findViewById(R.id.itemListView);
+        mAllData = new ArrayList<>();
+        mAllData.add(new ReadLaterItem("Заголовок 1", "Описание 1", Color.RED));
+        mAllData.add(new ReadLaterItem("Заголовок 2", "Описание 2", Color.GREEN));
+        mAllData.add(new ReadLaterItem("Заголовок 3", "Описание 3", Color.BLUE));
+        mItemListAdapter = new ItemListAdapter(this, R.layout.content_main_list_item, mAllData);
+        mItemListView.setAdapter(mItemListAdapter);
+        mItemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.i("CLICK", "Click on " + position);
+                mAllData.add(new ReadLaterItem("Заголовок NEW", "Описание NEW", Color.MAGENTA));
+                mItemListAdapter.notifyDataSetChanged();
             }
         });
     }
