@@ -24,25 +24,33 @@ public class ItemListAdapter extends ArrayAdapter<ReadLaterItem> {
         super(context, resource, dataForAdapter);
     }
 
+    private static class ViewHolder {
+        private TextView labelTextView;
+        private TextView descriptionTextView;
+        private ImageView colorImageView;
+    }
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        View view = convertView;
-        if (view == null) {
-            LayoutInflater layoutInflater = LayoutInflater.from(getContext());
-            view = layoutInflater.inflate(R.layout.content_main_list_item, null);
+        ViewHolder viewHolder;
+        if (convertView == null) {
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.content_main_list_item, parent, false);
+            viewHolder = new ViewHolder();
+            viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.tv_item_label);
+            viewHolder.descriptionTextView = (TextView) convertView.findViewById(R.id.tv_item_description);
+            viewHolder.colorImageView = (ImageView) convertView.findViewById(R.id.iv_item_color);
+            convertView.setTag(viewHolder);
+        } else {
+            viewHolder = (ViewHolder) convertView.getTag();
         }
 
         ReadLaterItem item = getItem(position);
 
         if (item != null) {
-            TextView label = (TextView) view.findViewById(R.id.tv_item_label);
-            TextView description = (TextView) view.findViewById(R.id.tv_item_description);
-            ImageView color = (ImageView) view.findViewById(R.id.iv_item_color);
-
-            label.setText(item.getLabel());
-            description.setText(item.getDescription());
-            ((GradientDrawable) color.getBackground()).setColor(item.getColor());
+            viewHolder.labelTextView.setText(item.getLabel());
+            viewHolder.descriptionTextView.setText(item.getDescription());
+            ((GradientDrawable) viewHolder.colorImageView.getBackground()).setColor(item.getColor());
         }
-        return view;
+        return convertView;
     }
 }
