@@ -10,6 +10,7 @@
     tools:showIn="@layout/activity_main_list">
 
     <ListView
+        android:id="@+id/itemListView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

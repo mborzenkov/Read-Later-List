@@ -1,5 +1,6 @@
 package com.example.mborzenkov.readlaterlist;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -8,6 +9,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ListView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainList extends AppCompatActivity {
 
@@ -28,6 +33,16 @@ public class MainList extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        ListView itemListView = (ListView) findViewById(R.id.itemListView);
+        List<ReadLaterItem> data = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            data.add(new ReadLaterItem("Заголовок 1", "Описание 1", Color.RED));
+            data.add(new ReadLaterItem("Заголовок 2", "Описание 2", Color.GREEN));
+            data.add(new ReadLaterItem("Заголовок 3", "Описание 3", Color.BLUE));
+        }
+        ItemListAdapter itemListAdapter = new ItemListAdapter(this, R.layout.content_main_list_item, data);
+        itemListView.setAdapter(itemListAdapter);
     }
 
     @Override
