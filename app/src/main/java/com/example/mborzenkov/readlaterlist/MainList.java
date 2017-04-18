@@ -1,5 +1,6 @@
 package com.example.mborzenkov.readlaterlist;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -20,7 +21,10 @@ import java.util.List;
 public class MainList extends AppCompatActivity {
 
     // TODO: Когда список пуст, показать сообщение о необходимости добавления (лучше layout)
-    // TODO: Запихать все в ресурсы
+    // TODO: Запихать все в ресурсы, все строки!
+
+    private static final int ITEM_ADD_NEW_REQUEST = 1;
+    private static final int ITEM_EDIT_REQUEST = 2;
 
     private List<ReadLaterItem> mAllData;
     private ListView mItemListView;
@@ -30,19 +34,19 @@ public class MainList extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_list);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main_list);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_item_add);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent editItemIntent = new Intent(MainList.this, EditItem.class);
+                startActivityForResult(editItemIntent, ITEM_ADD_NEW_REQUEST);
             }
         });
 
-        mItemListView = (ListView) findViewById(R.id.itemListView);
+        mItemListView = (ListView) findViewById(R.id.listview_main_list);
         mAllData = new ArrayList<>();
         mAllData.add(new ReadLaterItem("Заголовок 1", "Описание 1", Color.RED));
         mAllData.add(new ReadLaterItem("Заголовок 2", "Описание 2", Color.GREEN));
@@ -52,11 +56,28 @@ public class MainList extends AppCompatActivity {
         mItemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.i("CLICK", "Click on " + position);
-                mAllData.add(new ReadLaterItem("Заголовок NEW", "Описание NEW", Color.MAGENTA));
-                mItemListAdapter.notifyDataSetChanged();
+                Intent editItemIntent = new Intent(MainList.this, EditItem.class);
+                editItemIntent.putExtra(Intent.EXTRA_INDEX, position);
+                startActivityForResult(editItemIntent, ITEM_EDIT_REQUEST);
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case ITEM_ADD_NEW_REQUEST:
+                    // TODO: Спарсить полученные данные
+//                mAllData.add(new ReadLaterItem("Заголовок NEW", "Описание NEW", Color.MAGENTA));
+//                mItemListAdapter.notifyDataSetChanged();
+                    Snackbar.make(mItemListView, "Добавлен новый элемент", Snackbar.LENGTH_LONG).show();
+                    break;
+                case ITEM_EDIT_REQUEST:
+                    // TODO: Спарсить полученные данные & remove
+                    break;
+            }
+        }
     }
 
     @Override
