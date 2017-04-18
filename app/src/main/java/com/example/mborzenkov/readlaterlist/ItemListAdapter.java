@@ -16,32 +16,40 @@ public class ItemListAdapter extends ArrayAdapter<ReadLaterItem> {
 
     // TODO: комментарии
 
-    public ItemListAdapter(Context context, int textViewResourceId) {
-        super(context, textViewResourceId);
+    private final Context mContext;
+
+    public interface ItemListAdapterOnClickHandler {
+        void onClick(int itemId);
     }
 
     public ItemListAdapter(Context context, int resource, List<ReadLaterItem> dataForAdapter) {
         super(context, resource, dataForAdapter);
+        mContext = context;
     }
 
-    private static class ViewHolder {
-        private TextView labelTextView;
-        private TextView descriptionTextView;
-        private ImageView colorImageView;
+    private class ItemListViewHolder {
+        private final int id;
+        private final TextView labelTextView;
+        private final TextView descriptionTextView;
+        private final ImageView colorImageView;
+
+        ItemListViewHolder (View view, int id) {
+            labelTextView = (TextView) view.findViewById(R.id.tv_item_label);
+            descriptionTextView = (TextView) view.findViewById(R.id.tv_item_description);
+            colorImageView = (ImageView) view.findViewById(R.id.iv_item_color);
+            this.id = id;
+        }
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder viewHolder;
+        ItemListViewHolder viewHolder;
         if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.content_main_list_item, parent, false);
-            viewHolder = new ViewHolder();
-            viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.tv_item_label);
-            viewHolder.descriptionTextView = (TextView) convertView.findViewById(R.id.tv_item_description);
-            viewHolder.colorImageView = (ImageView) convertView.findViewById(R.id.iv_item_color);
+            convertView = LayoutInflater.from(mContext).inflate(R.layout.content_main_list_item, parent, false);
+            viewHolder = new ItemListViewHolder(convertView, position);
             convertView.setTag(viewHolder);
         } else {
-            viewHolder = (ViewHolder) convertView.getTag();
+            viewHolder = (ItemListViewHolder) convertView.getTag();
         }
 
         ReadLaterItem item = getItem(position);
