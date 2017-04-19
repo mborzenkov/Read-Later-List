@@ -9,7 +9,7 @@
 
     <ImageButton
         android:id="@+id/imageButton_colored_square"
-        style="@style/ColoredSquare"
+        style="@style/ColorPicker.ColoredCircle"
         android:background="@drawable/colorpicker_circle"
         android:longClickable="true"
         android:layout_centerVertical="true"

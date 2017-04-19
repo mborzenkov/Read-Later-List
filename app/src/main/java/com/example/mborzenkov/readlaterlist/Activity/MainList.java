@@ -60,6 +60,7 @@ public class MainList extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_list);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main_list);
+        toolbar.setTitleTextColor(Color.WHITE);
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_item_add);

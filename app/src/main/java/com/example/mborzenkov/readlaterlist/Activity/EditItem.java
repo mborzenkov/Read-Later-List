@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -57,9 +58,13 @@ public class EditItem extends AppCompatActivity implements View.OnClickListener 
             mLabelEditText.setText(itemData.getLabel());
             mDescriptionEditText.setText(itemData.getDescription());
             mChosenColor = itemData.getColor();
+            getSupportActionBar().setTitle(getString(R.string.edititem_title_edit));
+            fab.setImageResource(R.drawable.ic_add_24dp);
         } else {
             // Создание новой
-            mChosenColor = Color.RED;
+            getSupportActionBar().setTitle(getString(R.string.edititem_title_add));
+            fab.setImageResource(R.drawable.ic_edit_24dp);
+            mChosenColor = ContextCompat.getColor(this, R.color.item_default_color);
         }
         updateChosenColor();
     }

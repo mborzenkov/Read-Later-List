@@ -1,11 +1,11 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorAccent">@color/accent</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -15,27 +15,108 @@
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
-
-    <style name="ColoredSquare">
-        <item name="android:layout_width">@dimen/square_size</item>
-        <item name="android:layout_height">@dimen/square_size</item>
-        <item name="android:layout_margin">@dimen/square_margin</item>
+    <style name="Toolbar">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">?attr/actionBarSize</item>
+        <item name="android:background">?attr/colorPrimary</item>
     </style>
 
-    <style name="FavoritesSquare">
-        <item name="android:layout_width">@dimen/fav_square_size</item>
-        <item name="android:layout_height">@dimen/fav_square_size</item>
-        <item name="android:layout_margin">@dimen/fav_square_margin</item>
+    <style name="Divider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="background">@color/divider</item>
     </style>
 
-    <style name="FavoritesStar">
-        <item name="android:layout_width">@dimen/fav_star_size</item>
-        <item name="android:layout_height">@dimen/fav_star_size</item>
-        <item name="android:layout_margin">@dimen/fav_star_margin</item>
+    <style name="MainList" />
+    <style name="MainList.List">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+    </style>
+    <style name="MainList.Icon">
+        <item name="android:layout_marginLeft">16dp</item>
+        <item name="android:layout_width">30dp</item>
+        <item name="android:layout_height">30dp</item>
+    </style>
+    <style name="MainList.Item">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">88dp</item>
+        <item name="android:paddingTop">16dp</item>
+    </style>
+    <style name="MainList.Text">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:layout_marginLeft">72dp</item>
+        <item name="android:layout_marginRight">16dp</item>
+    </style>
+    <style name="MainList.PrimaryText" parent="MainList.Text">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/primary_text</item>
+    </style>
+    <style name="MainList.SecondaryText" parent="MainList.Text">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/secondary_text</item>
+        <item name="android:layout_marginBottom">20dp</item>
+    </style>
+    <style name="MainList.FABAdd">
+        <item name="android:layout_width">56dp</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:layout_margin">16dp</item>
+        <item name="android:layout_gravity">bottom|end</item>
     </style>
 
-    <style name="Labels">
+    <style name="EditList" />
+    <style name="EditList.Item" parent="MainList.Item" />
+    <style name="EditList.Icon">
+        <item name="android:layout_marginLeft">16dp</item>
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+    </style>
+    <style name="EditList.TextField">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:layout_marginLeft">72dp</item>
+        <item name="android:layout_marginRight">16dp</item>
+        <item name="android:textColor">@color/primary_text</item>
+    </style>
+    <style name="EditList.AppBarTextField" parent="EditList.TextField">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:layout_marginLeft">72dp</item>
+        <item name="android:layout_marginRight">72dp</item>
+        <item name="android:layout_marginBottom">32dp</item>
+        <item name="android:textColor">@color/primary_text</item>
+    </style>
+    <style name="EditList.FABSave">
+        <item name="android:layout_width">56dp</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:layout_margin">16dp</item>
+    </style>
+
+    <style name="ColorPicker" />
+    <style name="ColorPicker.ColoredCircle">
+        <item name="android:layout_width">80dp</item>
+        <item name="android:layout_height">80dp</item>
+        <item name="android:layout_margin">20dp</item>
+    </style>
+    <style name="ColorPicker.Favorite">
+        <item name="android:layout_width">60dp</item>
+        <item name="android:layout_height">60dp</item>
+        <item name="android:layout_margin">15dp</item>
+    </style>
+    <style name="ColorPicker.Star">
+        <item name="android:layout_width">20dp</item>
+        <item name="android:layout_height">20dp</item>
+        <item name="android:layout_margin">4dp</item>
+    </style>
+    <style name="ColorPicker.Text">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:fontFamily">sans-serif</item>

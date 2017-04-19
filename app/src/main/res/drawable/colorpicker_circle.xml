@@ -9,7 +9,7 @@
         tools:color="@color/colorMiddleGradient" />
 
     <stroke
-        android:width="@dimen/square_stroke"
+        android:width="2dp"
         android:color="@color/colorStroke" />
 
 </shape>
