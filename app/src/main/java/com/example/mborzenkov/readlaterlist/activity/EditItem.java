@@ -6,10 +6,13 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,6 +29,7 @@ public class EditItem extends AppCompatActivity implements View.OnClickListener 
 
     private int mChosenColor;
     private EditText mLabelEditText;
+    private TextInputLayout mLabelInputLayout;
     private EditText mDescriptionEditText;
     private ImageButton mColorImageButton;
 
@@ -49,7 +53,16 @@ public class EditItem extends AppCompatActivity implements View.OnClickListener 
         });
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mLabelEditText = (EditText) findViewById(R.id.et_edit_item_title);
+        mLabelEditText = (EditText) findViewById(R.id.et_edit_item_label);
+        mLabelEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { mLabelInputLayout.setError(null); }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
+        mLabelInputLayout = (TextInputLayout) findViewById(R.id.til_edit_item_label);
         mDescriptionEditText = (EditText) findViewById(R.id.et_edit_item_description);
         mColorImageButton = (ImageButton) findViewById(R.id.ib_edit_item_color);
         mColorImageButton.setOnClickListener(this);
@@ -61,11 +74,11 @@ public class EditItem extends AppCompatActivity implements View.OnClickListener 
             mDescriptionEditText.setText(itemData.getDescription());
             mChosenColor = itemData.getColor();
             getSupportActionBar().setTitle(getString(R.string.edititem_title_edit));
-            fab.setImageResource(R.drawable.ic_add_24dp);
+            fab.setImageResource(R.drawable.ic_edit_24dp);
         } else {
             // Создание новой
             getSupportActionBar().setTitle(getString(R.string.edititem_title_add));
-            fab.setImageResource(R.drawable.ic_edit_24dp);
+            fab.setImageResource(R.drawable.ic_add_24dp);
             mChosenColor = ContextCompat.getColor(this, R.color.item_default_color);
             if(mLabelEditText.requestFocus()) {
                 getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
@@ -87,6 +100,7 @@ public class EditItem extends AppCompatActivity implements View.OnClickListener 
         if (!label.trim().isEmpty()) {
             return new ReadLaterItem(label, description, mChosenColor);
         } else {
+            mLabelInputLayout.setError(getString(R.string.edititem_error_title_empty));
             return null;
         }
     }
