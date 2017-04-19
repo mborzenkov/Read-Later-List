@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.mborzenkov.readlaterlist.activity.EditItem">
     <item
-        android:id="@+id/action_remove"
+        android:id="@+id/edititem_action_delete"
         android:orderInCategory="100"
-        android:title="Удалить"
+        android:title="@string/edititem_menu_delete"
         app:showAsAction="never" />
 </menu>

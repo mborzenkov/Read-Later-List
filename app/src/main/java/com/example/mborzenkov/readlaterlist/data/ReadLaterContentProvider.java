@@ -36,7 +36,7 @@ public class ReadLaterContentProvider extends ContentProvider {
 
     @Override
     public String getType(@NonNull Uri uri) {
-        throw new RuntimeException("Not supported operation");
+        return null;
     }
 
     @Override

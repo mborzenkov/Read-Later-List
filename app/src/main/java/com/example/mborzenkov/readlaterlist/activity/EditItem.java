@@ -32,6 +32,7 @@ public class EditItem extends AppCompatActivity implements View.OnClickListener 
     private TextInputLayout mLabelInputLayout;
     private EditText mDescriptionEditText;
     private ImageButton mColorImageButton;
+    private boolean mNewItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,8 +76,10 @@ public class EditItem extends AppCompatActivity implements View.OnClickListener 
             mChosenColor = itemData.getColor();
             getSupportActionBar().setTitle(getString(R.string.edititem_title_edit));
             fab.setImageResource(R.drawable.ic_edit_24dp);
+            mNewItem = false;
         } else {
             // Создание новой
+            mNewItem = true;
             getSupportActionBar().setTitle(getString(R.string.edititem_title_add));
             fab.setImageResource(R.drawable.ic_add_24dp);
             mChosenColor = ContextCompat.getColor(this, R.color.item_default_color);
@@ -107,17 +110,19 @@ public class EditItem extends AppCompatActivity implements View.OnClickListener 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_edit_item, menu);
+        if (!mNewItem) {
+            getMenuInflater().inflate(R.menu.menu_edit_item, menu);
+        }
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_remove) {
+        if (id == R.id.edititem_action_delete) {
             new AlertDialog.Builder(this)
-                    .setTitle("Delete entry")
-                    .setMessage("Are you sure you want to delete this entry?")
+                    .setTitle(getString(R.string.edititem_menu_delete_question_title))
+                    .setMessage(getString(R.string.edititem_menu_delete_question_text))
                     .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             sendResult(null);

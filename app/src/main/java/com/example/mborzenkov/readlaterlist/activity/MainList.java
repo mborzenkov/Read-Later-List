@@ -1,8 +1,10 @@
 package com.example.mborzenkov.readlaterlist.activity;
 
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -11,17 +13,23 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
 import com.example.mborzenkov.readlaterlist.ADT.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
+
+import java.util.Random;
 
 public class MainList extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>,
@@ -42,6 +50,8 @@ public class MainList extends AppCompatActivity implements
     protected static final int INDEX_COLUMN_COLOR = 3;
 
     private static final int ITEM_LOADER_ID = 13;
+    private static final int PLACEHOLDERS_COUNT = 100;
+    private static final int DESCRIPTION_LINES = 3;
 
     private ItemListAdapter mItemListAdapter;
     private ListView mItemListView;
@@ -176,5 +186,95 @@ public class MainList extends AppCompatActivity implements
                     break;
             }
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        if (BuildConfig.DEBUG) {
+            getMenuInflater().inflate(R.menu.menu_main_list, menu);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (item.getItemId()) {
+            case R.id.mainlist_action_add_placeholders:
+                new AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.mainlist_menu_add_placeholders_question_title))
+                        .setMessage(getString(R.string.mainlist_menu_add_placeholders_question_text))
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                String[] text = getString(R.string.large_text).split("\n");
+                                int textRows = text.length;
+                                String label = getString(R.string.mainlist_menu_add_placeholders_label);
+                                Random randomizer = new Random();
+                                for (int i = 0; i < PLACEHOLDERS_COUNT; i++) {
+                                    StringBuilder description = new StringBuilder();
+                                    for (int j = 0; j < DESCRIPTION_LINES; j++) {
+                                        description.append(text[randomizer.nextInt(text.length)] + "\n");
+                                    }
+                                    float[] colorHSV = new float[3];
+                                    Color.colorToHSV(randomizer.nextInt(), colorHSV);
+                                    ContentValues contentValues = new ContentValues();
+                                    contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL, label + " " + i);
+                                    contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION, description.toString().trim());
+                                    contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR, Color.HSVToColor(colorHSV));
+                                    Uri uri = getContentResolver().insert(ReadLaterContract.ReadLaterEntry.CONTENT_URI, contentValues);
+                                }
+                                getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, MainList.this);
+                            }
+                        })
+                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // do nothing
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+                return true;
+            case R.id.mainlist_action_delete_all:
+                new AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.mainlist_menu_delete_all_question_title))
+                        .setMessage(getString(R.string.mainlist_menu_delete_all_question_text))
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                for (int i = 0; i < mDataCursor.getCount(); i++) {
+                                    mDataCursor.moveToPosition(i);
+                                    int uid = mDataCursor.getInt(INDEX_COLUMN_ID);
+                                    getContentResolver().delete(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), null, null);
+                                }
+                                getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, MainList.this);
+                            }
+                        })
+                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // do nothing
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+                return true;
+        }
+//        if (id == R.id) {
+//            new AlertDialog.Builder(this)
+//                    .setTitle("Delete entry")
+//                    .setMessage("Are you sure you want to delete this entry?")
+//                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+//                        public void onClick(DialogInterface dialog, int which) {
+//                            sendResult(null);
+//                        }
+//                    })
+//                    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+//                        public void onClick(DialogInterface dialog, int which) {
+//                            // do nothing
+//                        }
+//                    })
+//                    .setIcon(android.R.drawable.ic_dialog_alert)
+//                    .show();
+//            return true;
+//        }
+        return super.onOptionsItemSelected(item);
     }
 }
