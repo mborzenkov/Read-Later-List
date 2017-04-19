@@ -456,7 +456,7 @@ public class ColorPicker extends AppCompatActivity implements View.OnTouchListen
         }
         int color = Color.HSVToColor(colorHSV);
         ((GradientDrawable) findViewById(R.id.imageButton_chosen).getBackground()).setColor(color);
-        mRGBValueTextView.setText("#" + Color.red(color) + ", " + Color.green(color) + ", " + Color.blue(color));
+        mRGBValueTextView.setText("" + Color.red(color) + ", " + Color.green(color) + ", " + Color.blue(color));
         mHSVValueTextView.setText("" + String.format(Locale.US, "%.2f", colorHSV[0]) + ", " + String.format(Locale.US, "%.2f", colorHSV[1]) + ", " + String.format(Locale.US, "%.2f", colorHSV[2]));
     }
 
