@@ -1,44 +1,64 @@
 package com.example.mborzenkov.readlaterlist.Activity;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 
 import com.example.mborzenkov.readlaterlist.ADT.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterContentProvider;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterDbHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class MainList extends AppCompatActivity {
+public class MainList extends AppCompatActivity implements
+        LoaderManager.LoaderCallbacks<Cursor>,
+        ItemListAdapter.ItemListAdapterOnClickHandler {
 
     // TODO: Когда список пуст, показать сообщение о необходимости добавления (лучше layout)
     // TODO: Запихать все в ресурсы, все строки!
     // TODO: Добавить уменьшенное описание
+    // TODO: Удалить все, добавить 100
 
-    private static final int ITEM_ADD_NEW_REQUEST = 1;
-    private static final int ITEM_EDIT_REQUEST = 2;
+    protected static final int ITEM_ADD_NEW_REQUEST = 1;
+    protected static final int ITEM_EDIT_REQUEST = 2;
 
-    private static List<ReadLaterItem> allData = new ArrayList<>();
-    private ListView mItemListView;
+    protected static final String[] MAIN_LIST_PROJECTION = {
+            ReadLaterContract.ReadLaterEntry._ID,
+            ReadLaterContract.ReadLaterEntry.COLUMN_LABEL,
+            ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION,
+            ReadLaterContract.ReadLaterEntry.COLUMN_COLOR
+    };
+    protected static final int INDEX_COLUMN_ID = 0;
+    protected static final int INDEX_COLUMN_LABEL = 1;
+    protected static final int INDEX_COLUMN_DESCRIPTION = 2;
+    protected static final int INDEX_COLUMN_COLOR = 3;
+
+    private static final int ITEM_LOADER_ID = 13;
+
     private ItemListAdapter mItemListAdapter;
-
-    static {
-        Random randomizer = new Random();
-        for (int i = 0; i < 100; i++) {
-            float[] colorHSV = new float[3];
-            Color.colorToHSV(randomizer.nextInt(), colorHSV);
-            allData.add(new ReadLaterItem("Заголовок " + i, "Описание " + i, Color.HSVToColor(colorHSV)));
-        }
-    }
+    private ListView mItemListView;
+    private ProgressBar mLoadingIndicator; // TODO: Добавить loading indicator
+    private Cursor mDataCursor;
+    private int mPosition = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,18 +76,62 @@ public class MainList extends AppCompatActivity {
             }
         });
 
+        mItemListAdapter = new ItemListAdapter(this, R.layout.content_main_list_item, null, 0, this);
         mItemListView = (ListView) findViewById(R.id.listview_main_list);
-        mItemListAdapter = new ItemListAdapter(this, R.layout.content_main_list_item, allData);
         mItemListView.setAdapter(mItemListAdapter);
-        mItemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent editItemIntent = new Intent(MainList.this, EditItem.class);
-                editItemIntent.putExtra(ReadLaterItem.KEY_EXTRA, allData.get(position));
-                editItemIntent.putExtra(ReadLaterItem.KEY_UID, position);
-                startActivityForResult(editItemIntent, ITEM_EDIT_REQUEST);
-            }
-        });
+        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_main_loading);
+
+        showLoading();
+
+        getSupportLoaderManager().initLoader(ITEM_LOADER_ID, null, this);
+    }
+
+    @Override
+    public void onClick(int position) {
+        mPosition = position;
+        Intent editItemIntent = new Intent(MainList.this, EditItem.class);
+        mDataCursor.moveToPosition(position);
+        ReadLaterItem data = new ReadLaterItem(mDataCursor.getString(INDEX_COLUMN_LABEL), mDataCursor.getString(INDEX_COLUMN_DESCRIPTION), mDataCursor.getInt(INDEX_COLUMN_COLOR));
+        editItemIntent.putExtra(ReadLaterItem.KEY_EXTRA, data);
+        editItemIntent.putExtra(ReadLaterItem.KEY_UID, mDataCursor.getInt(INDEX_COLUMN_ID));
+        startActivityForResult(editItemIntent, ITEM_EDIT_REQUEST);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int loaderId, final Bundle args) {
+        switch (loaderId) {
+
+            case ITEM_LOADER_ID:
+                Uri itemsQueryUri = ReadLaterContract.ReadLaterEntry.CONTENT_URI;
+                String sortOrder = ReadLaterContract.ReadLaterEntry._ID + " ASC";
+                return new CursorLoader(this, itemsQueryUri, MAIN_LIST_PROJECTION, null, null, sortOrder);
+            default:
+                throw new RuntimeException("Loader Not Implemented: " + loaderId);
+        }
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mDataCursor = data;
+        mItemListAdapter.changeCursor(mDataCursor);
+        mItemListView.smoothScrollToPosition(mPosition);
+        showDataView();
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mDataCursor = null;
+        mItemListAdapter.changeCursor(mDataCursor);
+    }
+
+    private void showDataView() {
+        mLoadingIndicator.setVisibility(View.INVISIBLE);
+        mItemListView.setVisibility(View.VISIBLE);
+    }
+
+    private void showLoading() {
+        mItemListView.setVisibility(View.INVISIBLE);
+        mLoadingIndicator.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -77,20 +141,34 @@ public class MainList extends AppCompatActivity {
             switch (requestCode) {
                 case ITEM_ADD_NEW_REQUEST:
                     if (resultData != null) {
-                        allData.add(resultData);
-                        mItemListAdapter.notifyDataSetChanged();
-                        Snackbar.make(mItemListView, "Добавлен новый элемент", Snackbar.LENGTH_LONG).show();
+                        ContentValues contentValues = new ContentValues();
+                        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL, resultData.getLabel());
+                        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION, resultData.getDescription());
+                        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR, resultData.getColor());
+                        Uri uri = getContentResolver().insert(ReadLaterContract.ReadLaterEntry.CONTENT_URI, contentValues);
+                        if (uri != null) {
+                            Snackbar.make(mItemListView, "Добавлен новый элемент", Snackbar.LENGTH_LONG).show();
+                            getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, this);
+                        }
                     }
                     break;
                 case ITEM_EDIT_REQUEST:
                     if (data.hasExtra(ReadLaterItem.KEY_UID)) {
                         int uid = data.getIntExtra(ReadLaterItem.KEY_UID, -1);
                         if (resultData == null) {
-                            allData.remove(uid);
-                            Snackbar.make(mItemListView, "Элемент удален", Snackbar.LENGTH_LONG).show();
+                            int deleted = getContentResolver().delete(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), null, null);
+                            if (deleted > 0) {
+                                Snackbar.make(mItemListView, "Элемент удален", Snackbar.LENGTH_LONG).show();
+                            }
                         } else {
-                            allData.set(uid, resultData);
-                            Snackbar.make(mItemListView, "Элемент изменен", Snackbar.LENGTH_LONG).show();
+                            ContentValues contentValues = new ContentValues();
+                            contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL, resultData.getLabel());
+                            contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION, resultData.getDescription());
+                            contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR, resultData.getColor());
+                            int updated = getContentResolver().update(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
+                            if (updated > 0) {
+                                Snackbar.make(mItemListView, "Элемент изменен", Snackbar.LENGTH_LONG).show();
+                            }
                         }
                         mItemListAdapter.notifyDataSetChanged();
                     }

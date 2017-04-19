@@ -20,6 +20,12 @@ public class ReadLaterContract {
         public static final String COLUMN_LABEL = "label";
         public static final String COLUMN_DESCRIPTION = "description";
         public static final String COLUMN_COLOR = "color";
+
+        public static Uri buildUriForOneItem(int id) {
+            return CONTENT_URI.buildUpon()
+                    .appendPath(String.valueOf(id))
+                    .build();
+        }
     }
 
 }
