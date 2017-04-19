@@ -24,6 +24,11 @@
     <string name="mainlist_menu_add_placeholders_question_text">Proceed?</string>
     <string name="edititem_menu_delete_question_title">Delete enty</string>
     <string name="edititem_menu_delete_question_text">Are you sure?</string>
+    <string name="snackbar_item_added">Item added</string>
+    <string name="snackbar_item_edited">Item edited</string>
+    <string name="snackbar_item_removed">Item removed</string>
+
+
 
 
     <string name="large_text">
