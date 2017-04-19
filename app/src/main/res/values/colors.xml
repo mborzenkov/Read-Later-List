@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Главные цвета приложения -->
     <color name="primary">#4CAF50</color>
     <color name="primary_dark">#388E3C</color>
     <color name="primary_light">#C8E6C9</color>
@@ -9,16 +10,18 @@
     <color name="icons">#FFFFFF</color>
     <color name="divider">#BDBDBD</color>
 
+    <!-- Цвет по умолчанию для нового элемента -->
     <color name="item_default_color">#FFC107</color>
 
 
 
     <!-- Требуется, чтобы HUE в endColor был > HUE в startColor -->
-    <color name="colorStartGradient">#EB3636</color>
-    <color name="colorEndGradient">#e91e63</color>
-    <color name="colorMiddleGradient">#009688</color>
-    <color name="colorStroke">#ffffff</color>
+    <color name="colorpicker_gradient_start">#EB3636</color>
+    <color name="colorpicker_gradient_end">#e91e63</color>
+    <color name="colorpicker_gradient_middle">#009688</color>
+    <color name="colorpicker_element_stroke">#ffffff</color>
 
+    <!-- Список дополнительных цветоа на всякий случай -->
     <color name="red">#e53935</color>
     <color name="deep_orange">#f4511e</color>
     <color name="orange">#fb8c00</color>

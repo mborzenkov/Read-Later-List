@@ -1,39 +1,55 @@
 <resources>
-    <string name="app_name">Read Later List</string>
-    <string name="content_authority">com.example.mborzenkov.readlaterlist</string>
-    <string name="action_settings">Settings</string>
+    <string name="app_name">Read Later</string>
+    <string name="content_authority" translatable="false">com.example.mborzenkov.readlaterlist</string>
     <string name="title_activity_edit_item">Edit Item</string>
-
-
-    <string name="edititem_label_hint">Label</string>
-    <string name="edititem_description_hint">Description</string>
-    <string name="edititem_color_hint">Color</string>
-    <string name="edititem_title_add">Add item</string>
-    <string name="edititem_title_edit">Edit item</string>
-    <string name="mainlist_empty_label">List is empty</string>
-    <string name="mainlist_empty_description">You can add something to list with button +fdffddfdffddfdfdf d</string>
     <string name="title_activity_colorpicker">Choose color</string>
-    <string name="edititem_error_title_empty">Please enter label</string>
-    <string name="edititem_menu_delete">Delete</string>
-    <string name="mainlist_menu_delete_all">Delete all</string>
-    <string name="mainlist_menu_add_placeholders">Fill placeholders</string>
-    <string name="mainlist_menu_add_placeholders_label">Labeeeeel</string>
-    <string name="mainlist_menu_delete_all_question_title">Remove all entries</string>
-    <string name="mainlist_menu_delete_all_question_text">Are you sure?</string>
-    <string name="mainlist_menu_add_placeholders_question_title">This action will add placeholders</string>
-    <string name="mainlist_menu_add_placeholders_question_text">Proceed?</string>
-    <string name="edititem_menu_delete_question_title">Delete enty</string>
-    <string name="edititem_menu_delete_question_text">Are you sure?</string>
-    <string name="snackbar_item_added">Item added</string>
-    <string name="snackbar_item_edited">Item edited</string>
-    <string name="snackbar_item_removed">Item removed</string>
+
+    <!-- MainList -->
+        <!-- Онбординг для пустого списка -->
+        <string name="mainlist_empty_label">List is empty</string>
+        <string name="mainlist_empty_description">Add something to list with button on bottom right corner.</string>
+        <!-- Меню -->
+        <string name="mainlist_menu_delete_all">Delete all</string>
+        <string name="mainlist_menu_delete_all_question_title">This action will delete everything from db. Are you sure to proceed?</string>
+        <string name="mainlist_menu_delete_all_question_text">Delete all</string>
+        <string name="mainlist_menu_add_placeholders">Fill placeholders</string>
+        <string name="mainlist_menu_add_placeholders_question_title">This action will add placeholders. Proceed?</string>
+        <string name="mainlist_menu_add_placeholders_question_text">Fill with placeholders</string>
+        <string name="mainlist_menu_add_placeholders_label">Labeeeeel</string>
+        <!-- Снекбары -->
+        <string name="snackbar_item_added">Item added</string>
+        <string name="snackbar_item_edited">Item edited</string>
+        <string name="snackbar_item_removed">Item removed</string>
+
+    <!-- EditItem -->
+        <!-- Заголовки -->
+        <string name="edititem_title_add">New item</string>
+        <string name="edititem_title_edit">Edit item</string>
+        <!-- Поля ввода -->
+        <string name="edititem_label_hint">Label</string>
+        <string name="edititem_description_hint">Description</string>
+        <string name="edititem_color_hint">Color</string>
+        <!-- Ошибки -->
+        <string name="edititem_error_title_empty">Please enter label</string>
+        <!-- Меню -->
+        <string name="edititem_menu_delete">Delete</string>
+        <string name="edititem_menu_delete_question_title">Are you sure to delete item?</string>
+        <string name="edititem_menu_delete_question_text">Delete item</string>
+
+    <!-- ColorPicker -->
+    <string name="colorpicker_chosen_label">Choose color</string>
+    <string name="colorpicker_favorites_label">Favorite colors</string>
+    <string name="colorpicker_RGB" translatable="false">RGB</string>
+    <string name="colorpicker_HSV" translatable="false">HSV</string>
+    <string name="colorpicker_RGB_VAL" translatable="false">244, 244, 244</string>
+    <string name="colorpicker_HSV_VAL" translatable="false">299.30, 0.67, 0.54</string>
+
+    <!-- Ошибки базы данных -->
     <string name="db_error_uriunknown">Unknown uri: </string>
     <string name="db_error_insert">Failed to insert row in: </string>
 
-
-
-
-    <string name="large_text">
+    <!-- Дебаг -->
+    <string name="debug_large_text" translatable="false">
         "Material is the metaphor.\n\n"
 
         "A material metaphor is the unifying theory of a rationalized space and a system of motion."
@@ -122,10 +138,4 @@
         "For example, position the FAB to one side of stream of a cards so the FAB won’t interfere "
         "when a user tries to pick up one of cards.\n\n"
     </string>
-    <string name="label_chosen_color">Chosen color</string>
-    <string name="label_favorites">Favorite colors</string>
-    <string name="RGB" translatable="false">RGB</string>
-    <string name="HSV" translatable="false">HSV</string>
-    <string name="RGB_VAL" translatable="false">244, 244, 244</string>
-    <string name="HSV_VAL" translatable="false">299.30, 0.67, 0.54</string>
 </resources>

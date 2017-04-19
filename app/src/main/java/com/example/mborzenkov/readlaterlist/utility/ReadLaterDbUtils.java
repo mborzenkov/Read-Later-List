@@ -66,7 +66,7 @@ public class ReadLaterDbUtils {
         // bulkInsert умышленно не был реализован, так как нигде не используется
         // кроме этого метода, предназначенного для тестирования
 
-        String[] text = context.getString(R.string.large_text).split("\n");
+        String[] text = context.getString(R.string.debug_large_text).split("\n");
         int textRows = text.length;
         String label = context.getString(R.string.mainlist_menu_add_placeholders_label);
         Random randomizer = new Random();

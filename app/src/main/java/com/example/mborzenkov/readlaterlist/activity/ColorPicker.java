@@ -60,9 +60,9 @@ public class ColorPicker extends AppCompatActivity implements View.OnTouchListen
     /** Количество любимых цветов суммарно */
     private static final int FAVORITES_MAX = RESOURCES.getInteger(R.integer.favorites_max);
     /** Цвет начала градиента */
-    private static final int COLOR_GRADIENT_START = ContextCompat.getColor(APP_CONTEXT, R.color.colorStartGradient);
+    private static final int COLOR_GRADIENT_START = ContextCompat.getColor(APP_CONTEXT, R.color.colorpicker_gradient_start);
     /** Цвет конца градиента */
-    private static final int COLOR_GRADIENT_END = ContextCompat.getColor(APP_CONTEXT, R.color.colorEndGradient);
+    private static final int COLOR_GRADIENT_END = ContextCompat.getColor(APP_CONTEXT, R.color.colorpicker_gradient_end);
     /** Шаг, на котором будут располагаться края мультиградиента, квадрат находится на STEP_HUE/2 от края градиента */
     private static final int STEP_HUE = countStep(COLOR_GRADIENT_START, COLOR_GRADIENT_END, NUMBER_OF_SQUARES);
     /** Ссылка на компонент вибратор */
