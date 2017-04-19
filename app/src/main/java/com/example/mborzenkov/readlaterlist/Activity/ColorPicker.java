@@ -162,7 +162,11 @@ public class ColorPicker extends AppCompatActivity implements View.OnTouchListen
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_colorpicker);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_colorpicker);
+        toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.icons));
+        setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
 
         // Инициализация
         mLayoutInflater = getLayoutInflater();

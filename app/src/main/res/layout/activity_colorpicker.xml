@@ -7,6 +7,13 @@
     android:layout_height="match_parent"
     tools:context="com.example.mborzenkov.readlaterlist.Activity.ColorPicker">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar_colorpicker"
+        style="@style/Toolbar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
     <HorizontalScrollView
         android:id="@+id/horizontalScrollView"
         android:layout_width="0dp"
@@ -15,7 +22,7 @@
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_colorpicker"
         tools:minHeight="100dp">
 
         <LinearLayout

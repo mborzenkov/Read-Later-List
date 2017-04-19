@@ -32,9 +32,10 @@
                 android:value="com.example.mborzenkov.readlaterlist.Activity.MainList" />
         </activity>
         <activity android:name=".Activity.ColorPicker"
-            android:label="@string/title_activity_edit_item"
+            android:label="@string/title_activity_colorpicker"
             android:launchMode="singleTop"
-            android:parentActivityName=".Activity.EditItem" >
+            android:parentActivityName=".Activity.EditItem"
+            android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.mborzenkov.readlaterlist.Activity.EditItem" />
