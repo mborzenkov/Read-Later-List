@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Можно поменять количество квадратов или Favorites тут -->
+    <integer name="number_of_squares">16</integer>
+    <integer name="favorites_max">4</integer>
+
+</resources>

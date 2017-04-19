@@ -15,7 +15,9 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
-public class EditItem extends AppCompatActivity {
+public class EditItem extends AppCompatActivity implements View.OnClickListener {
+
+    private static final int ITEM_EDIT_COLOR_REQUEST = 11;
 
     private int mChosenColor;
     private EditText mLabelEditText;
@@ -44,6 +46,7 @@ public class EditItem extends AppCompatActivity {
         mLabelEditText = (EditText) findViewById(R.id.et_edit_item_title);
         mDescriptionEditText = (EditText) findViewById(R.id.et_edit_item_description);
         mColorImageButton = (ImageButton) findViewById(R.id.ib_edit_item_color);
+        mColorImageButton.setOnClickListener(this);
 
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra(ReadLaterItem.KEY_EXTRA) && intent.hasExtra(ReadLaterItem.KEY_UID)) {
@@ -56,7 +59,7 @@ public class EditItem extends AppCompatActivity {
             mChosenColor = Color.RED;
             // TODO: Цвет по умолчанию в ресурсы
         }
-        ((GradientDrawable) mColorImageButton.getBackground()).setColor(mChosenColor);
+        updateChosenColor();
     }
 
     private void sendResult(ReadLaterItem resultData) {
@@ -109,5 +112,25 @@ public class EditItem extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onClick(View view) {
+        if (view.getId() == R.id.ib_edit_item_color) {
+            Intent colorPicker = new Intent(EditItem.this, ColorPicker.class);
+            colorPicker.putExtra(ColorPicker.CHOSEN_KEY, mChosenColor);
+            startActivityForResult(colorPicker, ITEM_EDIT_COLOR_REQUEST);
+        }
+    }
 
+    private void updateChosenColor() {
+        ((GradientDrawable) mColorImageButton.getBackground()).setColor(mChosenColor);
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK && requestCode == ITEM_EDIT_COLOR_REQUEST && data != null && data.hasExtra(ColorPicker.CHOSEN_KEY)) {
+            mChosenColor = data.getIntExtra(ColorPicker.CHOSEN_KEY, Color.TRANSPARENT);
+            updateChosenColor();
+        }
+    }
 }

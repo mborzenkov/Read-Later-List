@@ -3,4 +3,26 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <!-- Требуется, чтобы HUE в endColor был > HUE в startColor -->
+    <color name="colorStartGradient">#EB3636</color>
+    <color name="colorEndGradient">#e91e63</color>
+    <color name="colorMiddleGradient">#009688</color>
+    <color name="colorStroke">#ffffff</color>
+
+    <color name="red">#e53935</color>
+    <color name="deep_orange">#f4511e</color>
+    <color name="orange">#fb8c00</color>
+    <color name="amber">#ffb300</color>
+    <color name="yellow">#fdd835</color>
+    <color name="lime">#cddc39</color>
+    <color name="light_green">#8bc34a</color>
+    <color name="green">#43a047</color>
+    <color name="teal">#00897b</color>
+    <color name="cyan">#00bcd4</color>
+    <color name="light_blue">#03a9f4</color>
+    <color name="blue">#1e88e5  </color>
+    <color name="indigo">#3f51b5</color>
+    <color name="deep_purple">#673ab7</color>
+    <color name="purple">#8e24aa</color>
+    <color name="pink">#e91e63</color>
 </resources>

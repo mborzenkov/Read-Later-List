@@ -91,4 +91,10 @@
         "For example, position the FAB to one side of stream of a cards so the FAB won’t interfere "
         "when a user tries to pick up one of cards.\n\n"
     </string>
+    <string name="label_chosen_color">Chosen color</string>
+    <string name="label_favorites">Favorite colors</string>
+    <string name="RGB" translatable="false">RGB</string>
+    <string name="HSV" translatable="false">HSV</string>
+    <string name="RGB_VAL" translatable="false">244, 244, 244</string>
+    <string name="HSV_VAL" translatable="false">299.30, 0.67, 0.54</string>
 </resources>

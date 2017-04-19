@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <array name="full_gradient">
+        <item>@color/red</item>
+        <item>@color/deep_orange</item>
+        <item>@color/orange</item>
+        <item>@color/amber</item>
+        <item>@color/yellow</item>
+        <item>@color/lime</item>
+        <item>@color/light_green</item>
+        <item>@color/green</item>
+        <item>@color/teal</item>
+        <item>@color/cyan</item>
+        <item>@color/light_blue</item>
+        <item>@color/blue</item>
+        <item>@color/indigo</item>
+        <item>@color/deep_purple</item>
+        <item>@color/purple</item>
+        <item>@color/pink</item>
+    </array>
+
+</resources>

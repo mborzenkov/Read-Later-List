@@ -17,4 +17,29 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+    <style name="ColoredSquare">
+        <item name="android:layout_width">@dimen/square_size</item>
+        <item name="android:layout_height">@dimen/square_size</item>
+        <item name="android:layout_margin">@dimen/square_margin</item>
+    </style>
+
+    <style name="FavoritesSquare">
+        <item name="android:layout_width">@dimen/fav_square_size</item>
+        <item name="android:layout_height">@dimen/fav_square_size</item>
+        <item name="android:layout_margin">@dimen/fav_square_margin</item>
+    </style>
+
+    <style name="FavoritesStar">
+        <item name="android:layout_width">@dimen/fav_star_size</item>
+        <item name="android:layout_height">@dimen/fav_star_size</item>
+        <item name="android:layout_margin">@dimen/fav_star_margin</item>
+    </style>
+
+    <style name="Labels">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
 </resources>

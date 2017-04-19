@@ -2,4 +2,12 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="app_bar_height">180dp</dimen>
     <dimen name="text_margin">16dp</dimen>
+    <dimen name="square_size">80dp</dimen>
+    <dimen name="square_margin">20dp</dimen>
+    <dimen name="square_stroke">2dp</dimen>
+    <dimen name="square_round_radius">10dp</dimen>
+    <dimen name="fav_square_size">60dp</dimen>
+    <dimen name="fav_square_margin">15dp</dimen>
+    <dimen name="fav_star_size">20dp</dimen>
+    <dimen name="fav_star_margin">4dp</dimen>
 </resources>
