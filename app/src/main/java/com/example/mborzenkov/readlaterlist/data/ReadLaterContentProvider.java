@@ -10,10 +10,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-// TODO: Javadoc
 public class ReadLaterContentProvider extends ContentProvider {
-
-    // TODO: комментарии и строки
 
     public static final int CODE_READLATER_ITEMS = 100;
     public static final int CODE_READLATER_ITEMS_WITH_ID = 101;
@@ -37,7 +34,6 @@ public class ReadLaterContentProvider extends ContentProvider {
         return true;
     }
 
-    // TODO: implement or not?
     @Override
     public String getType(@NonNull Uri uri) {
         throw new RuntimeException("Not supported operation");

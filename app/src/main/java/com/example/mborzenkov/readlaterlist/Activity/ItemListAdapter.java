@@ -21,7 +21,6 @@ import java.util.List;
 
 public class ItemListAdapter extends ResourceCursorAdapter {
 
-    // TODO: комментарии
     private final Context mContext;
     private final ItemListAdapterOnClickHandler mClickHandler;
 

@@ -3,7 +3,6 @@ package com.example.mborzenkov.readlaterlist.data;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
-// TODO: Javadoc
 public class ReadLaterContract {
 
     public static final String CONTENT_AUTHORITY = "com.example.mborzenkov.readlaterlist";

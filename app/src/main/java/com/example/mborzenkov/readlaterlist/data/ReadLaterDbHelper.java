@@ -6,7 +6,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
-// TODO: Javadoc
 public class ReadLaterDbHelper extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "readlaterlist.db";

@@ -33,11 +33,6 @@ public class MainList extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>,
         ItemListAdapter.ItemListAdapterOnClickHandler {
 
-    // TODO: Когда список пуст, показать сообщение о необходимости добавления (лучше layout)
-    // TODO: Запихать все в ресурсы, все строки!
-    // TODO: Добавить уменьшенное описание
-    // TODO: Удалить все, добавить 100
-
     protected static final int ITEM_ADD_NEW_REQUEST = 1;
     protected static final int ITEM_EDIT_REQUEST = 2;
 
@@ -56,7 +51,7 @@ public class MainList extends AppCompatActivity implements
 
     private ItemListAdapter mItemListAdapter;
     private ListView mItemListView;
-    private ProgressBar mLoadingIndicator; // TODO: Добавить loading indicator
+    private ProgressBar mLoadingIndicator;
     private Cursor mDataCursor;
     private int mPosition = 0;
 

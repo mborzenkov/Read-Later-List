@@ -60,7 +60,6 @@ public class EditItem extends AppCompatActivity implements View.OnClickListener 
         } else {
             // Создание новой
             mChosenColor = Color.RED;
-            // TODO: Цвет по умолчанию в ресурсы
         }
         updateChosenColor();
     }
@@ -78,13 +77,10 @@ public class EditItem extends AppCompatActivity implements View.OnClickListener 
         if (!label.trim().isEmpty()) {
             return new ReadLaterItem(label, description, mChosenColor);
         } else {
-            // TODO: Фокус на поле и просьба заполнить
             return null;
         }
     }
 
-
-    // TODO: В Delee установить ReadLaterItem в null
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_edit_item, menu);
