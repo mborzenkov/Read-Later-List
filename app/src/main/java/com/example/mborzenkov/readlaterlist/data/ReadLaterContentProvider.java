@@ -8,6 +8,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 // TODO: Javadoc
 public class ReadLaterContentProvider extends ContentProvider {
@@ -47,6 +48,8 @@ public class ReadLaterContentProvider extends ContentProvider {
                         String[] selectionArgs, String sortOrder) {
 
         Cursor cursor;
+
+        Log.i("INFO", "Query successful");
 
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS:

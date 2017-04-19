@@ -39,6 +39,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.mborzenkov.readlaterlist.Activity.EditItem" />
         </activity>
+
+        <provider
+            android:name=".data.ReadLaterContentProvider"
+            android:authorities="@string/content_authority"
+            android:exported="false"/>
     </application>
 
     <uses-permission android:name="android.permission.VIBRATE"/>
