@@ -14,8 +14,10 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
@@ -52,6 +54,7 @@ public class MainList extends AppCompatActivity implements
     private ItemListAdapter mItemListAdapter;
     private ListView mItemListView;
     private ProgressBar mLoadingIndicator;
+    private LinearLayout mEmptyList;
     private Cursor mDataCursor;
     private int mPosition = 0;
 
@@ -76,6 +79,7 @@ public class MainList extends AppCompatActivity implements
         mItemListView = (ListView) findViewById(R.id.listview_main_list);
         mItemListView.setAdapter(mItemListAdapter);
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_main_loading);
+        mEmptyList = (LinearLayout) findViewById(R.id.linearLayout_emptylist);
 
         showLoading();
 
@@ -121,12 +125,20 @@ public class MainList extends AppCompatActivity implements
     }
 
     private void showDataView() {
+        Log.i("INFO", "Cursor count: " + mDataCursor.getCount());
         mLoadingIndicator.setVisibility(View.INVISIBLE);
-        mItemListView.setVisibility(View.VISIBLE);
+        if (mDataCursor.getCount() > 0) {
+            mEmptyList.setVisibility(View.INVISIBLE);
+            mItemListView.setVisibility(View.VISIBLE);
+        } else {
+            mItemListView.setVisibility(View.INVISIBLE);
+            mEmptyList.setVisibility(View.VISIBLE);
+        }
     }
 
     private void showLoading() {
         mItemListView.setVisibility(View.INVISIBLE);
+        mEmptyList.setVisibility(View.INVISIBLE);
         mLoadingIndicator.setVisibility(View.VISIBLE);
     }
 
@@ -155,6 +167,7 @@ public class MainList extends AppCompatActivity implements
                             int deleted = getContentResolver().delete(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), null, null);
                             if (deleted > 0) {
                                 Snackbar.make(mItemListView, "Элемент удален", Snackbar.LENGTH_LONG).show();
+                                showDataView();
                             }
                         } else {
                             ContentValues contentValues = new ContentValues();

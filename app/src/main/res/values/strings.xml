@@ -10,6 +10,9 @@
     <string name="edititem_color_hint">Color</string>
     <string name="edititem_title_add">Add item</string>
     <string name="edititem_title_edit">Edit item</string>
+    <string name="mainlist_empty_label">List is empty</string>
+    <string name="mainlist_empty_description">You can add something to list with button +fdffddfdffddfdfdf d</string>
+
 
     <string name="large_text">
         "Material is the metaphor.\n\n"

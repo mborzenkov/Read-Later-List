@@ -16,11 +16,13 @@
             android:id="@+id/toolbar_main_list"
             style="@style/Toolbar" />
 
-    <ListView
-        android:id="@+id/listview_main_list"
-        style="@style/MainList.List" />
+        <ListView
+            android:id="@+id/listview_main_list"
+            style="@style/MainList.List" />
 
     </LinearLayout>
+
+    <include layout="@layout/content_main_list_empty" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_item_add"
