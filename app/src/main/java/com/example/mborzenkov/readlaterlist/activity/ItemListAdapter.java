@@ -1,23 +1,16 @@
-package com.example.mborzenkov.readlaterlist.Activity;
+package com.example.mborzenkov.readlaterlist.activity;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.drawable.GradientDrawable;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.ResourceCursorAdapter;
 import android.widget.TextView;
 
-import com.example.mborzenkov.readlaterlist.ADT.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.R;
-
-import java.util.List;
 
 public class ItemListAdapter extends ResourceCursorAdapter {
 

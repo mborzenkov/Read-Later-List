@@ -1,15 +1,13 @@
-package com.example.mborzenkov.readlaterlist.Activity;
+package com.example.mborzenkov.readlaterlist.activity;
 
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -17,20 +15,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
 import com.example.mborzenkov.readlaterlist.ADT.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.R;
-import com.example.mborzenkov.readlaterlist.data.ReadLaterContentProvider;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
-import com.example.mborzenkov.readlaterlist.data.ReadLaterDbHelper;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 public class MainList extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>,

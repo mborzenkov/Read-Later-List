@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.Activity;
+package com.example.mborzenkov.readlaterlist.activity;
 
 import android.content.DialogInterface;
 import android.content.Intent;

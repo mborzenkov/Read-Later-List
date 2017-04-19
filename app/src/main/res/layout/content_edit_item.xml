@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.example.mborzenkov.readlaterlist.Activity.EditItem"
+    tools:context="com.example.mborzenkov.readlaterlist.activity.EditItem"
     tools:showIn="@layout/activity_edit_item">
 
     <android.support.constraint.ConstraintLayout

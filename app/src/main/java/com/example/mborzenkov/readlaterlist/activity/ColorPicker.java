@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.Activity;
+package com.example.mborzenkov.readlaterlist.activity;
 
 import android.content.Context;
 import android.content.Intent;
@@ -8,16 +8,13 @@ import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.PorterDuff;
 import android.graphics.Shader;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.PaintDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
-import android.media.Image;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -30,17 +27,14 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.os.Vibrator;
-import android.widget.Toast;
 
 import com.example.mborzenkov.readlaterlist.App;
 import com.example.mborzenkov.readlaterlist.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 public class ColorPicker extends AppCompatActivity implements View.OnTouchListener, View.OnLongClickListener {
 
