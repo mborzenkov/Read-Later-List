@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Read Later</string>
+    <string name="colorpicker_chosen_label">Выбрать цвет</string>
+    <string name="colorpicker_favorites_label">Сохраненные цвета</string>
+    <string name="db_error_insert">"Ошибка добавления данных в: "</string>
+    <string name="db_error_uriunknown">"Неизвестный uri: "</string>
+    <string name="edititem_color_hint">Цвет</string>
+    <string name="edititem_description_hint">Описание</string>
+    <string name="edititem_error_title_empty">Пожалуйста введите заголовок</string>
+    <string name="edititem_label_hint">Заголовок</string>
+    <string name="edititem_menu_delete">Удалить</string>
+    <string name="edititem_menu_delete_question_text">Вы уверены, что хотите удалить запись?</string>
+    <string name="edititem_menu_delete_question_title">Удаление записи</string>
+    <string name="edititem_title_add">Новая запись</string>
+    <string name="edititem_title_edit">Изменение записи</string>
+    <string name="mainlist_empty_description">Добавьте что нибудь в список с помощью кнопки в правом нижнем углу.</string>
+    <string name="mainlist_empty_label">Список пуст</string>
+    <string name="mainlist_menu_add_placeholders">Заполнить данными</string>
+    <string name="mainlist_menu_add_placeholders_label">"Заголовки всякие "</string>
+    <string name="mainlist_menu_add_placeholders_question_text">В список будут добавлены случайные данные. Продолжить?</string>
+    <string name="mainlist_menu_add_placeholders_question_title">Заполнение данными</string>
+    <string name="mainlist_menu_delete_all">Удалить все</string>
+    <string name="mainlist_menu_delete_all_question_text">Список будет полностью очищен без возможности восстановления. Продолжить?</string>
+    <string name="mainlist_menu_delete_all_question_title">Удалить все</string>
+    <string name="snackbar_item_added">Создана новая запись</string>
+    <string name="snackbar_item_edited">Запись изменена</string>
+    <string name="snackbar_item_removed">Запись удалена</string>
+    <string name="title_activity_colorpicker">Выбор цвета</string>
+    <string name="title_activity_edit_item">Редактирование записи</string>
+</resources>

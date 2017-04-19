@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/relaviteLayout_favorites"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <ImageButton
+        android:id="@+id/imageButton_favorite_color"
+        style="@style/ColorPicker.Favorite"
+        android:background="@drawable/colorpicker_circle"
+        android:onClick="clickOnFavSquare"
+        android:clickable="true"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
+
+    <ImageView
+        android:id="@+id/imageView_fav_star"
+        style="@style/ColorPicker.Star"
+        app:srcCompat="@android:drawable/btn_star"
+        android:layout_alignTop="@+id/imageButton_favorite_color"
+        android:layout_alignRight="@+id/imageButton_favorite_color"
+        android:layout_alignEnd="@+id/imageButton_favorite_color" />
+
+
+</RelativeLayout>

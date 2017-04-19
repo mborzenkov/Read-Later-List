@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.mborzenkov.readlaterlist.activity.ColorPicker">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar_colorpicker"
+        style="@style/Toolbar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <HorizontalScrollView
+        android:id="@+id/horizontalScrollView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_colorpicker"
+        tools:minHeight="100dp">
+
+        <LinearLayout
+            android:id="@+id/linearLayout_main"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
+    <ImageButton
+        android:id="@+id/imageButton_chosen"
+        style="@style/ColorPicker.ColoredCircle"
+        android:onClick="clickOnChosenSquare"
+        android:clickable="true"
+        android:layout_marginTop="16dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/horizontalScrollView"
+        tools:background="@drawable/colorpicker_circle"
+        app:srcCompat="@drawable/ic_check_24dp"/>
+
+    <TextView
+        android:id="@+id/textView_chosen"
+        style="@style/ColorPicker.Text"
+        android:text="@string/colorpicker_chosen_label"
+
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/imageButton_chosen"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        />
+
+    <LinearLayout
+        android:id="@+id/linearLayout_favorites"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView_chosen"
+        tools:minHeight="100dp"/>
+
+    <TextView
+        android:id="@+id/textView_favorites"
+        style="@style/ColorPicker.Text"
+        android:text="@string/colorpicker_favorites_label"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout_favorites"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/textView_RGB_label"
+        style="@style/ColorPicker.Text"
+        android:text="@string/colorpicker_RGB"
+        android:layout_marginTop="32dp"
+        android:layout_marginRight="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/horizontalScrollView"
+        app:layout_constraintRight_toLeftOf="@+id/imageButton_chosen"/>
+
+    <TextView
+        android:id="@+id/textView_RGB_value"
+        style="@style/ColorPicker.Text"
+        tools:text="@string/colorpicker_RGB_VAL"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/textView_RGB_label"
+        app:layout_constraintRight_toLeftOf="@+id/imageButton_chosen"/>
+
+    <TextView
+        android:id="@+id/textView_HSV_label"
+        style="@style/ColorPicker.Text"
+        android:text="@string/colorpicker_HSV"
+        android:layout_marginTop="32dp"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/horizontalScrollView"
+        app:layout_constraintLeft_toRightOf="@+id/imageButton_chosen"/>
+
+
+
+    <TextView
+        android:id="@+id/textView_HSV_value"
+        style="@style/ColorPicker.Text"
+        tools:text="@string/colorpicker_HSV_VAL"
+        android:layout_marginTop="8dp"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/textView_HSV_label"
+        app:layout_constraintLeft_toRightOf="@+id/imageButton_chosen"/>
+
+
+</android.support.constraint.ConstraintLayout>

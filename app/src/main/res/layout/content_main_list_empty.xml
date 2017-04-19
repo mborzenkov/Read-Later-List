@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/linearLayout_emptylist"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingTop="32dp"
+    android:layout_gravity="center">
+
+    <TextView
+        android:id="@+id/tv_item_empty_label"
+        style="@style/MainList.PrimaryText"
+        android:text="@string/mainlist_empty_label" />
+
+    <TextView
+        android:id="@+id/tv_item_empty_desc"
+        style="@style/MainList.SecondaryText"
+        android:text="@string/mainlist_empty_description" />
+
+</LinearLayout>
