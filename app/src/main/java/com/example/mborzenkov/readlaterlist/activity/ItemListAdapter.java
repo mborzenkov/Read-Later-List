@@ -12,11 +12,20 @@ import android.widget.TextView;
 
 import com.example.mborzenkov.readlaterlist.R;
 
+/**
+ * Адаптер для MainList (очень простой)
+ *      Этот адаптер имеет смысл переписать на RecyclerView
+ *      Но так как по заданию было запрещено пользоваться RecyclerView, этого сделано не было
+ *      // TODO: Переписать адаптер на RecyclerView
+ */
 public class ItemListAdapter extends ResourceCursorAdapter {
 
+    /** Контекст */
     private final Context mContext;
+    /** Обработчик нажатий */
     private final ItemListAdapterOnClickHandler mClickHandler;
 
+    /** Интерфейс для обработчика нажатий */
     public interface ItemListAdapterOnClickHandler {
         void onClick(int position);
     }
@@ -27,11 +36,13 @@ public class ItemListAdapter extends ResourceCursorAdapter {
         mClickHandler = clickHandler;
     }
 
+    /** Класс, собирающий в себе View (ViewHolder) */
     private class ItemListViewHolder implements View.OnClickListener {
+        // View, которые хранятся
         private final TextView labelTextView;
         private final TextView descriptionTextView;
         private final ImageView colorImageView;
-        protected int position;
+        private int position;
 
         ItemListViewHolder (View view) {
             labelTextView = (TextView) view.findViewById(R.id.tv_item_label);
@@ -47,7 +58,6 @@ public class ItemListAdapter extends ResourceCursorAdapter {
             mClickHandler.onClick(position);
         }
     }
-
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {

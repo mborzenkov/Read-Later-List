@@ -3,23 +3,40 @@ package com.example.mborzenkov.readlaterlist.data;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+/**
+ * Описание базы данных, контракт и класс со всеми колонками
+ */
 public class ReadLaterContract {
 
+    /** Имя идентификатор постащвика */
     public static final String CONTENT_AUTHORITY = "com.example.mborzenkov.readlaterlist";
+    /** Uri для поставщика */
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
+    /** Путь к списку элементов ReadLater */
     public static final String PATH_ITEMS = "items";
 
+    /** Описание таблиц */
     public static final class ReadLaterEntry implements BaseColumns {
 
+        /** Uri для доступа к таблице items */
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon()
                 .appendPath(PATH_ITEMS)
                 .build();
 
+        /** Имя таблицы */
         public static final String TABLE_NAME = "items";
+        /** Имя колонки с заголовком элемента */
         public static final String COLUMN_LABEL = "label";
+        /** Имя колонки с описанием элемента */
         public static final String COLUMN_DESCRIPTION = "description";
+        /** Имя колонки с цветом элемента */
         public static final String COLUMN_COLOR = "color";
 
+        /**
+         * Создает Uri для доступа к одному элменту по id
+         * @param id _id элемента
+         * @return Uri для доступа
+         */
         public static Uri buildUriForOneItem(int id) {
             return CONTENT_URI.buildUpon()
                     .appendPath(String.valueOf(id))

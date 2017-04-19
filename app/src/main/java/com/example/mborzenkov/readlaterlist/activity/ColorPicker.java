@@ -36,6 +36,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Activity для выбора цвета с помощью палитры
+ * Использование:
+ *      Для установки выбранного цвета при открытии необходимо передать int в Intent с ключем ColorPicker.CHOSEN_KEY
+ *      При выборе цвета (нажатии на выбранный цвет) возвращает его как int в Intent с ключем  ColorPicker.CHOSEN_KEY
+ */
 public class ColorPicker extends AppCompatActivity implements View.OnTouchListener, View.OnLongClickListener {
 
     // Объявляем все переменные
@@ -286,6 +292,10 @@ public class ColorPicker extends AppCompatActivity implements View.OnTouchListen
 
     }
 
+    /**
+     * Возвращает выбранный цвет и закрывает Activity
+     * @param color Выбранный цвет
+     */
     private void closeWithResult(int color) {
         mFromIntent.putExtra(CHOSEN_KEY, color);
         setResult(RESULT_OK, mFromIntent);
