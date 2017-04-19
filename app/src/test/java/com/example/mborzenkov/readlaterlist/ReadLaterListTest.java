@@ -2,6 +2,8 @@ package com.example.mborzenkov.readlaterlist;
 
 import android.graphics.Color;
 
+import com.example.mborzenkov.readlaterlist.ADT.ReadLaterItem;
+
 import org.junit.Test;
 
 import static org.junit.Assert.*;

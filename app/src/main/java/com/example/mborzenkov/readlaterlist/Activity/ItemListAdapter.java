@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist;
+package com.example.mborzenkov.readlaterlist.Activity;
 
 import android.content.Context;
 import android.graphics.drawable.GradientDrawable;
@@ -9,7 +9,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+import com.example.mborzenkov.readlaterlist.ADT.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.R;
+
 import java.util.List;
 
 public class ItemListAdapter extends ArrayAdapter<ReadLaterItem> {

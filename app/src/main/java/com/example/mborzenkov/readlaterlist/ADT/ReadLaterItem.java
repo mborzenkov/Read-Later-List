@@ -1,8 +1,10 @@
-package com.example.mborzenkov.readlaterlist;
+package com.example.mborzenkov.readlaterlist.ADT;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+
+import com.example.mborzenkov.readlaterlist.BuildConfig;
 
 /**
  * Неизменяемый АТД, представляющий элемент списка ReadLater
@@ -116,8 +118,8 @@ public class ReadLaterItem implements Parcelable {
     // Интерфейс Parcelable далее
 
     /** Константа для использования в Intent в качестве ключа */
-    public static final String KEY_EXTRA = "com.mborzenkov.readlaterlist.readlateritem.extra";
-    public static final String KEY_UID = "com.mborzenkov.readlaterlist.readlateritem.uid";
+    public static final String KEY_EXTRA = "com.example.mborzenkov.readlaterlist.readlateritem.extra";
+    public static final String KEY_UID = "com.example.mborzenkov.readlaterlist.readlateritem.uid";
 
     public static final Parcelable.Creator<ReadLaterItem> CREATOR = new Parcelable.Creator<ReadLaterItem>() {
         @Override

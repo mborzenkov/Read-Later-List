@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist;
+package com.example.mborzenkov.readlaterlist.Activity;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -11,6 +11,9 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.example.mborzenkov.readlaterlist.ADT.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.R;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -19,6 +22,7 @@ public class MainList extends AppCompatActivity {
 
     // TODO: Когда список пуст, показать сообщение о необходимости добавления (лучше layout)
     // TODO: Запихать все в ресурсы, все строки!
+    // TODO: Добавить уменьшенное описание
 
     private static final int ITEM_ADD_NEW_REQUEST = 1;
     private static final int ITEM_EDIT_REQUEST = 2;
@@ -30,7 +34,9 @@ public class MainList extends AppCompatActivity {
     static {
         Random randomizer = new Random();
         for (int i = 0; i < 100; i++) {
-            allData.add(new ReadLaterItem("Заголовок " + i, "Описание " + i, randomizer.nextInt()));
+            float[] colorHSV = new float[3];
+            Color.colorToHSV(randomizer.nextInt(), colorHSV);
+            allData.add(new ReadLaterItem("Заголовок " + i, "Описание " + i, Color.HSVToColor(colorHSV)));
         }
     }
 

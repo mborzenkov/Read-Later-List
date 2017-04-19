@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist;
+package com.example.mborzenkov.readlaterlist.Activity;
 
 import android.content.Context;
 import android.content.Intent;
@@ -31,6 +31,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.os.Vibrator;
 import android.widget.Toast;
+
+import com.example.mborzenkov.readlaterlist.App;
+import com.example.mborzenkov.readlaterlist.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;

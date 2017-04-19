@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist;
+package com.example.mborzenkov.readlaterlist.Activity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,6 +14,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+
+import com.example.mborzenkov.readlaterlist.ADT.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.R;
 
 public class EditItem extends AppCompatActivity implements View.OnClickListener {
 
