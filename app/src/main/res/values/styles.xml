@@ -78,26 +78,29 @@
         <item name="android:layout_width">40dp</item>
         <item name="android:layout_height">40dp</item>
     </style>
+    <style name="EditList.TextInputLayout">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginLeft">72dp</item>
+        <item name="android:layout_marginRight">16dp</item>
+    </style>
     <style name="EditList.TextField">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:fontFamily">sans-serif</item>
         <item name="android:textSize">16sp</item>
-        <item name="android:layout_marginLeft">72dp</item>
-        <item name="android:layout_marginRight">16dp</item>
         <item name="android:textColor">@color/primary_text</item>
+        <item name="android:inputType">text</item>
     </style>
-    <style name="EditList.AppBarTextField" parent="EditList.TextField">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:fontFamily">sans-serif</item>
-        <item name="android:textSize">16sp</item>
+    <style name="EditList.AppBarTextInputLayout" parent="EditList.TextInputLayout">
         <item name="android:layout_marginTop">8dp</item>
         <item name="android:layout_marginLeft">72dp</item>
         <item name="android:layout_marginRight">72dp</item>
         <item name="android:layout_marginBottom">32dp</item>
-        <item name="android:textColor">@color/primary_text</item>
-        <item name="android:singleLine">true</item>
+    </style>
+    <style name="EditList.AppBarTextField" parent="EditList.TextField">
+        <item name="android:maxLines">1</item>
+        <item name="android:nextFocusDown">@id/et_edit_item_description</item>
     </style>
     <style name="EditList.FABSave">
         <item name="android:layout_width">56dp</item>

@@ -13,6 +13,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
@@ -66,6 +67,9 @@ public class EditItem extends AppCompatActivity implements View.OnClickListener 
             getSupportActionBar().setTitle(getString(R.string.edititem_title_add));
             fab.setImageResource(R.drawable.ic_edit_24dp);
             mChosenColor = ContextCompat.getColor(this, R.color.item_default_color);
+            if(mLabelEditText.requestFocus()) {
+                getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            }
         }
         updateChosenColor();
     }
