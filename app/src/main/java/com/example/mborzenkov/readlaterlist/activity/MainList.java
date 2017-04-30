@@ -21,7 +21,8 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
-import com.example.mborzenkov.readlaterlist.ADT.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
@@ -190,17 +191,17 @@ public class MainList extends AppCompatActivity implements
         Intent editItemIntent = new Intent(MainList.this, EditItem.class);
         mDataCursor.moveToPosition(position);
         ReadLaterItem data = new ReadLaterItem(mDataCursor.getString(INDEX_COLUMN_LABEL), mDataCursor.getString(INDEX_COLUMN_DESCRIPTION), mDataCursor.getInt(INDEX_COLUMN_COLOR));
-        editItemIntent.putExtra(ReadLaterItem.KEY_EXTRA, data);
-        editItemIntent.putExtra(ReadLaterItem.KEY_UID, mDataCursor.getInt(INDEX_COLUMN_ID));
+        editItemIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(data));
+        editItemIntent.putExtra(ReadLaterItemParcelable.KEY_UID, mDataCursor.getInt(INDEX_COLUMN_ID));
         startActivityForResult(editItemIntent, ITEM_EDIT_REQUEST);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Обрабатывает возврат от EditItem
-        if (resultCode == RESULT_OK && data != null && data.hasExtra(ReadLaterItem.KEY_EXTRA)) {
+        if (resultCode == RESULT_OK && data != null && data.hasExtra(ReadLaterItemParcelable.KEY_EXTRA)) {
             // Возвращенные данные в формате ReadLaterItem
-            ReadLaterItem resultData = data.getParcelableExtra(ReadLaterItem.KEY_EXTRA);
+            ReadLaterItem resultData = ((ReadLaterItemParcelable) data.getParcelableExtra(ReadLaterItemParcelable.KEY_EXTRA)).getItem();
             switch (requestCode) {
                 case ITEM_ADD_NEW_REQUEST:
                     if (resultData != null) {
@@ -212,8 +213,8 @@ public class MainList extends AppCompatActivity implements
                     }
                     break;
                 case ITEM_EDIT_REQUEST:
-                    if (data.hasExtra(ReadLaterItem.KEY_UID)) {
-                        int uid = data.getIntExtra(ReadLaterItem.KEY_UID, -1);
+                    if (data.hasExtra(ReadLaterItemParcelable.KEY_UID)) {
+                        int uid = data.getIntExtra(ReadLaterItemParcelable.KEY_UID, -1);
                         if (resultData == null) {
                             // Удаляет элемент, показывает снэкбар
                             int deleted = getContentResolver().delete(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), null, null);

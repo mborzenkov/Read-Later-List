@@ -6,7 +6,7 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 
-import com.example.mborzenkov.readlaterlist.ADT.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 

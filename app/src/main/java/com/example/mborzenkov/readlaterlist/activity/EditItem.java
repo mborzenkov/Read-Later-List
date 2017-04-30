@@ -21,7 +21,8 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
-import com.example.mborzenkov.readlaterlist.ADT.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.R;
 
 /**
@@ -87,9 +88,9 @@ public class EditItem extends AppCompatActivity implements View.OnClickListener 
 
         // Чтение данных из Intent
         Intent intent = getIntent();
-        if (intent != null && intent.hasExtra(ReadLaterItem.KEY_EXTRA) && intent.hasExtra(ReadLaterItem.KEY_UID)) {
+        if (intent != null && intent.hasExtra(ReadLaterItemParcelable.KEY_EXTRA) && intent.hasExtra(ReadLaterItemParcelable.KEY_UID)) {
             // В Intent были переданы данные об объекте, записываем их в соответствующие поля
-            ReadLaterItem itemData = intent.getParcelableExtra(ReadLaterItem.KEY_EXTRA);
+            ReadLaterItem itemData = ((ReadLaterItemParcelable) intent.getParcelableExtra(ReadLaterItemParcelable.KEY_EXTRA)).getItem();
             mLabelEditText.setText(itemData.getLabel());
             mDescriptionEditText.setText(itemData.getDescription());
             mChosenColor = itemData.getColor();
@@ -171,16 +172,25 @@ public class EditItem extends AppCompatActivity implements View.OnClickListener 
     }
 
     /**
-     * Возвращает данные, добавляя объект ReadLaterItem в тот же Intent, который открыл эту Activity
+     * Возвращает данные, добавляя объект ReadLaterItem в Intent
      * Объект добавляется под ключем ReadLaterItem.KEY_EXTRA
+     * Если в Intent, открывшем Activity, был ключ ReadLaterItem.KEY_UID, то он добавляется к возвращаемому
      * @param resultData Объект для передачи
      */
     private void sendResult(ReadLaterItem resultData) {
-        Intent resultIntent = getIntent();
-        if (resultIntent != null) {
-            resultIntent.putExtra(ReadLaterItem.KEY_EXTRA, resultData);
-            setResult(RESULT_OK, resultIntent);
+        // TODO: Проверить, возвращается ли Intent
+        // TODO: Проверить, надо ли указывать что-то у Intent или достаточно new Intent()
+        // TODO: Заменить "-1" на нормальное значение (константу)
+        // TODO: В ColorPicker убрать mFromIntent из полей, потому что он не нужен
+        // TODO: Прогнать весь проект через lint, checkstyle и другие
+        // TODO: Написать тесты Robolectric или Mockito
+        // TODO: Разбить приложение по MVP / M getUsername, V findViewById, P вызовы // Отделить логику от взаимодействия с ОС и тестировать по отдельности
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(resultData));
+        if (getIntent().hasExtra(ReadLaterItemParcelable.KEY_UID)) {
+            resultIntent.putExtra(ReadLaterItemParcelable.KEY_UID, getIntent().getIntExtra(ReadLaterItemParcelable.KEY_UID, -1));
         }
+        setResult(RESULT_OK, resultIntent);
         finish();
     }
 

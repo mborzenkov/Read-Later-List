@@ -2,7 +2,7 @@ package com.example.mborzenkov.readlaterlist;
 
 import android.graphics.Color;
 
-import com.example.mborzenkov.readlaterlist.ADT.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 
 import org.junit.Test;
 
@@ -11,7 +11,7 @@ import static org.junit.Assert.*;
 /**
  * Тестирует ReadLaterItem
  */
-public class ReadLaterListTest {
+public class ReadLaterItemTest {
 
     /*
      * Стратегия тестирования
@@ -132,4 +132,5 @@ public class ReadLaterListTest {
         ReadLaterItem item = new ReadLaterItem(normalLabel, normalDescription, normalColor);
         assertEquals(normalLabel + "\n" + normalDescription + "\n" + "(Цвет: " + String.format("#%06X", (0xFFFFFF & normalColor)) + ")", item.toString());
     }
+
 }

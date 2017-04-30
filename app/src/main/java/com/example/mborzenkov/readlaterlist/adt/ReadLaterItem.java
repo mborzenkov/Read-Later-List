@@ -1,7 +1,5 @@
-package com.example.mborzenkov.readlaterlist.ADT;
+package com.example.mborzenkov.readlaterlist.adt;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
@@ -10,13 +8,13 @@ import com.example.mborzenkov.readlaterlist.BuildConfig;
  * Неизменяемый АТД, представляющий элемент списка ReadLater
  * Обладает заголовком (label), описанием (description) и цветом (color).
  */
-public class ReadLaterItem implements Parcelable {
+public class ReadLaterItem {
 
-    /** Заголовок */
+    /** Заголовок. */
     private final String label;
-    /** Описание */
+    /** Описание. */
     private final String description;
-    /** Цвет */
+    /** Цвет. */
     private final int color;
 
     // Инвариант:
@@ -35,13 +33,16 @@ public class ReadLaterItem implements Parcelable {
 
     private void checkRep() {
         if (BuildConfig.DEBUG) {
-            if (label.trim().isEmpty()) throw new AssertionError();
+            if (label.trim().isEmpty()) {
+                throw new AssertionError();
+            }
         }
     }
 
-    /**
-     * Создает новый элемент для помещения в список ReadLater
-     * @param label Заголовок элемента, непустой и однострочный (содержит буквы, цифры или символы, не содержит переносов строки)
+    /** Создает новый элемент для помещения в список ReadLater.
+     *
+     * @param label Заголовок элемента, непустой и однострочный
+     *              (содержит буквы, цифры или символы, не содержит переносов строки)
      * @param description Описание элемента
      * @param color Цвет в sRGB
      */
@@ -57,32 +58,32 @@ public class ReadLaterItem implements Parcelable {
         checkRep();
     }
 
-    /**
-     * Возвращает заголовок элемента
+    /** Возвращает заголовок элемента.
+     *
      * @return Заголовок элемента
      */
     public String getLabel() {
         return label;
     }
 
-    /**
-     * Возвращает описание элемента
+    /** Возвращает описание элемента.
+     *
      * @return Описание элемента
      */
     public String getDescription() {
         return description;
     }
 
-    /**
-     * Возвращает цвет элемента
+    /** Возвращает цвет элемента.
+     *
      * @return Цвет элемента в sRGB
      */
     public int getColor() {
         return color;
     }
 
-    /**
-     * Два объекта ReadLaterItem равны, если у них одинаковые заголовок, описание и цвет
+    /** Два объекта ReadLaterItem равны, если у них одинаковые заголовок, описание и цвет.
+     *
      * @param obj Объект для сравнения
      * @return True, если равны; False в противном случае
      */
@@ -92,7 +93,9 @@ public class ReadLaterItem implements Parcelable {
             return false;
         }
         ReadLaterItem thatObject = (ReadLaterItem) obj;
-        return ((color == thatObject.color) && label.equals(thatObject.label) && description.equals(thatObject.description));
+        return ((color == thatObject.color)
+                && label.equals(thatObject.label)
+                && description.equals(thatObject.description));
     }
 
     @Override
@@ -104,50 +107,14 @@ public class ReadLaterItem implements Parcelable {
         return result;
     }
 
-    /**
-     * Возвращает строковое представление ReadLaterItem
+    /** Возвращает строковое представление ReadLaterItem.
+     *
      * @return Строковое представление состоит из: label\n description\n (Цвет: color), где color - цвет в HEX
-     * Например, "Примерный заголовок!\nДлинное описание, возможно многострочное\n(Цвет: #FFFFFF)
+     *          Например, "Примерный заголовок!\nДлинное описание, возможно многострочное\n(Цвет: #FFFFFF)
      */
     @Override
     public String toString() {
         return label + "\n" + description + "\n(Цвет: " + String.format("#%06X", (0xFFFFFF & color)) + ")";
     }
 
-    //////////////////////////////
-    // Интерфейс Parcelable далее
-
-    /** Константа для использования в Intent в качестве ключа */
-    public static final String KEY_EXTRA = "com.example.mborzenkov.readlaterlist.readlateritem.extra";
-    public static final String KEY_UID = "com.example.mborzenkov.readlaterlist.readlateritem.uid";
-
-    public static final Parcelable.Creator<ReadLaterItem> CREATOR = new Parcelable.Creator<ReadLaterItem>() {
-        @Override
-        public ReadLaterItem createFromParcel(Parcel source) {
-            return new ReadLaterItem(source);
-        }
-
-        @Override
-        public ReadLaterItem[] newArray(int size) {
-            return new ReadLaterItem[size];
-        }
-    };
-
-    private ReadLaterItem(Parcel source) {
-        label = source.readString();
-        description = source.readString();
-        color = source.readInt();
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(label);
-        dest.writeString(description);
-        dest.writeInt(color);
-    }
 }
