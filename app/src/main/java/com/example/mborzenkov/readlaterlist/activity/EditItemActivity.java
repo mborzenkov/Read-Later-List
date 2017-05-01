@@ -204,7 +204,7 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
      */
     private void sendResult(ReadLaterItem resultData) {
         Intent resultIntent = new Intent();
-        resultIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(resultData));
+        resultIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, resultData == null ? null : new ReadLaterItemParcelable(resultData));
         setResult(RESULT_OK, resultIntent);
         finish();
     }

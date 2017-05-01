@@ -215,8 +215,9 @@ public class MainListActivity extends AppCompatActivity implements
         // Обрабатывает возврат от EditItemActivity
         if (resultCode == RESULT_OK && data != null && data.hasExtra(ReadLaterItemParcelable.KEY_EXTRA)) {
             // Возвращенные данные в формате ReadLaterItem
-            ReadLaterItem resultData =
-                    ((ReadLaterItemParcelable) data.getParcelableExtra(ReadLaterItemParcelable.KEY_EXTRA)).getItem();
+            ReadLaterItemParcelable parcelableData =
+                    (ReadLaterItemParcelable) data.getParcelableExtra(ReadLaterItemParcelable.KEY_EXTRA);
+            ReadLaterItem resultData = parcelableData == null ? null : parcelableData.getItem();
             switch (requestCode) {
                 case ITEM_ADD_NEW_REQUEST:
                     if (resultData != null && ReadLaterDbUtils.insertItem(MainListActivity.this, resultData)) {
