@@ -11,11 +11,13 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.PaintDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
+import android.os.Bundle;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -25,7 +27,6 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.os.Vibrator;
 
 import com.example.mborzenkov.readlaterlist.R;
 
@@ -46,7 +47,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
 
     // Объявляем все переменные
     /** Константа для использования в качестве ключа при сохранении массива Favorites. */
-    public static final String FAVORITES_KEY = "com.example.mborzenkov.colorpicker.favorites";
+    private static final String FAVORITES_KEY = "com.example.mborzenkov.colorpicker.favorites";
     /** Константа для использования в качестве ключа при сохранении выбранного цвета. */
     public static final String CHOSEN_KEY = "com.example.mborzenkov.colorpicker.chosen";
 
@@ -62,8 +63,8 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
 
     // Элементы layout и помощники
     private HorizontalScrollView mScrollView;
-    private LinearLayout mSquaresLinearLayout;
-    private LinearLayout mFavoritesLinearLayout;
+    private LinearLayout mColorsLinearLayout;
+    private LinearLayout mFavLinearLayout;
     private TextView mRgbValueTextView;
     private TextView mHsvValueTextView;
 
@@ -83,6 +84,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
     /** Список цветов у квадратов по умолчанию в формате HSV. */
     private List<float[]> mSquareStandardColorsHsv = new ArrayList<>();
     /** Список текущих цветов у квадратов в формате HSV. */
+    @SuppressWarnings("CanBeFinal") // Потому что он не может быть final, потому что добавляются элементы
     private List<float[]> mSquareColorsHsv = new ArrayList<>();
     /** Список любимых цветов в формате Color. */
     private int[] mFavoriteColors;
@@ -100,8 +102,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
     /** Предыдущее положение нажатия по Y. */
     private int deltaY = 0;
 
-    /**
-     * Считает шаг для HUE между краями мультиградиента
+    /** Считает шаг для HUE между краями мультиградиента.
      * @param startColor Начальный цвет
      * @param endColor Конечный цвет
      *                 Требуется, чтобы HUE в endColor был > HUE в startColor
@@ -109,15 +110,15 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
      * @return Шаг step*numberOfSquares ~= hue(endColor) - hue(startColor)
      */
     private static int countStep(int startColor, int endColor, int numberOfSquares) {
-        float[] startColorHSV = new float[3];
-        float[] endColorHSV = new float[3];
-        Color.colorToHSV(startColor, startColorHSV);
-        Color.colorToHSV(endColor, endColorHSV);
+        float[] startColorHsv = new float[3];
+        float[] endColorHsv = new float[3];
+        Color.colorToHSV(startColor, startColorHsv);
+        Color.colorToHSV(endColor, endColorHsv);
 
-        return (int) ((endColorHSV[0] - startColorHSV[0]) / (float) numberOfSquares);
+        return (int) ((endColorHsv[0] - startColorHsv[0]) / (float) numberOfSquares);
     }
 
-    /** Копирует цвет в формате HSV
+    /** Копирует цвет в формате HSV.
      *
      * @param colorFrom Цвет в формате HSV,
      */
@@ -125,7 +126,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         return Arrays.copyOf(colorFrom, 3);
     }
 
-    /** Возвращает новый Drawable квадратик с прозрачным цветом
+    /** Возвращает новый Drawable квадратик с прозрачным цветом.
      *
      * @return Квадратик Drawable
      */
@@ -151,7 +152,10 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_colorpicker);
         toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.icons));
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
 
         Context applicationContext = getApplicationContext();
         LayoutInflater layoutInflater = getLayoutInflater();
@@ -160,8 +164,8 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
 
         // Инициализация
         mScrollView = (HorizontalScrollView) findViewById(R.id.horizontalScrollView);
-        mSquaresLinearLayout = (LinearLayout) findViewById(R.id.linearLayout_main);
-        mFavoritesLinearLayout = (LinearLayout) findViewById(R.id.linearLayout_favorites);
+        mColorsLinearLayout = (LinearLayout) findViewById(R.id.linearLayout_main);
+        mFavLinearLayout = (LinearLayout) findViewById(R.id.linearLayout_favorites);
         mRgbValueTextView = (TextView) findViewById(R.id.textView_RGB_value);
         mHsvValueTextView = (TextView) findViewById(R.id.textView_HSV_value);
         mSharedPreferences = getPreferences(Context.MODE_PRIVATE);
@@ -182,8 +186,8 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         getWindowManager().getDefaultDisplay().getMetrics(dm);
         int width = dm.widthPixels;
         int height = dm.heightPixels;
-        double wi = (double)width/(double)dm.xdpi;
-        double hi = (double)height/(double)dm.ydpi;
+        double wi = (double)width / (double)dm.xdpi;
+        double hi = (double)height / (double)dm.ydpi;
         mDivHue = (int) (wi * 10);
         mDivVal = (int) (hi * 500);
 
@@ -199,12 +203,12 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         for (int i = 0; i < maxFavorites; i++) {
 
             squareDrawable = getSquareDrawable(applicationContext);
-            View favSquare = layoutInflater.inflate(R.layout.content_colorpicker_favorites, mFavoritesLinearLayout, false);
+            View favSquare = layoutInflater.inflate(R.layout.content_colorpicker_favorites, mFavLinearLayout, false);
             View squareButton = favSquare.findViewById(R.id.imageButton_favorite_color);
             squareButton.setOnLongClickListener(this);
             squareButton.setBackground(squareDrawable);
             squareButton.setTag(i);
-            mFavoritesLinearLayout.addView(favSquare);
+            mFavLinearLayout.addView(favSquare);
 
         }
 
@@ -217,8 +221,8 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
 
         // Считаем начальный цвет
         int curColor = colorGradientStart;
-        float[] curColorHSV = new float[3];
-        Color.colorToHSV(curColor, curColorHSV);
+        float[] curColorHsv = new float[3];
+        Color.colorToHSV(curColor, curColorHsv);
         mArrayOfGradient[0] = curColor;
         arrayOfPositions[0] = 0;
 
@@ -226,20 +230,20 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         for (int i = 0; i < numberOfSquares; i++) {
 
             // Создаем Drawable квадратик и запоминаем его цвет в mSquareColorsHsv
-            curColorHSV[0] += mStepHue / 2;
-            curColor = Color.HSVToColor(curColorHSV);
+            curColorHsv[0] += mStepHue / 2;
+            curColor = Color.HSVToColor(curColorHsv);
             squareDrawable = getSquareDrawable(applicationContext);
             squareDrawable.setColor(curColor);
-            mSquareColorsHsv.add(copyOfColor(curColorHSV));
-            curColorHSV[0] += mStepHue / 2;
+            mSquareColorsHsv.add(copyOfColor(curColorHsv));
+            curColorHsv[0] += mStepHue / 2;
 
             // Запоминаем правую границу градиента и ее положение
-            curColor = Color.HSVToColor(curColorHSV);
-            mArrayOfGradient[i+1] = curColor;
-            arrayOfPositions[i+1] = (float) i / (float) numberOfSquares;
+            curColor = Color.HSVToColor(curColorHsv);
+            mArrayOfGradient[i + 1] = curColor;
+            arrayOfPositions[i + 1] = (float) i / (float) numberOfSquares;
 
             // Создаем View квадратик
-            View square = layoutInflater.inflate(R.layout.content_colorpicker_circle, mSquaresLinearLayout, false);
+            View square = layoutInflater.inflate(R.layout.content_colorpicker_circle, mColorsLinearLayout, false);
             View squareButton = square.findViewById(R.id.imageButton_colored_square);
             // Устанавливаем ему Listener'ы для действий с ним
             squareButton.setOnLongClickListener(this);
@@ -247,9 +251,9 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
             squareButton.setBackground(squareDrawable);
             // Простой способ потом понимать какой квадратик какой - установить таги
             squareButton.setTag(i);
-            mSquaresLinearLayout.addView(square);
+            mColorsLinearLayout.addView(square);
 
-            Color.colorToHSV(curColor, curColorHSV);
+            Color.colorToHSV(curColor, curColorHsv);
 
         }
 
@@ -269,17 +273,16 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         ShapeDrawable.ShaderFactory shaderFactory = new ShapeDrawable.ShaderFactory() {
             @Override
             public Shader resize(int width, int height) {
-                LinearGradient linearGradient = new LinearGradient(0, 0, width, height,
+                return new LinearGradient(0, 0, width, height,
                         mArrayOfGradient,
                         arrayOfPositions,
                         Shader.TileMode.REPEAT);
-                return linearGradient;
             }
         };
         PaintDrawable perfectGradient = new PaintDrawable();
         perfectGradient.setShape(new RectShape());
         perfectGradient.setShaderFactory(shaderFactory);
-        mSquaresLinearLayout.setBackground(perfectGradient);
+        mColorsLinearLayout.setBackground(perfectGradient);
 
         // Запоминаем все начальные значения
         mSquareStandardColorsHsv = new ArrayList<>();
@@ -289,8 +292,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
 
     }
 
-    /**
-     * Возвращает выбранный цвет и закрывает Activity
+    /** Возвращает выбранный цвет и закрывает Activity.
      * @param color Выбранный цвет
      */
     private void closeWithResult(int color) {
@@ -306,7 +308,9 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
             int[] favoritesFromState = savedInstanceState.getIntArray(FAVORITES_KEY);
             if (favoritesFromState != null) {
                 for (int i = 0; i < favoritesFromState.length; i++) {
-                    if (favoritesFromState[i] != 0) setFavoriteColor(i, favoritesFromState[i]);
+                    if (favoritesFromState[i] != 0) {
+                        setFavoriteColor(i, favoritesFromState[i]);
+                    }
                 }
                 mFavoriteColors = Arrays.copyOf(favoritesFromState, favoritesFromState.length);
             }
@@ -346,7 +350,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
                     editingMode = false;
                     mScrollView.requestDisallowInterceptTouchEvent(false);
                     changeMainColor(chosenColorHsv, false);
-                    mSquaresLinearLayout.getBackground().clearColorFilter();
+                    mColorsLinearLayout.getBackground().clearColorFilter();
                 } else if (doubleClick && square.equals(lastClickedSquare)) {
                     reverseColor(square);
                     doubleClick = false;
@@ -359,16 +363,17 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
             case MotionEvent.ACTION_MOVE:
                 // Передвижение работает только в режиме редактирования, меняем цвета
                 if (editingMode) {
-                    float HUE = ((float) (X - deltaX)) / mDivHue;
-                    float VAL = ((float) (Y - deltaY)) / mDivVal;
-                    updateColor(square, HUE, VAL);
+                    float hue = ((float) (X - deltaX)) / mDivHue;
+                    float val = ((float) (Y - deltaY)) / mDivVal;
+                    updateColor(square, hue, val);
                     deltaX = X;
                     deltaY = Y;
                 }
-                break;
+                mFavLinearLayout.invalidate();
+                return false;
+            default:
+                return false;
         }
-        mFavoritesLinearLayout.invalidate();
-        return false;
     }
 
     @Override
@@ -381,7 +386,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
                     int position = (Integer) v.getTag();
                     changeMainColor(mSquareColorsHsv.get(position), false);
                     // Затеняем градиент
-                    mSquaresLinearLayout.getBackground().setColorFilter(Color.argb(25, 0, 0, 0), PorterDuff.Mode.DARKEN);
+                    mColorsLinearLayout.getBackground().setColorFilter(Color.argb(25, 0, 0, 0), PorterDuff.Mode.DARKEN);
                     vibrate();
                 }
                 break;
@@ -392,16 +397,18 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
                     setFavoriteColor(position, colorFavorite);
                     SharedPreferences.Editor editor = mSharedPreferences.edit();
                     editor.putInt(FAVORITES_KEY + "." + position, colorFavorite);
-                    editor.commit();
+                    editor.apply();
                     vibrate();
                     return true;
                 }
+                break;
+            default:
                 break;
         }
         return false;
     }
 
-    /** Обработчик нажатия на Favorites квадратик
+    /** Обработчик нажатия на Favorites квадратик.
      * При вызове меняет цвет у главного квадратика, надписей вокруг него и строки меню
      * @param view Квадратик
      */
@@ -416,7 +423,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         }
     }
 
-    /** Обработчик нажатия на выбранный квадратик
+    /** Обработчик нажатия на выбранный квадратик.
      * При вызове закрывает Activity и возвращает цвет
      * @param view ImageButton выбранный цвет
      */
@@ -426,21 +433,25 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         }
     }
 
-    /** Класс для обработки двойного клика
-     *
-     */
+    /** Класс для обработки двойного клика. */
     private class HandleClick implements Runnable {
-        ImageButton view;
-        HandleClick(ImageButton view) { this.view = view; }
+
+        final ImageButton view;
+
+        HandleClick(ImageButton view) {
+            this.view = view;
+        }
+
         public void run() {
             if (doubleClick) {
                 clickOnSquare(view);
                 doubleClick = false;
             }
         }
+
     }
 
-    /** Обработчик нажатия на квадратик
+    /** Обработчик нажатия на квадратик.
      * При вызове меняет цвет у главного квадратика, надписей вокруг него, строки меню и Favorites
      * @param square Квадратик
      */
@@ -452,96 +463,96 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         }
     }
 
-    /** Меняет цвет у основного квадратика, надписей вокруг него и строки меню на переданный colorHSV
+    /** Меняет цвет у основного квадратика, надписей вокруг него и строки меню на переданный colorHSV.
      *
-     * @param colorHSV Цвет в HSV, float[] размерностью 3
+     * @param colorHsv Цвет в HSV, float[] размерностью 3
      * @param saveAsChosen Признак, нужно ли сохранить цвет
      */
-    private void changeMainColor(@NonNull float[] colorHSV, boolean saveAsChosen) {
+    private void changeMainColor(@NonNull float[] colorHsv, boolean saveAsChosen) {
         if (saveAsChosen) {
-            chosenColorHsv = copyOfColor(colorHSV);
+            chosenColorHsv = copyOfColor(colorHsv);
         }
-        int color = Color.HSVToColor(colorHSV);
+        int color = Color.HSVToColor(colorHsv);
         ((GradientDrawable) findViewById(R.id.imageButton_chosen).getBackground()).setColor(color);
-        mRgbValueTextView.setText("" + Color.red(color) + ", " + Color.green(color) + ", " + Color.blue(color));
-        mHsvValueTextView.setText("" + String.format(Locale.US, "%.2f", colorHSV[0]) + ", " + String.format(Locale.US, "%.2f", colorHSV[1]) + ", " + String.format(Locale.US, "%.2f", colorHSV[2]));
+        mRgbValueTextView.setText(String.format("%d, %d, %d", Color.red(color), Color.green(color), Color.blue(color)));
+        mHsvValueTextView.setText(String.format(Locale.US, "%.2f, %.2f, %.2f", colorHsv[0], colorHsv[1], colorHsv[2]));
     }
 
     /** Обрабатывает изменения цвета в квадратике.
      *
      * @param square Квадратик
-     * @param HUE Изменение HUE от стандартного значения
-     * @param VAL Изменение VAL от стандартного значения
+     * @param hue Изменение HUE от стандартного значения
+     * @param val Изменение VAL от стандартного значения
      */
-    private void updateColor(@NonNull ImageButton square, float HUE, float VAL) {
+    private void updateColor(@NonNull ImageButton square, float hue, float val) {
 
         final int position = (Integer) square.getTag();
-        float[] standardColorHSV = mSquareStandardColorsHsv.get(position);
-        float[] currentColorHSV = mSquareColorsHsv.get(position);
-        float leftBorderHUE = standardColorHSV[0];
-        float rightBorderHUE = standardColorHSV[0];
-        leftBorderHUE = Math.max(leftBorderHUE - mStepHue, 0);
-        rightBorderHUE = Math.min(rightBorderHUE + mStepHue, 360);
-        float topVAL = Math.min(standardColorHSV[2] + (standardColorHSV[2] / 4), 1);
-        float bottomVAL = Math.max(standardColorHSV[2] - (standardColorHSV[2] / 4), 0);
+        float[] standardColorHsv = mSquareStandardColorsHsv.get(position);
+        float[] currentColorHsv = mSquareColorsHsv.get(position);
+        float leftBorderHue = standardColorHsv[0];
+        float rightBorderHue = standardColorHsv[0];
+        leftBorderHue = Math.max(leftBorderHue - mStepHue, 0);
+        rightBorderHue = Math.min(rightBorderHue + mStepHue, 360);
+        float topVal = Math.min(standardColorHsv[2] + (standardColorHsv[2] / 4), 1);
+        float bottomVal = Math.max(standardColorHsv[2] - (standardColorHsv[2] / 4), 0);
 
-        float changedHUE = currentColorHSV[0] + HUE;
-        float changedVAL = currentColorHSV[2] - VAL;
+        float changedHue = currentColorHsv[0] + hue;
+        float changedVal = currentColorHsv[2] - val;
 
-        if (changedHUE < leftBorderHUE) {
-            changedHUE = leftBorderHUE;
+        if (changedHue < leftBorderHue) {
+            changedHue = leftBorderHue;
             vibrate();
-        } else if (changedHUE > rightBorderHUE) {
-            changedHUE = rightBorderHUE;
-            vibrate();
-        }
-
-        if (changedVAL < bottomVAL) {
-            changedVAL = bottomVAL;
-            vibrate();
-        } else if (changedVAL > topVAL) {
-            changedVAL = topVAL;
+        } else if (changedHue > rightBorderHue) {
+            changedHue = rightBorderHue;
             vibrate();
         }
 
-        currentColorHSV[0] = changedHUE;
-        currentColorHSV[2] = changedVAL;
+        if (changedVal < bottomVal) {
+            changedVal = bottomVal;
+            vibrate();
+        } else if (changedVal > topVal) {
+            changedVal = topVal;
+            vibrate();
+        }
+
+        currentColorHsv[0] = changedHue;
+        currentColorHsv[2] = changedVal;
 
 
-        setSquareColor(square, currentColorHSV);
-        changeMainColor(currentColorHSV, false);
+        setSquareColor(square, currentColorHsv);
+        changeMainColor(currentColorHsv, false);
     }
 
-    /** Возвращает цвет квадратика по умолчанию
+    /** Возвращает цвет квадратика по умолчанию.
      *
      * @param square Квадратик
      */
     private void reverseColor(@NonNull ImageButton square) {
         final int position = (Integer) square.getTag();
-        float[] standardColorHSV = mSquareStandardColorsHsv.get(position);
-        float[] currentColorHSV;
-        currentColorHSV = copyOfColor(standardColorHSV);
-        mSquareColorsHsv.set(position, currentColorHSV);
-        setSquareColor(square, currentColorHSV);
+        float[] standardColorHsv = mSquareStandardColorsHsv.get(position);
+        float[] currentColorHsv;
+        currentColorHsv = copyOfColor(standardColorHsv);
+        mSquareColorsHsv.set(position, currentColorHsv);
+        setSquareColor(square, currentColorHsv);
     }
 
-    /** Меняет цвет у указанного квадратика на указанный
+    /** Меняет цвет у указанного квадратика на указанный.
      *
      * @param square Квадратик, у которого нужно изменить цвет
-     * @param colorHSV Цвет в HSV
+     * @param colorHsv Цвет в HSV
      */
-    private void setSquareColor(@NonNull ImageButton square, @NonNull float[] colorHSV) {
-        int dynamicColor = Color.HSVToColor(colorHSV);
+    private void setSquareColor(@NonNull ImageButton square, @NonNull float[] colorHsv) {
+        int dynamicColor = Color.HSVToColor(colorHsv);
         ((GradientDrawable) square.getBackground()).setColor(dynamicColor);
     }
 
-    /** Запоминает цвет в выбранном любимом квадратике
+    /** Запоминает цвет в выбранном любимом квадратике.
      *
      * @param position Позиция квадратика, в котором нужно запомнить цвет
      * @param color Цвет, который нужно запомнить
      */
     private void setFavoriteColor(int position, int color) {
-        View favSquare = mFavoritesLinearLayout.getChildAt(position).findViewById(R.id.imageButton_favorite_color);
+        View favSquare = mFavLinearLayout.getChildAt(position).findViewById(R.id.imageButton_favorite_color);
         ((GradientDrawable) favSquare.getBackground()).setColor(color);
         mFavoriteColors[position] = color;
     }
