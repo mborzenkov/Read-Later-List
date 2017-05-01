@@ -33,8 +33,6 @@ public class MainListActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>,
         ItemListAdapter.ItemListAdapterOnClickHandler {
 
-    /** Константа для использования в Intent в качестве ключа при передаче UID. */
-    public static final String KEY_UID = "com.example.mborzenkov.readlaterlist.readlateritem.uid";
     /** Константа, обозначающая пустой UID. */
     public static final int UID_EMPTY = -1;
 
@@ -70,6 +68,8 @@ public class MainListActivity extends AppCompatActivity implements
     private Cursor mDataCursor;
     /** Текущая позиция mDataCursor. */
     private int mPosition = 0;
+    /** ID текущего редактируемого элемента. */
+    private int mEditItemId = UID_EMPTY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -196,17 +196,22 @@ public class MainListActivity extends AppCompatActivity implements
     public void onClick(int position) {
         // При нажатии на элемент, открываем EditItemActivity Activity для его редактирования
         mPosition = position;
-        Intent editItemIntent = new Intent(MainListActivity.this, EditItemActivity.class);
         mDataCursor.moveToPosition(position);
+        mEditItemId = mDataCursor.getInt(INDEX_COLUMN_ID);
+        Intent editItemIntent = new Intent(MainListActivity.this, EditItemActivity.class);
         ReadLaterItem data = new ReadLaterItem(mDataCursor.getString(INDEX_COLUMN_LABEL),
                 mDataCursor.getString(INDEX_COLUMN_DESCRIPTION), mDataCursor.getInt(INDEX_COLUMN_COLOR));
         editItemIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(data));
-        editItemIntent.putExtra(KEY_UID, mDataCursor.getInt(INDEX_COLUMN_ID));
         startActivityForResult(editItemIntent, ITEM_EDIT_REQUEST);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        // Каждый раз при окончании редактирования, сбрасываем переменную mEditItemId
+        int uid = mEditItemId;
+        mEditItemId = UID_EMPTY;
+
         // Обрабатывает возврат от EditItemActivity
         if (resultCode == RESULT_OK && data != null && data.hasExtra(ReadLaterItemParcelable.KEY_EXTRA)) {
             // Возвращенные данные в формате ReadLaterItem
@@ -219,11 +224,11 @@ public class MainListActivity extends AppCompatActivity implements
                         Snackbar.make(mItemListView, getString(R.string.snackbar_item_added),
                                 Snackbar.LENGTH_LONG).show();
                         getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, this);
+                        return;
                     }
                     break;
                 case ITEM_EDIT_REQUEST:
-                    if (data.hasExtra(KEY_UID)) {
-                        int uid = data.getIntExtra(KEY_UID, UID_EMPTY);
+                    if (uid != UID_EMPTY) {
                         if (resultData == null) {
                             // Удаляет элемент, показывает снэкбар
                             int deleted = getContentResolver()
@@ -241,12 +246,19 @@ public class MainListActivity extends AppCompatActivity implements
                             }
                         }
                         getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, this);
+                        return;
                     }
                     break;
                 default:
                     break;
             }
         }
+
+        // Этот блок вызывается при простом просмотре, тк при успешном случае с ADD_NEW или EDIT, уже был вызван return
+        if (uid != UID_EMPTY) {
+            ReadLaterDbUtils.updateItemViewDate(MainListActivity.this, uid);
+        }
+
     }
 
     /** Показывает онбординг, если список пуст или список, если он не пуст. */

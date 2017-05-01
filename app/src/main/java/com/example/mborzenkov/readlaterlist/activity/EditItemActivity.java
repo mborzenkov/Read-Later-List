@@ -87,8 +87,7 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
 
         // Чтение данных из Intent
         Intent intent = getIntent();
-        if (intent != null && intent.hasExtra(ReadLaterItemParcelable.KEY_EXTRA)
-                && intent.hasExtra(MainListActivity.KEY_UID)) {
+        if (intent != null && intent.hasExtra(ReadLaterItemParcelable.KEY_EXTRA)) {
             // В Intent были переданы данные об объекте, записываем их в соответствующие поля
             ReadLaterItem itemData =
                     ((ReadLaterItemParcelable) intent.getParcelableExtra(ReadLaterItemParcelable.KEY_EXTRA)).getItem();
@@ -206,10 +205,6 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
     private void sendResult(ReadLaterItem resultData) {
         Intent resultIntent = new Intent();
         resultIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(resultData));
-        if (getIntent().hasExtra(MainListActivity.KEY_UID)) {
-            resultIntent.putExtra(MainListActivity.KEY_UID,
-                    getIntent().getIntExtra(MainListActivity.KEY_UID, MainListActivity.UID_EMPTY));
-        }
         setResult(RESULT_OK, resultIntent);
         finish();
     }

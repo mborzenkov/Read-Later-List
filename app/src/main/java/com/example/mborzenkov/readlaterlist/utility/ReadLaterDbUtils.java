@@ -33,10 +33,14 @@ public class ReadLaterDbUtils {
      * @return True, если добавление было выполнено успешно
      */
     public static boolean insertItem(Context context, ReadLaterItem item) {
+        final long currentTime = System.currentTimeMillis();
         ContentValues contentValues = new ContentValues();
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL, item.getLabel());
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION, item.getDescription());
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR, item.getColor());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED, currentTime);
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, currentTime);
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
         Uri uri = context.getContentResolver().insert(ReadLaterContract.ReadLaterEntry.CONTENT_URI, contentValues);
         return uri != null;
     }
@@ -49,10 +53,28 @@ public class ReadLaterDbUtils {
      * @return True, если изменение было выполнено успешно
      */
     public static boolean updateItem(Context context, ReadLaterItem item, int uid) {
+        final long currentTime = System.currentTimeMillis();
         ContentValues contentValues = new ContentValues();
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL, item.getLabel());
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION, item.getDescription());
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR, item.getColor());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, currentTime);
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
+        int updated = context.getContentResolver()
+                .update(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
+        return updated > 0;
+    }
+
+    /** Обновляет дату просмотра элемента в базе данных с uid.
+     *
+     * @param context Контекст
+     * @param uid _id элемента для изменения
+     * @return True, если изменение было выполнено успешно
+     */
+    public static boolean updateItemViewDate(Context context, int uid) {
+        final long currentTime = System.currentTimeMillis();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
         int updated = context.getContentResolver()
                 .update(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
         return updated > 0;
