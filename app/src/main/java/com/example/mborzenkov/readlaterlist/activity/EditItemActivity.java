@@ -51,7 +51,7 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_edit_item);
+        setContentView(R.layout.activity_edititem);
 
         // Инициализация ActionBar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_edit_item);
@@ -115,7 +115,7 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
     public boolean onCreateOptionsMenu(Menu menu) {
         if (!mNewItem) {
             // Кнопка удаления нужна только для редактируемых
-            getMenuInflater().inflate(R.menu.menu_edit_item, menu);
+            getMenuInflater().inflate(R.menu.menu_edititem, menu);
         }
         return true;
     }

@@ -242,7 +242,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
             arrayOfPositions[i+1] = (float) i / (float) NUMBER_OF_SQUARES;
 
             // Создаем View квадратик
-            View square = mLayoutInflater.inflate(R.layout.content_colorpicker_list_item, mSquaresLinearLayout, false);
+            View square = mLayoutInflater.inflate(R.layout.content_colorpicker_circle, mSquaresLinearLayout, false);
             View squareButton = square.findViewById(R.id.imageButton_colored_square);
             // Устанавливаем ему Listener'ы для действий с ним
             squareButton.setOnLongClickListener(this);

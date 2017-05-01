@@ -70,7 +70,7 @@ public class ItemListAdapter extends ResourceCursorAdapter {
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.content_main_list_item, parent, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.content_mainlist_item, parent, false);
         ItemListViewHolder viewHolder = new ItemListViewHolder(view);
         view.setTag(viewHolder);
         return view;

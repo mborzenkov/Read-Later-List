@@ -8,7 +8,7 @@
     <ImageView
         android:id="@+id/iv_item_color"
         style="@style/MainList.Icon"
-        android:background="@drawable/item_color_circle"
+        android:background="@drawable/mainlist_circle"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent" />
 

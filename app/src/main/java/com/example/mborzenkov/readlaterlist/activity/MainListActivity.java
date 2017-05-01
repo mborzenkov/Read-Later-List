@@ -71,7 +71,7 @@ public class MainListActivity extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main_list);
+        setContentView(R.layout.activity_mainlist);
 
         // Инициализация Toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main_list);
@@ -88,7 +88,7 @@ public class MainListActivity extends AppCompatActivity implements
         });
 
         // Инициализация объектов layout
-        mItemListAdapter = new ItemListAdapter(this, R.layout.content_main_list_item, null, 0, this);
+        mItemListAdapter = new ItemListAdapter(this, R.layout.content_mainlist_item, null, 0, this);
         mItemListView = (ListView) findViewById(R.id.listview_main_list);
         mItemListView.setAdapter(mItemListAdapter);
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_main_loading);
@@ -105,7 +105,7 @@ public class MainListActivity extends AppCompatActivity implements
     public boolean onCreateOptionsMenu(Menu menu) {
         // Специальные возможности создаются только в DEBUG
         if (BuildConfig.DEBUG) {
-            getMenuInflater().inflate(R.menu.menu_main_list, menu);
+            getMenuInflater().inflate(R.menu.menu_mainlist, menu);
         }
         return true;
     }

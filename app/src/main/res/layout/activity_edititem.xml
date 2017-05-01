@@ -33,7 +33,7 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_edit_item" />
+    <include layout="@layout/content_edititem" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_edit_item_save"

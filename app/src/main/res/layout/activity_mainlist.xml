@@ -22,7 +22,7 @@
 
     </LinearLayout>
 
-    <include layout="@layout/content_main_list_empty" />
+    <include layout="@layout/content_mainlist_empty" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_item_add"
