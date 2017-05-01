@@ -56,9 +56,9 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
     /** Ресурсы в контексте приложения */
     private static final Resources RESOURCES = APP_CONTEXT.getResources();
     /** Количество квадратов суммарно */
-    private static final int NUMBER_OF_SQUARES = RESOURCES.getInteger(R.integer.number_of_squares);
+    private static final int NUMBER_OF_SQUARES = RESOURCES.getInteger(R.integer.colorpicker_circles);
     /** Количество любимых цветов суммарно */
-    private static final int FAVORITES_MAX = RESOURCES.getInteger(R.integer.favorites_max);
+    private static final int FAVORITES_MAX = RESOURCES.getInteger(R.integer.colorpicker_favorites);
     /** Цвет начала градиента */
     private static final int COLOR_GRADIENT_START = ContextCompat.getColor(APP_CONTEXT, R.color.colorpicker_gradient_start);
     /** Цвет конца градиента */

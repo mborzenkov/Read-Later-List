@@ -19,12 +19,12 @@
 
         <android.support.design.widget.TextInputLayout
             android:id="@+id/til_edit_item_label"
-            style="@style/EditList.AppBarTextInputLayout"
+            style="@style/EditItem.AppBarTextInputLayout"
             app:errorEnabled="true">
 
             <EditText
                 android:id="@+id/et_edit_item_label"
-                style="@style/EditList.AppBarTextField"
+                style="@style/EditItem.AppBarTextField"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:hint="@string/edititem_label_hint" />
@@ -37,7 +37,7 @@
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_edit_item_save"
-        style="@style/EditList.FABSave"
+        style="@style/EditItem.FABSave"
         app:layout_anchor="@id/appbar_edit_item"
         app:layout_anchorGravity="bottom|end"
         app:srcCompat="@android:drawable/ic_menu_send" />

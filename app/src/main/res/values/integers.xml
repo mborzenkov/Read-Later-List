@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- MainList -->
+    <integer name="mainlist_textlines">2</integer>
+
+    <!-- EditItem -->
+    <integer name="edititem_headerlines">1</integer>
+
+    <!-- ColorPicker -->
     <!-- Можно поменять количество квадратов или Favorites тут -->
-    <integer name="number_of_squares">16</integer>
-    <integer name="favorites_max">4</integer>
+    <integer name="colorpicker_circles">16</integer>
+    <integer name="colorpicker_favorites">4</integer>
+
 </resources>
