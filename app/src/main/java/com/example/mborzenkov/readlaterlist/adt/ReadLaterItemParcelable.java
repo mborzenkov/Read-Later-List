@@ -37,7 +37,8 @@ public final class ReadLaterItemParcelable implements Parcelable {
         return item;
     }
 
-    public static final Parcelable.Creator<ReadLaterItemParcelable> CREATOR = new Parcelable.Creator<ReadLaterItemParcelable>() {
+    public static final Parcelable.Creator<ReadLaterItemParcelable> CREATOR =
+            new Parcelable.Creator<ReadLaterItemParcelable>() {
         @Override
         public ReadLaterItemParcelable createFromParcel(Parcel source) {
             String label = source.readString();

@@ -5,7 +5,7 @@
     android:id="@+id/relaviteLayout_squares"
     android:orientation="vertical"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content" >
+    android:layout_height="wrap_content">
 
     <ImageButton
         android:id="@+id/imageButton_colored_square"
@@ -13,7 +13,8 @@
         android:background="@drawable/colorpicker_circle"
         android:longClickable="true"
         android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        tools:ignore="ContentDescription"/>
 
 
 </RelativeLayout>

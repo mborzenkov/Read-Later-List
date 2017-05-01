@@ -1,16 +1,17 @@
 package com.example.mborzenkov.readlaterlist;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import android.graphics.Color;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
-/**
- * Тестирует ReadLaterItem
- */
+/** Тестирует ReadLaterItem. */
+@SuppressWarnings("FieldCanBeLocal") // Поля вынесены на уровень класса для улучшенной читаемости
 public class ReadLaterItemTest {
 
     /*
@@ -34,8 +35,7 @@ public class ReadLaterItemTest {
     private final int zeroColor = 0;
     private final int negativeColor = -1;
 
-    /**
-     * Покрывает label.length: >1
+    /* Покрывает label.length: >1
      *           description: непустая
      *           description.length > 1
      *           color: >0
@@ -48,8 +48,7 @@ public class ReadLaterItemTest {
         assertEquals(normalColor, item.getColor());
     }
 
-    /**
-     * Покрывает description: "", " "
+    /* Покрывает description: "", " "
      *           description.length: 1
      *           color: >0
      */
@@ -66,9 +65,7 @@ public class ReadLaterItemTest {
         assertEquals(normalColor, item.getColor());
     }
 
-    /**
-     * Покрывает description.contains: "\n
-     */
+    /* Покрывает description.contains: "\n */
     @Test
     public void multilineDescriptionTest() {
         ReadLaterItem item = new ReadLaterItem(normalLabel, multilineDescription, normalColor);
@@ -78,9 +75,7 @@ public class ReadLaterItemTest {
     }
 
 
-    /**
-     * Покрывает color: <0, 0
-     */
+    /* Покрывает color: <0, 0 */
     @Test
     public void colorTest() {
         ReadLaterItem item = new ReadLaterItem(normalLabel, normalDescription, Color.RED);
@@ -99,9 +94,7 @@ public class ReadLaterItemTest {
         assertEquals(negativeColor, item.getColor());
     }
 
-    /**
-     * Покрывает label.length: 1
-     */
+    /* Покрывает label.length: 1 */
     @Test
     public void singleCharacterLabelTest() {
         ReadLaterItem item = new ReadLaterItem(singleCharLabel, normalDescription, normalColor);
@@ -130,7 +123,8 @@ public class ReadLaterItemTest {
     @Test
     public void testToString() {
         ReadLaterItem item = new ReadLaterItem(normalLabel, normalDescription, normalColor);
-        assertEquals(normalLabel + "\n" + normalDescription + "\n" + "(Цвет: " + String.format("#%06X", (0xFFFFFF & normalColor)) + ")", item.toString());
+        assertEquals(normalLabel + "\n" + normalDescription + "\n"
+                + "(Цвет: " + String.format("#%06X", (0xFFFFFF & normalColor)) + ")", item.toString());
     }
 
 }

@@ -29,4 +29,6 @@
     <string name="title_activity_colorpicker">Выбор цвета</string>
     <string name="title_activity_edit_item">Редактирование записи</string>
     <string name="edititem_menu_save">Сохранить</string>
+    <string name="mainlist_icon_contentdescription">Цвет элемента</string>
+    <string name="edititem_icon_contentdescription">Цвет элемента</string>
 </resources>

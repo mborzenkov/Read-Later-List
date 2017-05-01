@@ -73,6 +73,7 @@
         <item name="android:layout_marginLeft">@dimen/marginleft_edititem_icon</item>
         <item name="android:layout_width">@dimen/size_edititem_icon</item>
         <item name="android:layout_height">@dimen/size_edititem_icon</item>
+        <item name="android:contentDescription">@string/edititem_icon_contentdescription</item>
     </style>
     <style name="EditItem.TextInputLayout">
         <item name="android:layout_width">match_parent</item>

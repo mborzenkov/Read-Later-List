@@ -7,7 +7,7 @@
         android:orderInCategory="1"
         android:title="@string/edititem_menu_save"
         android:icon="@drawable/ic_check_24dp"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/edititem_action_delete"
         android:orderInCategory="100"

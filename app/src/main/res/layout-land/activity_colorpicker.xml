@@ -37,7 +37,8 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/horizontalScrollView"
         app:srcCompat="@drawable/ic_check_24dp"
-        tools:background="@drawable/colorpicker_circle" />
+        tools:background="@drawable/colorpicker_circle"
+        android:contentDescription="@string/colorpicker_chosen_label"/>
 
     <TextView
         android:id="@+id/textView_chosen"

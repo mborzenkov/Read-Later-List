@@ -474,7 +474,8 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         }
         int color = Color.HSVToColor(colorHsv);
         ((GradientDrawable) findViewById(R.id.imageButton_chosen).getBackground()).setColor(color);
-        mRgbValueTextView.setText(String.format("%d, %d, %d", Color.red(color), Color.green(color), Color.blue(color)));
+        mRgbValueTextView.setText(String.format(Locale.US, "%d, %d, %d",
+                Color.red(color), Color.green(color), Color.blue(color)));
         mHsvValueTextView.setText(String.format(Locale.US, "%.2f, %.2f, %.2f", colorHsv[0], colorHsv[1], colorHsv[2]));
     }
 

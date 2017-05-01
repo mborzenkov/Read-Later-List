@@ -3,6 +3,7 @@ package com.example.mborzenkov.readlaterlist.data;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
@@ -10,26 +11,26 @@ import android.support.annotation.NonNull;
 
 import com.example.mborzenkov.readlaterlist.R;
 
-/**
- * Контент провайдер для работы с базой данных
- */
+/** Контент провайдер для работы с базой данных. */
 public class ReadLaterContentProvider extends ContentProvider {
 
-    /** Код запроса всех данных */
+    /** Код запроса всех данных. */
     private static final int CODE_READLATER_ITEMS = 100;
-    /** Код запроса отдельного элемента */
+    /** Код запроса отдельного элемента. */
     private static final int CODE_READLATER_ITEMS_WITH_ID = 101;
 
-    /** Матчер для сравнения запрашиваемых uri */
+    /** Матчер для сравнения запрашиваемых uri. */
     private static final UriMatcher sUriMatcher = buildUriMatcher();
-    /** DbHelper для работы с базой */
+    /** DbHelper для работы с базой. */
     private ReadLaterDbHelper mReadLaterDbHelper;
+    /** Контекст. */
+    private Context mContext;
 
-    /**
-     * Создает новый UriMatcher
+    /** Создает новый UriMatcher.
+     *
      * @return Матчер для сравнения запрашиваемых uri
      */
-    public static UriMatcher buildUriMatcher() {
+    private static UriMatcher buildUriMatcher() {
 
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         final String authority = ReadLaterContract.CONTENT_AUTHORITY;
@@ -44,7 +45,8 @@ public class ReadLaterContentProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         // Создание DbHelper
-        mReadLaterDbHelper = new ReadLaterDbHelper(getContext());
+        mContext = getContext();
+        mReadLaterDbHelper = new ReadLaterDbHelper(mContext);
         return true;
     }
 
@@ -71,10 +73,10 @@ public class ReadLaterContentProvider extends ContentProvider {
                         sortOrder);
                 break;
             default:
-                throw new UnsupportedOperationException(getContext().getString(R.string.db_error_uriunknown) + uri);
+                throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
-        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        cursor.setNotificationUri(mContext.getContentResolver(), uri);
         return cursor;
     }
 
@@ -83,7 +85,7 @@ public class ReadLaterContentProvider extends ContentProvider {
         // Обработчик запросов delete
         int itemDeleted;
 
-        if (null == selection) selection = "1";
+        // if (null == selection) selection = "1";
 
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS_WITH_ID:
@@ -95,11 +97,11 @@ public class ReadLaterContentProvider extends ContentProvider {
 
                 break;
             default:
-                throw new UnsupportedOperationException(getContext().getString(R.string.db_error_uriunknown) + uri);
+                throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
         if (itemDeleted != 0) {
-            getContext().getContentResolver().notifyChange(uri, null);
+            mContext.getContentResolver().notifyChange(uri, null);
         }
 
         return itemDeleted;
@@ -112,18 +114,19 @@ public class ReadLaterContentProvider extends ContentProvider {
 
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS:
-                long id = mReadLaterDbHelper.getWritableDatabase().insert(ReadLaterContract.ReadLaterEntry.TABLE_NAME, null, values);
-                if ( id > 0 ) {
+                long id = mReadLaterDbHelper.getWritableDatabase()
+                        .insert(ReadLaterContract.ReadLaterEntry.TABLE_NAME, null, values);
+                if (id > 0) {
                     returnUri =  ContentUris.withAppendedId(ReadLaterContract.ReadLaterEntry.CONTENT_URI, id);
                 } else {
-                    throw new android.database.SQLException(getContext().getString(R.string.db_error_insert) + uri);
+                    throw new android.database.SQLException(mContext.getString(R.string.db_error_insert) + uri);
                 }
                 break;
             default:
-                throw new UnsupportedOperationException(getContext().getString(R.string.db_error_uriunknown) + uri);
+                throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
-        getContext().getContentResolver().notifyChange(uri, null);
+        mContext.getContentResolver().notifyChange(uri, null);
 
         return returnUri;
     }
@@ -133,7 +136,7 @@ public class ReadLaterContentProvider extends ContentProvider {
         // Обработчик запросов update
         int itemUpdated;
 
-        if (null == selection) selection = "1";
+        // if (null == selection) selection = "1";
 
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS_WITH_ID:
@@ -145,11 +148,11 @@ public class ReadLaterContentProvider extends ContentProvider {
 
                 break;
             default:
-                throw new UnsupportedOperationException(getContext().getString(R.string.db_error_uriunknown) + uri);
+                throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
         if (itemUpdated != 0) {
-            getContext().getContentResolver().notifyChange(uri, null);
+            mContext.getContentResolver().notifyChange(uri, null);
         }
 
         return itemUpdated;
