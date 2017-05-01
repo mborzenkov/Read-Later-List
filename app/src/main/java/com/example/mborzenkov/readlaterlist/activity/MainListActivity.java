@@ -31,7 +31,7 @@ import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 /**
  * Главная Activity, представляющая собой список
  */
-public class MainList extends AppCompatActivity implements
+public class MainListActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>,
         ItemListAdapter.ItemListAdapterOnClickHandler {
 
@@ -40,7 +40,7 @@ public class MainList extends AppCompatActivity implements
     /** ID запроса для редактирования элемента */
     protected static final int ITEM_EDIT_REQUEST = 2;
 
-    /** Используемые в MainList колонки базы данных */
+    /** Используемые в MainListActivity колонки базы данных */
     protected static final String[] MAIN_LIST_PROJECTION = {
             ReadLaterContract.ReadLaterEntry._ID,
             ReadLaterContract.ReadLaterEntry.COLUMN_LABEL,
@@ -82,7 +82,7 @@ public class MainList extends AppCompatActivity implements
             @Override
             public void onClick(View view) {
                 // Создание нового элемента
-                Intent newItemIntent = new Intent(MainList.this, EditItem.class);
+                Intent newItemIntent = new Intent(MainListActivity.this, EditItemActivity.class);
                 startActivityForResult(newItemIntent, ITEM_ADD_NEW_REQUEST);
             }
         });
@@ -120,8 +120,8 @@ public class MainList extends AppCompatActivity implements
                         .setMessage(getString(R.string.mainlist_menu_add_placeholders_question_text))
                         .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-                                ReadLaterDbUtils.addPlaceholdersToDatabase(MainList.this);
-                                getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, MainList.this);
+                                ReadLaterDbUtils.addPlaceholdersToDatabase(MainListActivity.this);
+                                getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, MainListActivity.this);
                             }
                         })
                         .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -139,8 +139,8 @@ public class MainList extends AppCompatActivity implements
                         .setMessage(getString(R.string.mainlist_menu_delete_all_question_text))
                         .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-                                ReadLaterDbUtils.deleteItemsFromDatabase(MainList.this, mDataCursor, INDEX_COLUMN_ID);
-                                getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, MainList.this);
+                                ReadLaterDbUtils.deleteItemsFromDatabase(MainListActivity.this, mDataCursor, INDEX_COLUMN_ID);
+                                getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, MainListActivity.this);
                             }
                         })
                         .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -186,9 +186,9 @@ public class MainList extends AppCompatActivity implements
 
     @Override
     public void onClick(int position) {
-        // При нажатии на элемент, открываем EditItem Activity для его редактирования
+        // При нажатии на элемент, открываем EditItemActivity Activity для его редактирования
         mPosition = position;
-        Intent editItemIntent = new Intent(MainList.this, EditItem.class);
+        Intent editItemIntent = new Intent(MainListActivity.this, EditItemActivity.class);
         mDataCursor.moveToPosition(position);
         ReadLaterItem data = new ReadLaterItem(mDataCursor.getString(INDEX_COLUMN_LABEL), mDataCursor.getString(INDEX_COLUMN_DESCRIPTION), mDataCursor.getInt(INDEX_COLUMN_COLOR));
         editItemIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(data));
@@ -198,7 +198,7 @@ public class MainList extends AppCompatActivity implements
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // Обрабатывает возврат от EditItem
+        // Обрабатывает возврат от EditItemActivity
         if (resultCode == RESULT_OK && data != null && data.hasExtra(ReadLaterItemParcelable.KEY_EXTRA)) {
             // Возвращенные данные в формате ReadLaterItem
             ReadLaterItem resultData = ((ReadLaterItemParcelable) data.getParcelableExtra(ReadLaterItemParcelable.KEY_EXTRA)).getItem();
@@ -206,7 +206,7 @@ public class MainList extends AppCompatActivity implements
                 case ITEM_ADD_NEW_REQUEST:
                     if (resultData != null) {
                         // Добавляет новый элемент в базу, показывает снэкбар
-                        if (ReadLaterDbUtils.insertItem(MainList.this, resultData)) {
+                        if (ReadLaterDbUtils.insertItem(MainListActivity.this, resultData)) {
                             Snackbar.make(mItemListView, getString(R.string.snackbar_item_added), Snackbar.LENGTH_LONG).show();
                             getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, this);
                         }
@@ -224,7 +224,7 @@ public class MainList extends AppCompatActivity implements
                             }
                         } else {
                             // Изменяет элемент
-                            if (ReadLaterDbUtils.updateItem(MainList.this, resultData, uid)) {
+                            if (ReadLaterDbUtils.updateItem(MainListActivity.this, resultData, uid)) {
                                 Snackbar.make(mItemListView, getString(R.string.snackbar_item_edited), Snackbar.LENGTH_LONG).show();
                             }
                         }

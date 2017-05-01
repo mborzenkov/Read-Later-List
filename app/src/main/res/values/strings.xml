@@ -4,7 +4,7 @@
     <string name="title_activity_edit_item">Edit Item</string>
     <string name="title_activity_colorpicker">Choose color</string>
 
-    <!-- MainList -->
+    <!-- MainListActivity -->
         <!-- Онбординг для пустого списка -->
         <string name="mainlist_empty_label">List is empty</string>
         <string name="mainlist_empty_description">Add something to list with button on bottom right corner.</string>
@@ -21,7 +21,7 @@
         <string name="snackbar_item_edited">Item edited</string>
         <string name="snackbar_item_removed">Item removed</string>
 
-    <!-- EditItem -->
+    <!-- EditItemActivity -->
         <!-- Заголовки -->
         <string name="edititem_title_add">New item</string>
         <string name="edititem_title_edit">Edit item</string>
@@ -36,7 +36,7 @@
         <string name="edititem_menu_delete_question_title">Delete item</string>
         <string name="edititem_menu_delete_question_text">Are you sure to delete item?</string>
 
-    <!-- ColorPicker -->
+    <!-- ColorPickerActivity -->
     <string name="colorpicker_chosen_label">Choose color</string>
     <string name="colorpicker_favorites_label">Favorite colors</string>
     <string name="colorpicker_RGB" translatable="false">RGB</string>

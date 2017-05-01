@@ -26,15 +26,15 @@ import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.R;
 
 /**
- * Activity для редактирования элемента MainList
+ * Activity для редактирования элемента MainListActivity
  * Использование:
  *      Чтобы заполнить Activity данными, передать в Intent объект ReadLaterItem с ключем ReadLaterItem.KEY_EXTRA
  *      При успешном редактировании возвращает новый объект ReadLaterItem в Intent под ключем ReadLaterItem.KEY_EXTRA
  *      При выборе удаления элемента, возвращает null в Intent под ключем ReadLaterItem.KEY_EXTRA
  */
-public class EditItem extends AppCompatActivity implements View.OnClickListener {
+public class EditItemActivity extends AppCompatActivity implements View.OnClickListener {
 
-    /** ID для открытия ColorPicker на редактирование цвета */
+    /** ID для открытия ColorPickerActivity на редактирование цвета */
     private static final int ITEM_EDIT_COLOR_REQUEST = 11;
 
     /** Текущий выбранный цвет в формате sRGB */
@@ -148,18 +148,18 @@ public class EditItem extends AppCompatActivity implements View.OnClickListener 
     @Override
     public void onClick(View view) {
         if (view.getId() == R.id.ib_edit_item_color) {
-            // Обработчик нажатий на иконку выбранного цвета, открывает ColorPicker
-            Intent colorPicker = new Intent(EditItem.this, ColorPicker.class);
-            colorPicker.putExtra(ColorPicker.CHOSEN_KEY, mChosenColor);
+            // Обработчик нажатий на иконку выбранного цвета, открывает ColorPickerActivity
+            Intent colorPicker = new Intent(EditItemActivity.this, ColorPickerActivity.class);
+            colorPicker.putExtra(ColorPickerActivity.CHOSEN_KEY, mChosenColor);
             startActivityForResult(colorPicker, ITEM_EDIT_COLOR_REQUEST);
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // Принимает данные из ColorPicker, сохраняет их
-        if (resultCode == RESULT_OK && requestCode == ITEM_EDIT_COLOR_REQUEST && data != null && data.hasExtra(ColorPicker.CHOSEN_KEY)) {
-            mChosenColor = data.getIntExtra(ColorPicker.CHOSEN_KEY, Color.TRANSPARENT);
+        // Принимает данные из ColorPickerActivity, сохраняет их
+        if (resultCode == RESULT_OK && requestCode == ITEM_EDIT_COLOR_REQUEST && data != null && data.hasExtra(ColorPickerActivity.CHOSEN_KEY)) {
+            mChosenColor = data.getIntExtra(ColorPickerActivity.CHOSEN_KEY, Color.TRANSPARENT);
             updateChosenColor();
         }
     }
@@ -181,7 +181,7 @@ public class EditItem extends AppCompatActivity implements View.OnClickListener 
         // TODO: Проверить, возвращается ли Intent
         // TODO: Проверить, надо ли указывать что-то у Intent или достаточно new Intent()
         // TODO: Заменить "-1" на нормальное значение (константу)
-        // TODO: В ColorPicker убрать mFromIntent из полей, потому что он не нужен
+        // TODO: В ColorPickerActivity убрать mFromIntent из полей, потому что он не нужен
         // TODO: Прогнать весь проект через lint, checkstyle и другие
         // TODO: Написать тесты Robolectric или Mockito
         // TODO: Разбить приложение по MVP / M getUsername, V findViewById, P вызовы // Отделить логику от взаимодействия с ОС и тестировать по отдельности

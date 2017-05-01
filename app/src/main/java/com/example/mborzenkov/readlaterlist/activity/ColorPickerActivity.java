@@ -39,10 +39,10 @@ import java.util.Locale;
 /**
  * Activity для выбора цвета с помощью палитры
  * Использование:
- *      Для установки выбранного цвета при открытии необходимо передать int в Intent с ключем ColorPicker.CHOSEN_KEY
- *      При выборе цвета (нажатии на выбранный цвет) возвращает его как int в Intent с ключем  ColorPicker.CHOSEN_KEY
+ *      Для установки выбранного цвета при открытии необходимо передать int в Intent с ключем ColorPickerActivity.CHOSEN_KEY
+ *      При выборе цвета (нажатии на выбранный цвет) возвращает его как int в Intent с ключем  ColorPickerActivity.CHOSEN_KEY
  */
-public class ColorPicker extends AppCompatActivity implements View.OnTouchListener, View.OnLongClickListener {
+public class ColorPickerActivity extends AppCompatActivity implements View.OnTouchListener, View.OnLongClickListener {
 
     // Объявляем все переменные
     /** Константа для использования в качестве ключа при сохранении массива Favorites */

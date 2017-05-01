@@ -76,7 +76,7 @@ public class ReadLaterDbUtils {
             for (int j = 0; j < DESCRIPTION_LINES; j++) {
                 description.append(text[randomizer.nextInt(text.length)] + "\n");
             }
-            // Конвертация int в HSV и обратно нужна, чтобы ColorPicker красиво работал (не каждый int без потерь конвертируется в HSV)
+            // Конвертация int в HSV и обратно нужна, чтобы ColorPickerActivity красиво работал (не каждый int без потерь конвертируется в HSV)
             // Это допущение используется только в этом тестовом методе, во всех остальных местах используются цвета, конвертируемые в обе стороны без потерь
             float[] colorHSV = new float[3];
             Color.colorToHSV(randomizer.nextInt(), colorHSV);

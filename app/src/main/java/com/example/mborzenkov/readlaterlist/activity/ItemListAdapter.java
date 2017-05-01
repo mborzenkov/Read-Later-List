@@ -13,7 +13,7 @@ import android.widget.TextView;
 import com.example.mborzenkov.readlaterlist.R;
 
 /**
- * Адаптер для MainList (очень простой)
+ * Адаптер для MainListActivity (очень простой)
  *      Этот адаптер имеет смысл переписать на RecyclerView
  *      Но так как по заданию было запрещено пользоваться RecyclerView, этого сделано не было
  *      // TODO: Переписать адаптер на RecyclerView
@@ -62,9 +62,9 @@ public class ItemListAdapter extends ResourceCursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         ItemListViewHolder viewHolder = (ItemListViewHolder) view.getTag();
-        viewHolder.labelTextView.setText(cursor.getString(MainList.INDEX_COLUMN_LABEL));
-        viewHolder.descriptionTextView.setText(cursor.getString(MainList.INDEX_COLUMN_DESCRIPTION));
-        ((GradientDrawable) viewHolder.colorImageView.getBackground()).setColor(cursor.getInt(MainList.INDEX_COLUMN_COLOR));
+        viewHolder.labelTextView.setText(cursor.getString(MainListActivity.INDEX_COLUMN_LABEL));
+        viewHolder.descriptionTextView.setText(cursor.getString(MainListActivity.INDEX_COLUMN_DESCRIPTION));
+        ((GradientDrawable) viewHolder.colorImageView.getBackground()).setColor(cursor.getInt(MainListActivity.INDEX_COLUMN_COLOR));
         viewHolder.position = cursor.getPosition();
     }
 
