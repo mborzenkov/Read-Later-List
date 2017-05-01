@@ -204,11 +204,6 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
      * @param resultData Объект для передачи
      */
     private void sendResult(ReadLaterItem resultData) {
-        // TODO: В ColorPickerActivity убрать mFromIntent из полей, потому что он не нужен
-        // TODO: Прогнать весь проект через lint, checkstyle и другие
-        // TODO: Написать тесты Robolectric или Mockito
-        // TODO: Разбить приложение по MVP / M getUsername, V findViewById, P вызовы
-        // TODO: Отделить логику от взаимодействия с ОС и тестировать по отдельности
         Intent resultIntent = new Intent();
         resultIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(resultData));
         if (getIntent().hasExtra(MainListActivity.KEY_UID)) {
