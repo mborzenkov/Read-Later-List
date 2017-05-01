@@ -1,17 +1,13 @@
 package com.example.mborzenkov.readlaterlist.data;
 
-import android.annotation.TargetApi;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
-import com.example.mborzenkov.readlaterlist.App;
 import com.example.mborzenkov.readlaterlist.R;
 
 /**
