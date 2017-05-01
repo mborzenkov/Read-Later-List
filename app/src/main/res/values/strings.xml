@@ -35,6 +35,7 @@
         <string name="edititem_menu_delete">Delete</string>
         <string name="edititem_menu_delete_question_title">Delete item</string>
         <string name="edititem_menu_delete_question_text">Are you sure to delete item?</string>
+        <string name="edititem_menu_save">Save</string>
 
     <!-- ColorPickerActivity -->
     <string name="colorpicker_chosen_label">Choose color</string>

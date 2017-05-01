@@ -58,16 +58,7 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.icons));
         setSupportActionBar(toolbar);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_edit_item_save);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // packInputData возвращает null, если что-то не так
-                ReadLaterItem resultData = packInputData();
-                if (resultData != null) {
-                    sendResult(resultData);
-                }
-            }
-        });
+        fab.setOnClickListener(this);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // Инициализация объектов layout
@@ -113,45 +104,69 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (!mNewItem) {
+        getMenuInflater().inflate(R.menu.menu_edititem, menu);
+        if (mNewItem) {
             // Кнопка удаления нужна только для редактируемых
-            getMenuInflater().inflate(R.menu.menu_edititem, menu);
+            menu.removeItem(R.id.edititem_action_delete);
         }
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Обработчик кнопки удаления
         int id = item.getItemId();
-        if (id == R.id.edititem_action_delete) {
-            new AlertDialog.Builder(this)
-                    .setTitle(getString(R.string.edititem_menu_delete_question_title))
-                    .setMessage(getString(R.string.edititem_menu_delete_question_text))
-                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            sendResult(null);
-                        }
-                    })
-                    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            // ничего не делаем
-                        }
-                    })
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .show();
-            return true;
+        switch (id) {
+            case R.id.edititem_action_delete:
+                new AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.edititem_menu_delete_question_title))
+                        .setMessage(getString(R.string.edititem_menu_delete_question_text))
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                sendResult(null);
+                            }
+                        })
+                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // ничего не делаем
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+                return true;
+            case R.id.edititem_action_save:
+                finishEditing();
+                return true;
+            default:
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onClick(View view) {
-        if (view.getId() == R.id.ib_edit_item_color) {
-            // Обработчик нажатий на иконку выбранного цвета, открывает ColorPickerActivity
-            Intent colorPicker = new Intent(EditItemActivity.this, ColorPickerActivity.class);
-            colorPicker.putExtra(ColorPickerActivity.CHOSEN_KEY, mChosenColor);
-            startActivityForResult(colorPicker, ITEM_EDIT_COLOR_REQUEST);
+        int id = view.getId();
+        switch (id) {
+            case R.id.ib_edit_item_color:
+                if (view.getId() == R.id.ib_edit_item_color) {
+                    // Обработчик нажатий на иконку выбранного цвета, открывает ColorPickerActivity
+                    Intent colorPicker = new Intent(EditItemActivity.this, ColorPickerActivity.class);
+                    colorPicker.putExtra(ColorPickerActivity.CHOSEN_KEY, mChosenColor);
+                    startActivityForResult(colorPicker, ITEM_EDIT_COLOR_REQUEST);
+                }
+                break;
+            case R.id.fab_edit_item_save:
+                finishEditing();
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void finishEditing() {
+        // packInputData возвращает null, если что-то не так
+        ReadLaterItem resultData = packInputData();
+        if (resultData != null) {
+            sendResult(resultData);
         }
     }
 
