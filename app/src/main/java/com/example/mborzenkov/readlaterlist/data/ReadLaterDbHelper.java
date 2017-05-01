@@ -12,7 +12,7 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
     /** Имя базы данных. */
     private static final String DATABASE_NAME = "readlaterlist.db";
     /** Версия базы данных. */
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     public ReadLaterDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -23,10 +23,13 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
         // Создание таблицы
         final String sqlCreateWeatherTable =
             "CREATE TABLE " + ReadLaterEntry.TABLE_NAME + " ("
-                    + ReadLaterEntry._ID                + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-                    + ReadLaterEntry.COLUMN_LABEL       + " STRING NOT NULL, "
-                    + ReadLaterEntry.COLUMN_DESCRIPTION + " STRING NOT NULL, "
-                    + ReadLaterEntry.COLUMN_COLOR       + " INTEGER NOT NULL);";
+                    + ReadLaterEntry._ID                       + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + ReadLaterEntry.COLUMN_LABEL              + " STRING NOT NULL, "
+                    + ReadLaterEntry.COLUMN_DESCRIPTION        + " STRING NOT NULL, "
+                    + ReadLaterEntry.COLUMN_COLOR              + " INTEGER NOT NULL, "
+                    + ReadLaterEntry.COLUMN_DATE_CREATED       + " INTEGER NOT NULL, "
+                    + ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED + " INTEGER NOT NULL, "
+                    + ReadLaterEntry.COLUMN_DATE_LAST_VIEW     + " INTEGER NOT NULL);";
 
         sqLiteDatabase.execSQL(sqlCreateWeatherTable);
     }

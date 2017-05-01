@@ -30,6 +30,12 @@ public class ReadLaterContract {
         public static final String COLUMN_DESCRIPTION = "description";
         /** Имя колонки с цветом элемента. */
         public static final String COLUMN_COLOR = "color";
+        /** Имя колонки с датой создания. */
+        public static final String COLUMN_DATE_CREATED = "created";
+        /** Имя колонки с датой последнего изменения. */
+        public static final String COLUMN_DATE_LAST_MODIFIED = "last_modify";
+        /** Имя колонки с датой последнего просмотра. */
+        public static final String COLUMN_DATE_LAST_VIEW = "last_view";
 
         /** Создает Uri для доступа к одному элменту по id.
          *

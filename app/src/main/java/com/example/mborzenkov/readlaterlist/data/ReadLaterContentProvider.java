@@ -112,6 +112,12 @@ public class ReadLaterContentProvider extends ContentProvider {
         // Обработчик зарпосов insert
         Uri returnUri;
 
+        // При создании новых записей, заполняем все три даты текущим временем
+        final long currentTime = System.currentTimeMillis();
+        values.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED, currentTime);
+        values.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, currentTime);
+        values.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
+
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS:
                 long id = mReadLaterDbHelper.getWritableDatabase()
@@ -135,6 +141,11 @@ public class ReadLaterContentProvider extends ContentProvider {
     public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         // Обработчик запросов update
         int itemUpdated;
+
+        // При изменении записей, заполняем дату изменения и просмотра текущим временем
+        final long currentTime = System.currentTimeMillis();
+        values.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, currentTime);
+        values.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
 
         // if (null == selection) selection = "1";
 
