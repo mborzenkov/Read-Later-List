@@ -88,7 +88,7 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         // Чтение данных из Intent
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra(ReadLaterItemParcelable.KEY_EXTRA)
-                && intent.hasExtra(ReadLaterItemParcelable.KEY_UID)) {
+                && intent.hasExtra(MainListActivity.KEY_UID)) {
             // В Intent были переданы данные об объекте, записываем их в соответствующие поля
             ReadLaterItem itemData =
                     ((ReadLaterItemParcelable) intent.getParcelableExtra(ReadLaterItemParcelable.KEY_EXTRA)).getItem();
@@ -204,9 +204,6 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
      * @param resultData Объект для передачи
      */
     private void sendResult(ReadLaterItem resultData) {
-        // TODO: Проверить, возвращается ли Intent
-        // TODO: Проверить, надо ли указывать что-то у Intent или достаточно new Intent()
-        // TODO: Заменить "-1" на нормальное значение (константу)
         // TODO: В ColorPickerActivity убрать mFromIntent из полей, потому что он не нужен
         // TODO: Прогнать весь проект через lint, checkstyle и другие
         // TODO: Написать тесты Robolectric или Mockito
@@ -214,9 +211,9 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         // TODO: Отделить логику от взаимодействия с ОС и тестировать по отдельности
         Intent resultIntent = new Intent();
         resultIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(resultData));
-        if (getIntent().hasExtra(ReadLaterItemParcelable.KEY_UID)) {
-            resultIntent.putExtra(ReadLaterItemParcelable.KEY_UID,
-                    getIntent().getIntExtra(ReadLaterItemParcelable.KEY_UID, -1));
+        if (getIntent().hasExtra(MainListActivity.KEY_UID)) {
+            resultIntent.putExtra(MainListActivity.KEY_UID,
+                    getIntent().getIntExtra(MainListActivity.KEY_UID, MainListActivity.UID_EMPTY));
         }
         setResult(RESULT_OK, resultIntent);
         finish();

@@ -69,7 +69,6 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
     private TextView mHsvValueTextView;
 
     private SharedPreferences mSharedPreferences;
-    private Intent mFromIntent;
     private Handler mHandler;
     private Vibrator mVibrator;
     // -
@@ -161,6 +160,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         LayoutInflater layoutInflater = getLayoutInflater();
         GradientDrawable squareDrawable = getSquareDrawable(applicationContext);
         squareDrawable.setColor(Color.TRANSPARENT);
+        Intent fromIntent = getIntent();
 
         // Инициализация
         mScrollView = (HorizontalScrollView) findViewById(R.id.horizontalScrollView);
@@ -169,10 +169,6 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         mRgbValueTextView = (TextView) findViewById(R.id.textView_RGB_value);
         mHsvValueTextView = (TextView) findViewById(R.id.textView_HSV_value);
         mSharedPreferences = getPreferences(Context.MODE_PRIVATE);
-        mFromIntent = getIntent();
-        if (mFromIntent == null) {
-            mFromIntent = new Intent();
-        }
         mHandler = new Handler();
         mVibrator = (Vibrator) applicationContext.getSystemService(VIBRATOR_SERVICE);
 
@@ -261,8 +257,8 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         squareDrawable = getSquareDrawable(applicationContext);
         findViewById(R.id.imageButton_chosen).setBackground(squareDrawable);
         if (savedInstanceState == null) {
-            if (mFromIntent.hasExtra(CHOSEN_KEY)) {
-                Color.colorToHSV(mFromIntent.getIntExtra(CHOSEN_KEY, Color.TRANSPARENT), chosenColorHsv);
+            if (fromIntent.hasExtra(CHOSEN_KEY)) {
+                Color.colorToHSV(fromIntent.getIntExtra(CHOSEN_KEY, Color.TRANSPARENT), chosenColorHsv);
             } else {
                 chosenColorHsv = copyOfColor(mSquareColorsHsv.get(0));
             }
@@ -296,8 +292,9 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
      * @param color Выбранный цвет
      */
     private void closeWithResult(int color) {
-        mFromIntent.putExtra(CHOSEN_KEY, color);
-        setResult(RESULT_OK, mFromIntent);
+        Intent result = new Intent();
+        result.putExtra(CHOSEN_KEY, color);
+        setResult(RESULT_OK, result);
         finish();
     }
 

@@ -33,6 +33,11 @@ public class MainListActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>,
         ItemListAdapter.ItemListAdapterOnClickHandler {
 
+    /** Константа для использования в Intent в качестве ключа при передаче UID. */
+    public static final String KEY_UID = "com.example.mborzenkov.readlaterlist.readlateritem.uid";
+    /** Константа, обозначающая пустой UID. */
+    public static final int UID_EMPTY = -1;
+
     /** ID запроса для создания нового элемента. */
     private static final int ITEM_ADD_NEW_REQUEST = 1;
     /** ID запроса для редактирования элемента. */
@@ -196,7 +201,7 @@ public class MainListActivity extends AppCompatActivity implements
         ReadLaterItem data = new ReadLaterItem(mDataCursor.getString(INDEX_COLUMN_LABEL),
                 mDataCursor.getString(INDEX_COLUMN_DESCRIPTION), mDataCursor.getInt(INDEX_COLUMN_COLOR));
         editItemIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(data));
-        editItemIntent.putExtra(ReadLaterItemParcelable.KEY_UID, mDataCursor.getInt(INDEX_COLUMN_ID));
+        editItemIntent.putExtra(KEY_UID, mDataCursor.getInt(INDEX_COLUMN_ID));
         startActivityForResult(editItemIntent, ITEM_EDIT_REQUEST);
     }
 
@@ -217,8 +222,8 @@ public class MainListActivity extends AppCompatActivity implements
                     }
                     break;
                 case ITEM_EDIT_REQUEST:
-                    if (data.hasExtra(ReadLaterItemParcelable.KEY_UID)) {
-                        int uid = data.getIntExtra(ReadLaterItemParcelable.KEY_UID, -1);
+                    if (data.hasExtra(KEY_UID)) {
+                        int uid = data.getIntExtra(KEY_UID, UID_EMPTY);
                         if (resultData == null) {
                             // Удаляет элемент, показывает снэкбар
                             int deleted = getContentResolver()
