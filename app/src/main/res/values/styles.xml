@@ -23,112 +23,156 @@
         <item name="android:theme">@style/AppTheme.Toolbar</item>
     </style>
 
-    <style name="Divider">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">1dp</item>
-        <item name="background">@color/divider</item>
-    </style>
-
     <style name="MainList" />
     <style name="MainList.List">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">match_parent</item>
-        <item name="android:paddingTop">8dp</item>
-        <item name="android:paddingBottom">8dp</item>
+        <item name="android:paddingTop">@dimen/padding_mainlist_list</item>
+        <item name="android:paddingBottom">@dimen/padding_mainlist_list</item>
+        <item name="android:divider">@color/divider</item>
+        <item name="android:dividerHeight">@dimen/height_divider</item>
     </style>
     <style name="MainList.Icon">
-        <item name="android:layout_marginLeft">16dp</item>
-        <item name="android:layout_width">30dp</item>
-        <item name="android:layout_height">30dp</item>
+        <item name="android:layout_marginLeft">@dimen/marginleft_mainlist_icon</item>
+        <item name="android:layout_width">@dimen/size_mainlist_icon</item>
+        <item name="android:layout_height">@dimen/size_mainlist_icon</item>
     </style>
     <style name="MainList.Item">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">88dp</item>
-        <item name="android:paddingTop">16dp</item>
+        <item name="android:layout_height">@dimen/height_mainlist_item</item>
+        <item name="android:paddingTop">@dimen/paddingtop_mainlist_item</item>
     </style>
     <style name="MainList.Text">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:fontFamily">sans-serif</item>
-        <item name="android:layout_marginLeft">72dp</item>
-        <item name="android:layout_marginRight">16dp</item>
+        <item name="android:layout_marginLeft">@dimen/marginleft_mainlist_text</item>
+        <item name="android:layout_marginRight">@dimen/marginright_mainlist_text</item>
     </style>
     <style name="MainList.PrimaryText" parent="MainList.Text">
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">@dimen/textsize_mainlist_primarytext</item>
         <item name="android:textColor">@color/primary_text</item>
         <item name="android:singleLine">true</item>
     </style>
     <style name="MainList.SecondaryText" parent="MainList.Text">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">@dimen/textsize_mainlist_secondarytext</item>
         <item name="android:textColor">@color/secondary_text</item>
-        <item name="android:layout_marginBottom">20dp</item>
-        <item name="android:lines">2</item>
+        <item name="android:layout_marginBottom">@dimen/marginbottom_mainlist_secondarytext</item>
+        <item name="android:lines">@integer/mainlist_textlines</item>
     </style>
     <style name="MainList.FABAdd">
-        <item name="android:layout_width">56dp</item>
-        <item name="android:layout_height">56dp</item>
-        <item name="android:layout_margin">16dp</item>
+        <item name="android:layout_width">@dimen/size_mainlist_fabadd</item>
+        <item name="android:layout_height">@dimen/size_mainlist_fabadd</item>
+        <item name="android:layout_margin">@dimen/margin_mainlist_fabadd</item>
         <item name="android:layout_gravity">bottom|end</item>
     </style>
 
-    <style name="EditList" />
-    <style name="EditList.Item" parent="MainList.Item" />
-    <style name="EditList.Icon">
-        <item name="android:layout_marginLeft">16dp</item>
-        <item name="android:layout_width">40dp</item>
-        <item name="android:layout_height">40dp</item>
+    <style name="EditItem" />
+    <style name="EditItem.Item" parent="MainList.Item" />
+    <style name="EditItem.Icon">
+        <item name="android:layout_marginLeft">@dimen/marginleft_edititem_icon</item>
+        <item name="android:layout_width">@dimen/size_edititem_icon</item>
+        <item name="android:layout_height">@dimen/size_edititem_icon</item>
+        <item name="android:contentDescription">@string/edititem_icon_contentdescription</item>
     </style>
-    <style name="EditList.TextInputLayout">
+    <style name="EditItem.TextInputLayout">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginLeft">72dp</item>
-        <item name="android:layout_marginRight">16dp</item>
+        <item name="android:layout_marginLeft">@dimen/marginleft_edititem_textinputlayout</item>
+        <item name="android:layout_marginRight">@dimen/marginright_edititem_textinputlayout</item>
     </style>
-    <style name="EditList.TextField">
+    <style name="EditItem.TextField">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:fontFamily">sans-serif</item>
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">@dimen/textsize_edititem_textfield</item>
         <item name="android:textColor">@color/primary_text</item>
         <item name="android:inputType">text</item>
     </style>
-    <style name="EditList.AppBarTextInputLayout" parent="EditList.TextInputLayout">
-        <item name="android:layout_marginTop">8dp</item>
-        <item name="android:layout_marginLeft">72dp</item>
-        <item name="android:layout_marginRight">72dp</item>
-        <item name="android:layout_marginBottom">8dp</item>
+    <style name="EditItem.AppBarTextInputLayout" parent="EditItem.TextInputLayout">
+        <item name="android:layout_marginTop">@dimen/margintopbottom_edititem_appbartextinputlayout</item>
+        <item name="android:layout_marginLeft">@dimen/marginleftright_edititem_appbartextinputlayout</item>
+        <item name="android:layout_marginRight">@dimen/marginleftright_edititem_appbartextinputlayout</item>
+        <item name="android:layout_marginBottom">@dimen/margintopbottom_edititem_appbartextinputlayout</item>
     </style>
-    <style name="EditList.AppBarTextField" parent="EditList.TextField">
-        <item name="android:maxLines">1</item>
+    <style name="EditItem.AppBarTextField" parent="EditItem.TextField">
+        <item name="android:maxLines">@integer/edititem_headerlines</item>
         <item name="android:nextFocusDown">@id/et_edit_item_description</item>
     </style>
-    <style name="EditList.FABSave">
-        <item name="android:layout_width">56dp</item>
-        <item name="android:layout_height">56dp</item>
-        <item name="android:layout_margin">16dp</item>
+    <style name="EditItem.FABSave">
+        <item name="android:layout_width">@dimen/size_edititem_fabsave</item>
+        <item name="android:layout_height">@dimen/size_edititem_fabsave</item>
+        <item name="android:layout_margin">@dimen/margin_edititem_fabsave</item>
     </style>
 
     <style name="ColorPicker" />
+    <style name="ColorPicker.LinearLayoutFavorites">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:layout_marginTop">@dimen/marginTop_colorpicker_linearlayoutfavorites</item>
+    </style>
     <style name="ColorPicker.ColoredCircle">
-        <item name="android:layout_width">80dp</item>
-        <item name="android:layout_height">80dp</item>
-        <item name="android:layout_margin">20dp</item>
+        <item name="android:layout_width">@dimen/size_colorpicker_coloredcircle</item>
+        <item name="android:layout_height">@dimen/size_colorpicker_coloredcircle</item>
+        <item name="android:layout_margin">@dimen/margin_colorpicker_coloredcircle</item>
+    </style>
+    <style name="ColorPicker.ColoredCircle.Chosen">
+        <item name="android:onClick">clickOnChosenSquare</item>
+        <item name="android:clickable">true</item>
+        <item name="android:layout_marginTop">@dimen/margintop_colorpicker_chosencircle</item>
     </style>
     <style name="ColorPicker.Favorite">
-        <item name="android:layout_width">60dp</item>
-        <item name="android:layout_height">60dp</item>
-        <item name="android:layout_margin">15dp</item>
+        <item name="android:layout_width">@dimen/size_colorpicker_favoritecircle</item>
+        <item name="android:layout_height">@dimen/size_colorpicker_favoritecircle</item>
+        <item name="android:layout_margin">@dimen/margin_colorpicker_favoritecircle</item>
     </style>
     <style name="ColorPicker.Star">
-        <item name="android:layout_width">20dp</item>
-        <item name="android:layout_height">20dp</item>
-        <item name="android:layout_margin">4dp</item>
+        <item name="android:layout_width">@dimen/size_colorpicker_star</item>
+        <item name="android:layout_height">@dimen/size_colorpicker_star</item>
+        <item name="android:layout_margin">@dimen/margin_colorpicker_star</item>
     </style>
     <style name="ColorPicker.Text">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:fontFamily">sans-serif</item>
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">@dimen/textsize_colorpicker_all</item>
+    </style>
+    <style name="ColorPicker.Text.Chosen">
+        <item name="android:text">@string/colorpicker_chosen_label</item>
+        <item name="android:layout_marginTop">@dimen/margintop_colorpicker_textchosen</item>
+    </style>
+    <style name="ColorPicker.Text.Favorites">
+        <item name="android:text">@string/colorpicker_favorites_label</item>
+        <item name="android:layout_marginTop">@dimen/margintop_colorpicker_textfavorites</item>
+    </style>
+    <style name="ColorPicker.Text.Label"/>
+    <style name="ColorPicker.Text.Label.RGB">
+        <item name="android:layout_marginTop">@dimen/margintop_colorpicker_textlabels</item>
+        <item name="android:layout_marginRight">@dimen/margin_colorpicker_textlabels</item>
+        <item name="android:text">@string/colorpicker_RGB</item>
+        android:layout_marginTop="8dp"
+        android:layout_marginLeft="16dp"
+    </style>
+    <style name="ColorPicker.Text.Label.HSV">
+        <item name="android:layout_marginTop">@dimen/margintop_colorpicker_textlabels</item>
+        <item name="android:layout_marginLeft">@dimen/margin_colorpicker_textlabels</item>
+        <item name="android:text">@string/colorpicker_HSV</item>
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="0dp"
+    </style>
+    <style name="ColorPicker.Text.Value"/>
+    <style name="ColorPicker.Text.Value.RGB">
+        <item name="android:layout_marginTop">@dimen/margin_colorpicker_textvalues</item>
+        <item name="android:layout_marginRight">@dimen/margin_colorpicker_textvalues</item>
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+    </style>
+    <style name="ColorPicker.Text.Value.HSV">
+        <item name="android:layout_marginTop">@dimen/margin_colorpicker_textvalues</item>
+        <item name="android:layout_marginLeft">@dimen/margin_colorpicker_textvalues</item>
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="0dp"
     </style>
 
 </resources>

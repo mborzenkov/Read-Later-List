@@ -2,8 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.mborzenkov.readlaterlist">
 
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
     <application
-        android:name=".App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -11,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".activity.MainList"
+            android:name=".activity.MainListActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:theme="@style/AppTheme.NoActionBar">
@@ -22,23 +23,23 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.EditItem"
+            android:name=".activity.EditItemActivity"
             android:label="@string/title_activity_edit_item"
             android:launchMode="singleTop"
-            android:parentActivityName=".activity.MainList"
+            android:parentActivityName=".activity.MainListActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.mborzenkov.readlaterlist.activity.MainList" />
+                android:value="com.example.mborzenkov.readlaterlist.activity.MainListActivity" />
         </activity>
-        <activity android:name=".activity.ColorPicker"
+        <activity android:name=".activity.ColorPickerActivity"
             android:label="@string/title_activity_colorpicker"
             android:launchMode="singleTop"
-            android:parentActivityName=".activity.EditItem"
+            android:parentActivityName=".activity.EditItemActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.mborzenkov.readlaterlist.activity.EditItem" />
+                android:value="com.example.mborzenkov.readlaterlist.activity.EditItemActivity" />
         </activity>
 
         <provider
@@ -46,7 +47,5 @@
             android:authorities="@string/content_authority"
             android:exported="false"/>
     </application>
-
-    <uses-permission android:name="android.permission.VIBRATE"/>
 
 </manifest>

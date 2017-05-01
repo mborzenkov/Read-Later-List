@@ -1,3 +1,69 @@
 <resources>
-    <!-- На будущее -->
+
+    <dimen name="height_divider">1px</dimen>
+
+    <!-- MainListActivity -->
+    <dimen name="padding_mainlist_list">8dp</dimen>
+
+    <dimen name="size_mainlist_icon">30dp</dimen>
+    <dimen name="marginleft_mainlist_icon">16dp</dimen>
+
+    <dimen name="height_mainlist_item">88dp</dimen>
+    <dimen name="paddingtop_mainlist_item">16dp</dimen>
+
+    <dimen name="marginleft_mainlist_text">72dp</dimen>
+    <dimen name="marginright_mainlist_text">16dp</dimen>
+
+    <dimen name="textsize_mainlist_primarytext">16sp</dimen>
+
+    <dimen name="textsize_mainlist_secondarytext">14sp</dimen>
+    <dimen name="marginbottom_mainlist_secondarytext">20dp</dimen>
+
+    <dimen name="size_mainlist_fabadd">56dp</dimen>
+    <dimen name="margin_mainlist_fabadd">16dp</dimen>
+
+    <dimen name="paddingtop_mainlist_empty">32dp</dimen>
+
+    <dimen name="size_mainlist_progressbar">42dp</dimen>
+
+    <!-- EditItemActivity -->
+    <dimen name="size_edititem_icon">40dp</dimen>
+    <dimen name="marginleft_edititem_icon">16dp</dimen>
+
+    <dimen name="marginleft_edititem_textinputlayout">72dp</dimen>
+    <dimen name="marginright_edititem_textinputlayout">16dp</dimen>
+
+    <dimen name="textsize_edititem_textfield">16sp</dimen>
+
+    <dimen name="margintopbottom_edititem_appbartextinputlayout">8dp</dimen>
+    <dimen name="marginleftright_edititem_appbartextinputlayout">72dp</dimen>
+
+    <dimen name="size_edititem_fabsave">56dp</dimen>
+    <dimen name="margin_edititem_fabsave">16dp</dimen>
+
+    <!-- ColorPickerActivity -->
+    <dimen name="height_colorpicker_horizontalscrollview_default">100dp</dimen>
+
+    <dimen name="marginTop_colorpicker_linearlayoutfavorites">16dp</dimen>
+    
+    <dimen name="size_colorpicker_coloredcircle">80dp</dimen>
+    <dimen name="margin_colorpicker_coloredcircle">20dp</dimen>
+    <dimen name="margintop_colorpicker_coloredcircle">20dp</dimen>
+
+    <dimen name="margintop_colorpicker_chosencircle">16dp</dimen>
+
+    <dimen name="size_colorpicker_favoritecircle">60dp</dimen>
+    <dimen name="margin_colorpicker_favoritecircle">15dp</dimen>
+
+    <dimen name="size_colorpicker_star">20dp</dimen>
+    <dimen name="margin_colorpicker_star">4dp</dimen>
+
+    <dimen name="textsize_colorpicker_all">16sp</dimen>
+
+    <dimen name="margintop_colorpicker_textchosen">8dp</dimen>
+    <dimen name="margintop_colorpicker_textfavorites">8dp</dimen>
+    <dimen name="margin_colorpicker_textvalues">8dp</dimen>
+    <dimen name="margintop_colorpicker_textlabels">32dp</dimen>
+    <dimen name="margin_colorpicker_textlabels">8dp</dimen>
+
 </resources>

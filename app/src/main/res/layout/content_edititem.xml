@@ -5,30 +5,30 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.example.mborzenkov.readlaterlist.activity.EditItem"
-    tools:showIn="@layout/activity_edit_item">
+    tools:context="com.example.mborzenkov.readlaterlist.activity.EditItemActivity"
+    tools:showIn="@layout/activity_edititem">
 
     <android.support.constraint.ConstraintLayout
-        style="@style/EditList.Item">
+        style="@style/EditItem.Item">
 
         <ImageButton
             android:id="@+id/ib_edit_item_color"
-            style="@style/EditList.Icon"
-            android:background="@drawable/item_color_circle"
+            style="@style/EditItem.Icon"
+            android:background="@drawable/mainlist_circle"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             android:contentDescription="@string/edititem_color_hint"/>
 
         <android.support.design.widget.TextInputLayout
             android:id="@+id/til_edit_item_description"
-            style="@style/EditList.TextInputLayout"
+            style="@style/EditItem.TextInputLayout"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent">
 
             <EditText
                 android:id="@+id/et_edit_item_description"
-                style="@style/EditList.TextField"
+                style="@style/EditItem.TextField"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:hint="@string/edititem_description_hint"

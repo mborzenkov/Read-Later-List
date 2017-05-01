@@ -6,14 +6,12 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
-/**
- * Класс для доступа к базе данных
- */
-public class ReadLaterDbHelper extends SQLiteOpenHelper {
+/** Класс для доступа к базе данных. */
+class ReadLaterDbHelper extends SQLiteOpenHelper {
 
-    /** Имя базы данных */
-    public static final String DATABASE_NAME = "readlaterlist.db";
-    /** Версия базы данных */
+    /** Имя базы данных. */
+    private static final String DATABASE_NAME = "readlaterlist.db";
+    /** Версия базы данных. */
     private static final int DATABASE_VERSION = 1;
 
     public ReadLaterDbHelper(Context context) {
@@ -23,14 +21,14 @@ public class ReadLaterDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         // Создание таблицы
-        final String SQL_CREATE_WEATHER_TABLE =
-                "CREATE TABLE " + ReadLaterEntry.TABLE_NAME + " (" +
-                        ReadLaterEntry._ID               + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                        ReadLaterEntry.COLUMN_LABEL       + " STRING NOT NULL, "                 +
-                        ReadLaterEntry.COLUMN_DESCRIPTION + " STRING NOT NULL, "                 +
-                        ReadLaterEntry.COLUMN_COLOR       + " INTEGER NOT NULL);";
+        final String sqlCreateWeatherTable =
+            "CREATE TABLE " + ReadLaterEntry.TABLE_NAME + " ("
+                    + ReadLaterEntry._ID                + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + ReadLaterEntry.COLUMN_LABEL       + " STRING NOT NULL, "
+                    + ReadLaterEntry.COLUMN_DESCRIPTION + " STRING NOT NULL, "
+                    + ReadLaterEntry.COLUMN_COLOR       + " INTEGER NOT NULL);";
 
-        sqLiteDatabase.execSQL(SQL_CREATE_WEATHER_TABLE);
+        sqLiteDatabase.execSQL(sqlCreateWeatherTable);
     }
 
     @Override
