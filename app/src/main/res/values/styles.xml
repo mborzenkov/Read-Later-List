@@ -23,18 +23,14 @@
         <item name="android:theme">@style/AppTheme.Toolbar</item>
     </style>
 
-    <style name="Divider">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">@dimen/height_divider</item>
-        <item name="background">@color/divider</item>
-    </style>
-
     <style name="MainList" />
     <style name="MainList.List">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">match_parent</item>
         <item name="android:paddingTop">@dimen/padding_mainlist_list</item>
         <item name="android:paddingBottom">@dimen/padding_mainlist_list</item>
+        <item name="android:divider">@color/divider</item>
+        <item name="android:dividerHeight">@dimen/height_divider</item>
     </style>
     <style name="MainList.Icon">
         <item name="android:layout_marginLeft">@dimen/marginleft_mainlist_icon</item>
