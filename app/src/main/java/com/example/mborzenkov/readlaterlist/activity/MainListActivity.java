@@ -222,6 +222,25 @@ public class MainListActivity extends AppCompatActivity implements
         savedFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         savedFiltersAdapter.addAll(MainListFilterUtils.getSavedFiltersContents(this).keySet());
         mSavedFiltersSpinner.setAdapter(savedFiltersAdapter);
+        mSavedFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                // TODO: Выбор предопределенного фильтра
+                int indexSavedAdd = MainListFilterUtils.getIndexSavedAdd();
+                int indexSavedDelete = MainListFilterUtils.getIndexSavedDelete();
+                if (position == indexSavedAdd) {
+                    // показать окно ввода и сохранить данные
+                    // если ок, вызвать saveFilter
+                } else if (position == indexSavedDelete) {
+                    // показать окно подтверждения и удалить данные
+                    // если ок, вызвать removeSavedFilter
+                } else {
+                    MainListFilterUtils.clickOnSavedFilter(position);
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) { }
+        });
 
         // Заполняем варианты фильтров по дате
         mDateFiltersSpinner = (Spinner) findViewById(R.id.spinner_drawermainlist_datefilter);
@@ -232,6 +251,7 @@ public class MainListActivity extends AppCompatActivity implements
         mDateFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                MainListFilterUtils.clickOnDateFilter(position);
                 switch (position) {
                     case MainListFilterUtils.INDEX_DATE_ALL:
                         mDateFromEditText.setVisibility(View.GONE);
@@ -248,10 +268,11 @@ public class MainListActivity extends AppCompatActivity implements
         });
 
         // Специальные возможности создаются только в DEBUG
-        /*if (!BuildConfig.DEBUG) {
-            menu.removeItem(R.id.mainlist_action_add_placeholders);
-            menu.removeItem(R.id.mainlist_action_delete_all);
-        }*/
+        if (!BuildConfig.DEBUG) {
+            mDrawerLayout.findViewById(R.id.textview_drawermainlist_debug).setVisibility(View.INVISIBLE);
+            mDrawerLayout.findViewById(R.id.button_drawermainlist_fillplaceholders).setVisibility(View.INVISIBLE);
+            mDrawerLayout.findViewById(R.id.button_drawermainlist_deleteall).setVisibility(View.INVISIBLE);
+        }
 
     }
 
@@ -340,20 +361,39 @@ public class MainListActivity extends AppCompatActivity implements
 
     @Override
     public void onClick(View v) {
-        // onClickListner
-        Log.i("CLICK", "ONCLICKLIST " + v.getTag());
-        /*View favCircle = mFavLinearLayout.getChildAt((int) v.getTag()).findViewById(R.id.imageButton_favorite_color);
-        GradientDrawable background = (GradientDrawable) favCircle.getBackground();
-        background.setStroke(4, Color.BLACK);*/
+        // Click на drawer favorite
+        // TODO: Выбор favorite
+        MainListFilterUtils.clickOnColorFilter((int) v.getTag());
     }
 
     public void clickOnSortButton(View button) {
-        // click on sort
-        Log.i("CLICK", "SORTBY");
+        // Click на кнопку сортировки
+        // TODO: Клик на кнопку сортировки
+        switch (button.getId()) {
+            case R.id.button_drawermainlist_sortname:
+                break;
+            case R.id.button_drawermainlist_sortcreate:
+                break;
+            case R.id.button_drawermainlist_sortmodified:
+                break;
+            case R.id.button_drawermainlist_sortview:
+                break;
+            default:
+                break;
+        }
     }
 
     public void clickOnBackupButton(View button) {
-        Log.i("CLICK", "BACKUP");
+        // Click на кнопку бэкап
+        // TODO: Клик на кнопку бэкап
+        switch (button.getId()) {
+            case R.id.button_drawermainlist_backupsave:
+                break;
+            case R.id.button_drawermainlist_backuprestore:
+                break;
+            default:
+                break;
+        }
     }
 
     public void clickOnDebugButton(View button) {
@@ -376,8 +416,6 @@ public class MainListActivity extends AppCompatActivity implements
         }
         mDrawerLayout.closeDrawer(Gravity.RIGHT);
     }
-
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

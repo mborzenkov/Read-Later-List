@@ -14,11 +14,16 @@ import java.util.Map;
 public class MainListFilterUtils {
 
     public static final String FILTER_KEY = "com.example.mborzenkov.mainlist.filter";
+
+    public static final int INDEX_SAVED_DEFAULT = 0;
+
     public static final int INDEX_DATE_ALL = 0;
 
     private static Map<String, MainListFilter> sSavedFilters = null;
     private static List<String> sDateFilters = null;
     private static MainListFilter sCurrentFilter = null;
+    private static int sIndexSavedAdd = 1;
+    private static int sIndexSavedDelete = 2;
 
     private MainListFilterUtils() {
         throw new UnsupportedOperationException("Класс MainListFilterUtils - static util, не может иметь экземпляров");
@@ -35,6 +40,8 @@ public class MainListFilterUtils {
             }
             sSavedFilters.put(context.getString(R.string.mainlist_drawer_filters_save), null);
             sSavedFilters.put(context.getString(R.string.mainlist_drawer_filters_remove), null);
+            sIndexSavedDelete = sSavedFilters.size() - 1;
+            sIndexSavedAdd = sIndexSavedDelete - 1;
         }
         return sSavedFilters;
     }
@@ -52,6 +59,38 @@ public class MainListFilterUtils {
 
     public static MainListFilter getCurrentFilter() {
         return sCurrentFilter;
+    }
+
+    public static void clickOnSavedFilter(int position) {
+
+    }
+
+    public static void saveFilter(String name) {
+
+    }
+
+    public static void removeSavedFilter(int position) {
+
+    }
+
+    public static void clickOnDateFilter(int position) {
+
+    }
+
+    public static void clickOnColorFilter(int position) {
+
+    }
+
+    public static void clickOnSortBy(int position) {
+
+    }
+
+    public static int getIndexSavedAdd() {
+        return sIndexSavedAdd;
+    }
+
+    public static int getIndexSavedDelete() {
+        return sIndexSavedDelete;
     }
 
 }
