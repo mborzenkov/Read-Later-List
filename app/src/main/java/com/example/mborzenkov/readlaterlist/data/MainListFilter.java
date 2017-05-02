@@ -47,11 +47,11 @@ public class MainListFilter {
         }
     }
 
-    private enum Selection {
+    public enum Selection {
         ALL("No filter"),
         DATE_CREATED("Creation date"),
-        DATE_MODIFIED("Last modify"),
-        DATE_VIEWED("Last view");
+        DATE_MODIFIED("Last modify date"),
+        DATE_VIEWED("Last view date");
 
         private final String stringRep;
 
@@ -94,5 +94,12 @@ public class MainListFilter {
 
     public String[] getSqlSelectionArgs() {
         return new String[0];
+    }
+
+
+
+    @Override
+    public String toString() {
+        return super.toString();
     }
 }

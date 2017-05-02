@@ -7,6 +7,7 @@ import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,38 +16,44 @@ public class MainListFilterUtils {
 
     public static final String FILTER_KEY = "com.example.mborzenkov.mainlist.filter";
 
-    public static final int INDEX_SAVED_DEFAULT = 0;
-
     public static final int INDEX_DATE_ALL = 0;
 
-    private static Map<String, MainListFilter> sSavedFilters = null;
-    private static List<String> sDateFilters = null;
-    private static MainListFilter sCurrentFilter = null;
+    private static Map<String, MainListFilter> sCustomFilters = null;
+    private static final int INDEX_SAVED_DEFAULT = 0;
+    private static int sIndexSavedChosen = 0;
     private static int sIndexSavedAdd = 1;
     private static int sIndexSavedDelete = 2;
+
+    private static List<String> sDateFilters = null;
+    private static int sIndexDateChosen = 0;
+
+    private static MainListFilter sCurrentFilter = null;
+
 
     private MainListFilterUtils() {
         throw new UnsupportedOperationException("Класс MainListFilterUtils - static util, не может иметь экземпляров");
     }
 
-    public static Map<String, MainListFilter> getSavedFiltersContents(Context context) {
-        if (sSavedFilters == null) {
-            sSavedFilters = new LinkedHashMap<>();
-            sSavedFilters.put(context.getString(R.string.mainlist_drawer_filters_default), new MainListFilter());
+    public static List<String> getSavedFiltersList(Context context) {
+        if (sCustomFilters == null) {
+            sCustomFilters = new LinkedHashMap<>();
+            sCustomFilters.put(context.getString(R.string.mainlist_drawer_filters_default), new MainListFilter());
             SharedPreferences sharedPreferences = context.getSharedPreferences(FILTER_KEY, Context.MODE_PRIVATE);
             Map<String, ?> userFilters = sharedPreferences.getAll();
             for (String key : userFilters.keySet()) {
-                sSavedFilters.put(key, MainListFilter.fromString((String) userFilters.get(key)));
+                sCustomFilters.put(key, MainListFilter.fromString((String) userFilters.get(key)));
             }
-            sSavedFilters.put(context.getString(R.string.mainlist_drawer_filters_save), null);
-            sSavedFilters.put(context.getString(R.string.mainlist_drawer_filters_remove), null);
-            sIndexSavedDelete = sSavedFilters.size() - 1;
+            sIndexSavedDelete = sCustomFilters.size() - 1;
             sIndexSavedAdd = sIndexSavedDelete - 1;
         }
-        return sSavedFilters;
+        List<String> result = new ArrayList<>();
+        result.addAll(sCustomFilters.keySet());
+        result.add(context.getString(R.string.mainlist_drawer_filters_save));
+        result.add(context.getString(R.string.mainlist_drawer_filters_remove));
+        return result;
     }
 
-    public static List<String> getsDateFilters(Context context) {
+    public static List<String> getsDateFiltersList(Context context) {
         if (sDateFilters == null) {
             sDateFilters = new ArrayList<>();
             sDateFilters.add(context.getString(R.string.mainlist_drawer_date_all));
@@ -58,19 +65,45 @@ public class MainListFilterUtils {
     }
 
     public static MainListFilter getCurrentFilter() {
+        if (sCurrentFilter == null) {
+            sCurrentFilter = new MainListFilter();
+        }
         return sCurrentFilter;
     }
 
-    public static void clickOnSavedFilter(int position) {
-
+    public static void clickOnSavedFilter(Context context, int position) {
+        if (position == INDEX_SAVED_DEFAULT) {
+            sCurrentFilter = new MainListFilter();
+        } else {
+            Iterator iterator = sCustomFilters.keySet().iterator();
+            for (int i = 0; i < position; i++) {
+                iterator.next();
+            }
+            sCurrentFilter = MainListFilter.fromString(sCustomFilters.get(iterator).toString());
+        }
+        sIndexSavedChosen = position;
     }
 
-    public static void saveFilter(String name) {
-
+    public static void saveFilter(Context context, String name) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(FILTER_KEY, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(name, sCurrentFilter.toString());
+        editor.apply();
+        sCustomFilters = null;
     }
 
-    public static void removeSavedFilter(int position) {
+    public static void removeSavedFilter(Context context, int position) {
+        Iterator iterator = sCustomFilters.keySet().iterator();
+        for (int i = 0; i < position; i++) {
+            iterator.next();
+        }
+        String name = iterator.toString();
 
+        SharedPreferences sharedPreferences = context.getSharedPreferences(FILTER_KEY, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove(name);
+        editor.apply();
+        sCustomFilters = null;
     }
 
     public static void clickOnDateFilter(int position) {
@@ -91,6 +124,14 @@ public class MainListFilterUtils {
 
     public static int getIndexSavedDelete() {
         return sIndexSavedDelete;
+    }
+
+    public static int getIndexSavedChosen() {
+        return sIndexSavedChosen;
+    }
+
+    public static int getIndexDateChosen() {
+        return sIndexDateChosen;
     }
 
 }

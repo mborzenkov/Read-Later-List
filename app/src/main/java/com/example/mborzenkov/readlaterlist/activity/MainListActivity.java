@@ -132,6 +132,7 @@ public class MainListActivity extends AppCompatActivity implements
 
         // Инициализация Drawer Layout
         inflateDrawerLayout();
+        updateDrawerWithCurrentFilter();
 
         // Показать иконку загрузки
         showLoading();
@@ -220,7 +221,7 @@ public class MainListActivity extends AppCompatActivity implements
         mSavedFiltersSpinner = (Spinner) findViewById(R.id.spinner_drawermainlist_filter);
         ArrayAdapter<String> savedFiltersAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
         savedFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        savedFiltersAdapter.addAll(MainListFilterUtils.getSavedFiltersContents(this).keySet());
+        savedFiltersAdapter.addAll(MainListFilterUtils.getSavedFiltersList(this));
         mSavedFiltersSpinner.setAdapter(savedFiltersAdapter);
         mSavedFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -235,8 +236,9 @@ public class MainListActivity extends AppCompatActivity implements
                     // показать окно подтверждения и удалить данные
                     // если ок, вызвать removeSavedFilter
                 } else {
-                    MainListFilterUtils.clickOnSavedFilter(position);
+                    MainListFilterUtils.clickOnSavedFilter(MainListActivity.this, position);
                 }
+                updateDrawerWithCurrentFilter();
             }
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) { }
@@ -246,7 +248,7 @@ public class MainListActivity extends AppCompatActivity implements
         mDateFiltersSpinner = (Spinner) findViewById(R.id.spinner_drawermainlist_datefilter);
         ArrayAdapter<String> dateFiltersAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
         dateFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        dateFiltersAdapter.addAll(MainListFilterUtils.getsDateFilters(this));
+        dateFiltersAdapter.addAll(MainListFilterUtils.getsDateFiltersList(this));
         mDateFiltersSpinner.setAdapter(dateFiltersAdapter);
         mDateFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -274,6 +276,12 @@ public class MainListActivity extends AppCompatActivity implements
             mDrawerLayout.findViewById(R.id.button_drawermainlist_deleteall).setVisibility(View.INVISIBLE);
         }
 
+    }
+
+    private void updateDrawerWithCurrentFilter() {
+        mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedChosen());
+        mDateFiltersSpinner.setSelection(MainListFilterUtils.getIndexDateChosen());
+        // TODO: остальное
     }
 
     @Override
