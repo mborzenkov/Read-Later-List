@@ -3,28 +3,45 @@
     <dimen name="height_divider">1px</dimen>
 
     <!-- MainListActivity -->
-    <dimen name="padding_mainlist_list">8dp</dimen>
+        <dimen name="padding_mainlist_list">8dp</dimen>
 
-    <dimen name="size_mainlist_icon">30dp</dimen>
-    <dimen name="marginleft_mainlist_icon">16dp</dimen>
+        <dimen name="size_mainlist_icon">30dp</dimen>
+        <dimen name="marginleft_mainlist_icon">16dp</dimen>
 
-    <dimen name="height_mainlist_item">88dp</dimen>
-    <dimen name="paddingtop_mainlist_item">16dp</dimen>
+        <dimen name="height_mainlist_item">88dp</dimen>
+        <dimen name="paddingtop_mainlist_item">16dp</dimen>
 
-    <dimen name="marginleft_mainlist_text">72dp</dimen>
-    <dimen name="marginright_mainlist_text">16dp</dimen>
+        <dimen name="marginleft_mainlist_text">72dp</dimen>
+        <dimen name="marginright_mainlist_text">16dp</dimen>
 
-    <dimen name="textsize_mainlist_primarytext">16sp</dimen>
+        <dimen name="textsize_mainlist_primarytext">16sp</dimen>
 
-    <dimen name="textsize_mainlist_secondarytext">14sp</dimen>
-    <dimen name="marginbottom_mainlist_secondarytext">20dp</dimen>
+        <dimen name="textsize_mainlist_secondarytext">14sp</dimen>
+        <dimen name="marginbottom_mainlist_secondarytext">20dp</dimen>
 
-    <dimen name="size_mainlist_fabadd">56dp</dimen>
-    <dimen name="margin_mainlist_fabadd">16dp</dimen>
+        <dimen name="size_mainlist_fabadd">56dp</dimen>
+        <dimen name="margin_mainlist_fabadd">16dp</dimen>
 
-    <dimen name="paddingtop_mainlist_empty">32dp</dimen>
+        <dimen name="paddingtop_mainlist_empty">32dp</dimen>
 
-    <dimen name="size_mainlist_progressbar">42dp</dimen>
+        <dimen name="size_mainlist_progressbar">42dp</dimen>
+
+        <!-- Фильтр -->
+        <dimen name="width_mainlist_drawer">240dp</dimen>
+        <dimen name="marginleft_mainlist_drawer">8dp</dimen>
+        <dimen name="marginright_mainlist_drawer">8dp</dimen>
+        <dimen name="margintop_mainlist_drawer_title">8dp</dimen>
+        <dimen name="margintop_mainlist_drawer_text">16dp</dimen>
+        <dimen name="margintop_mainlist_drawer_hint">8dp</dimen>
+        <dimen name="margintop_mainlist_drawer_dateinput">4dp</dimen>
+        <dimen name="margintop_mainlist_drawer_button">8dp</dimen>
+        <dimen name="marginbottom_mainlist_drawer_text">8dp</dimen>
+
+        <dimen name="height_mainlist_drawer_favorites">30dp</dimen>
+        <dimen name="size_mainlist_drawer_favoritecircle">30dp</dimen>
+        <dimen name="margin_mainlist_drawer_favoritecircle">5dp</dimen>
+
+
 
     <!-- EditItemActivity -->
     <dimen name="size_edititem_icon">40dp</dimen>

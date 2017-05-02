@@ -117,10 +117,10 @@ public class MainListActivity extends AppCompatActivity implements
         getMenuInflater().inflate(R.menu.menu_mainlist, menu);
 
         // Специальные возможности создаются только в DEBUG
-        if (!BuildConfig.DEBUG) {
+        /*if (!BuildConfig.DEBUG) {
             menu.removeItem(R.id.mainlist_action_add_placeholders);
             menu.removeItem(R.id.mainlist_action_delete_all);
-        }
+        }*/
 
         // Создание меню поиска
         SearchManager searchManager = (SearchManager) getSystemService(SEARCH_SERVICE);
@@ -134,7 +134,7 @@ public class MainListActivity extends AppCompatActivity implements
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
+        /*switch (item.getItemId()) {
             case R.id.mainlist_action_add_placeholders:
                 // Действие "Заполнить данными" открывает окно подтверждения и по положительному ответу
                 // вызывает функцию для заполнения
@@ -178,7 +178,7 @@ public class MainListActivity extends AppCompatActivity implements
                 return true;
             default:
                 break;
-        }
+        }*/
         return super.onOptionsItemSelected(item);
     }
 

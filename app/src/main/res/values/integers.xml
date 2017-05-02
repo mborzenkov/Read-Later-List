@@ -3,6 +3,7 @@
 
     <!-- MainList -->
     <integer name="mainlist_textlines">2</integer>
+    <integer name="mainlist_drawer_ems">10</integer>
 
     <!-- EditItem -->
     <integer name="edititem_headerlines">1</integer>

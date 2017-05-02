@@ -26,7 +26,7 @@
     <style name="MainList" />
     <style name="MainList.List">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
         <item name="android:paddingTop">@dimen/padding_mainlist_list</item>
         <item name="android:paddingBottom">@dimen/padding_mainlist_list</item>
         <item name="android:divider">@color/divider</item>
@@ -66,6 +66,66 @@
         <item name="android:layout_margin">@dimen/margin_mainlist_fabadd</item>
         <item name="android:layout_gravity">bottom|end</item>
     </style>
+    <!-- TODO: Drawer - стили по Material -->
+    <style name="MainList.Hint"/>
+    <style name="MainList.Drawer"/>
+    <style name="MainList.Drawer.Layout">
+        <item name="android:layout_width">@dimen/width_mainlist_drawer</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_gravity">end</item>
+    </style>
+    <style name="MainList.Drawer.Text">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginLeft">@dimen/marginleft_mainlist_drawer</item>
+    </style>
+    <style name="MainList.Drawer.Text.Title">
+        <item name="android:layout_marginTop">@dimen/margintop_mainlist_drawer_title</item>
+        <item name="android:text">@string/mainlist_drawer_title</item>
+    </style>
+    <style name="MainList.Drawer.Text.Label">
+        <item name="android:layout_marginTop">@dimen/margintop_mainlist_drawer_text</item>
+        <item name="android:layout_marginBottom">@dimen/marginbottom_mainlist_drawer_text</item>
+    </style>
+    <style name="MainList.Drawer.Text.Hint">
+        <item name="android:layout_marginTop">@dimen/margintop_mainlist_drawer_hint</item>
+    </style>
+    <style name="MainList.Drawer.Spinner">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginLeft">@dimen/marginleft_mainlist_drawer</item>
+        <item name="android:layout_marginRight">@dimen/marginright_mainlist_drawer</item>
+        <item name="android:layout_marginTop">@dimen/margintop_mainlist_drawer_text</item>
+    </style>
+    <style name="MainList.Drawer.Spinner.Filter">
+        <item name="android:layout_width">wrap_content</item>
+    </style>
+    <style name="MainList.Drawer.DateInput">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginLeft">@dimen/marginleft_mainlist_drawer</item>
+        <item name="android:layout_marginRight">@dimen/marginright_mainlist_drawer</item>
+        <item name="android:layout_marginTop">@dimen/margintop_mainlist_drawer_dateinput</item>
+        <item name="android:ems">@integer/mainlist_drawer_ems</item>
+        <item name="android:inputType">date</item>
+    </style>
+    <style name="MainList.Drawer.Favorite">
+        <item name="android:layout_width">@dimen/size_mainlist_drawer_favoritecircle</item>
+        <item name="android:layout_height">@dimen/size_mainlist_drawer_favoritecircle</item>
+        <item name="android:layout_margin">@dimen/margin_mainlist_drawer_favoritecircle</item>
+    </style>
+    <style name="MainList.Drawer.Button">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginLeft">@dimen/marginleft_mainlist_drawer</item>
+        <item name="android:layout_marginTop">@dimen/margintop_mainlist_drawer_button</item>
+    </style>
+    <style name="MainList.Drawer.Button.Sort"/>
+    <style name="MainList.Drawer.Button.Save"/>
+    <style name="MainList.Drawer.Button.Restore"/>
+    <style name="MainList.Drawer.Button.Fill"/>
+    <style name="MainList.Drawer.Button.Delete"/>
+
 
     <style name="EditItem" />
     <style name="EditItem.Item" parent="MainList.Item" />
@@ -151,28 +211,20 @@
         <item name="android:layout_marginTop">@dimen/margintop_colorpicker_textlabels</item>
         <item name="android:layout_marginRight">@dimen/margin_colorpicker_textlabels</item>
         <item name="android:text">@string/colorpicker_RGB</item>
-        android:layout_marginTop="8dp"
-        android:layout_marginLeft="16dp"
     </style>
     <style name="ColorPicker.Text.Label.HSV">
         <item name="android:layout_marginTop">@dimen/margintop_colorpicker_textlabels</item>
         <item name="android:layout_marginLeft">@dimen/margin_colorpicker_textlabels</item>
         <item name="android:text">@string/colorpicker_HSV</item>
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="0dp"
     </style>
     <style name="ColorPicker.Text.Value"/>
     <style name="ColorPicker.Text.Value.RGB">
         <item name="android:layout_marginTop">@dimen/margin_colorpicker_textvalues</item>
         <item name="android:layout_marginRight">@dimen/margin_colorpicker_textvalues</item>
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="8dp"
     </style>
     <style name="ColorPicker.Text.Value.HSV">
         <item name="android:layout_marginTop">@dimen/margin_colorpicker_textvalues</item>
         <item name="android:layout_marginLeft">@dimen/margin_colorpicker_textvalues</item>
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="0dp"
     </style>
 
 </resources>

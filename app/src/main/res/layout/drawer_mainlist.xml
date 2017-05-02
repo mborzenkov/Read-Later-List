@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/MainList.Drawer.Layout">
+
+    <android.support.constraint.ConstraintLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/textview_drawermainlist_title"
+            style="@style/MainList.Drawer.Text.Title"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <TextView
+            android:id="@+id/textview_drawermainlist_filter"
+            style="@style/MainList.Drawer.Text.Label"
+            android:text="@string/mainlist_drawer_filters_title"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_title"/>
+
+        <Spinner
+            android:id="@+id/spinner_drawermainlist_filter"
+            style="@style/MainList.Drawer.Spinner.Filter"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_title"/>
+
+        <Spinner
+            android:id="@+id/spinner_drawermainlist_datefilter"
+            style="@style/MainList.Drawer.Spinner"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_filter"/>
+
+        <TextView
+            android:id="@+id/textview_drawermainlist_datefrom"
+            style="@style/MainList.Drawer.Text.Hint"
+            android:text="@string/mainlist_drawer_datefrom_hint"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/spinner_drawermainlist_datefilter"/>
+
+        <EditText
+            android:id="@+id/edittext_drawermainlist_datefrom"
+            style="@style/MainList.Drawer.DateInput"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_datefrom"/>
+
+        <TextView
+            android:id="@+id/textview_drawermainlist_dateto"
+            style="@style/MainList.Drawer.Text.Hint"
+            android:text="@string/mainlist_drawer_dateto_hint"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/edittext_drawermainlist_datefrom"/>
+
+        <EditText
+            android:id="@+id/edittext_drawermainlist_dateto"
+            style="@style/MainList.Drawer.DateInput"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_dateto"/>
+
+        <TextView
+            android:id="@+id/textview_drawermainlist_color"
+            style="@style/MainList.Drawer.Text.Label"
+            android:text="@string/mainlist_drawer_color_title"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/edittext_drawermainlist_dateto"/>
+
+        <LinearLayout
+            android:id="@+id/linearlayout_drawermainlist_favorites"
+            style="@style/ColorPicker.LinearLayoutFavorites"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            tools:minHeight="@dimen/height_mainlist_drawer_favorites"
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_color"/>
+
+        <TextView
+            android:id="@+id/textview_drawermainlist_sorting"
+            style="@style/MainList.Drawer.Text.Label"
+            android:text="@string/mainlist_drawer_sort_title"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linearlayout_drawermainlist_favorites"/>
+
+        <Button
+            android:id="@+id/button_drawermainlist_sortname"
+            style="@style/MainList.Drawer.Button.Sort"
+            android:text="@string/mainlist_drawer_sort_label"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_sorting"/>
+
+        <Button
+            android:id="@+id/button_drawermainlist_sortcreate"
+            style="@style/MainList.Drawer.Button.Sort"
+            android:text="@string/mainlist_drawer_sort_created"
+            app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_sortname"
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_sorting"/>
+
+        <Button
+            android:id="@+id/button_drawermainlist_sortmodified"
+            style="@style/MainList.Drawer.Button.Sort"
+            android:text="@string/mainlist_drawer_sort_modified"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_sortname"/>
+
+        <Button
+            android:id="@+id/button_drawermainlist_sortview"
+            style="@style/MainList.Drawer.Button.Sort"
+            android:text="@string/mainlist_drawer_sort_viewed"
+            app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_sortmodified"
+            app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_sortname"/>
+
+        <TextView
+            android:id="@+id/textview_drawermainlist_backup"
+            style="@style/MainList.Drawer.Text.Label"
+            android:text="@string/mainlist_drawer_backup_title"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_sortmodified"/>
+
+        <Button
+            android:id="@+id/button_drawermainlist_backupsave"
+            style="@style/MainList.Drawer.Button.Save"
+            android:text="@string/mainlist_drawer_backup_save"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_backup"/>
+
+        <Button
+            android:id="@+id/button_drawermainlist_backuprestore"
+            style="@style/MainList.Drawer.Button.Restore"
+            android:text="@string/mainlist_drawer_backup_restore"
+            app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_backupsave"
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_backup"/>
+
+        <TextView
+            android:id="@+id/textview_drawermainlist_debug"
+            style="@style/MainList.Drawer.Text.Label"
+            android:text="@string/mainlist_drawer_debug_title"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_backupsave"/>
+
+        <Button
+            android:id="@+id/button_drawermainlist_fillplaceholders"
+            style="@style/MainList.Drawer.Button.Fill"
+            android:text="@string/mainlist_drawer_fillplaceholders_title"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_debug"/>
+
+        <Button
+            android:id="@+id/button_drawermainlist_deleteall"
+            style="@style/MainList.Drawer.Button.Delete"
+            android:text="@string/mainlist_drawer_deleteall_title"
+            app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_fillplaceholders"
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_debug"/>
+
+    </android.support.constraint.ConstraintLayout>
+
+</ScrollView>

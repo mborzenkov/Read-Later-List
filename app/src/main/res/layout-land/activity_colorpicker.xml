@@ -48,7 +48,7 @@
         app:layout_constraintLeft_toLeftOf="@+id/imageButton_chosen" />
 
     <LinearLayout
-        android:id="@+id/linearLayout_favorites"
+        android:id="@+id/linearlayout_drawermainlist_favorites"
         style="@style/ColorPicker.LinearLayoutFavorites"
         app:layout_constraintLeft_toRightOf="@+id/imageButton_chosen"
         app:layout_constraintRight_toRightOf="parent"
@@ -58,9 +58,9 @@
     <TextView
         android:id="@+id/textView_favorites"
         style="@style/ColorPicker.Text.Favorites"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout_favorites"
-        app:layout_constraintLeft_toLeftOf="@+id/linearLayout_favorites"
-        app:layout_constraintRight_toRightOf="@+id/linearLayout_favorites"/>
+        app:layout_constraintTop_toBottomOf="@+id/linearlayout_drawermainlist_favorites"
+        app:layout_constraintLeft_toLeftOf="@+id/linearlayout_drawermainlist_favorites"
+        app:layout_constraintRight_toRightOf="@+id/linearlayout_drawermainlist_favorites"/>
 
     <TextView
         android:id="@+id/textView_RGB_label"
