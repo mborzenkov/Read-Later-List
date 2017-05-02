@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FilterQueryProvider;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -74,6 +75,8 @@ public class MainListActivity extends AppCompatActivity implements
     private int mPosition = 0;
     /** ID текущего редактируемого элемента. */
     private int mEditItemId = UID_EMPTY;
+    /** Запрос поиска. */
+    private String mSearchQuery = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,6 +122,7 @@ public class MainListActivity extends AppCompatActivity implements
             menu.removeItem(R.id.mainlist_action_delete_all);
         }
 
+        // Создание меню поиска
         SearchManager searchManager = (SearchManager) getSystemService(SEARCH_SERVICE);
         SearchView searchView = (SearchView) menu.findItem(R.id.mainlist_action_search).getActionView();
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
@@ -180,13 +184,15 @@ public class MainListActivity extends AppCompatActivity implements
 
     @Override
     public boolean onQueryTextSubmit(String query) {
-        Log.i("EVENT", "Text submit");
+        mSearchQuery = query;
+        getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, this);
         return false;
     }
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        Log.i("EVENT", "Text change");
+        mSearchQuery = newText;
+        getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, this);
         return false;
     }
 
@@ -197,7 +203,16 @@ public class MainListActivity extends AppCompatActivity implements
                 // Создаем новый CursorLoader, нужно все имеющееся в базе данных
                 Uri itemsQueryUri = ReadLaterContract.ReadLaterEntry.CONTENT_URI;
                 String sortOrder = ReadLaterContract.ReadLaterEntry._ID + " ASC";
-                return new CursorLoader(this, itemsQueryUri, MAIN_LIST_PROJECTION, null, null, sortOrder);
+                String selection;
+                String[] selectionArgs;
+                if (!mSearchQuery.isEmpty()) {
+                    selection = ReadLaterContract.ReadLaterEntry.COLUMN_LABEL + " LIKE ?";
+                    selectionArgs = new String[] {"%" + mSearchQuery + "%"};
+                } else {
+                    selection = "";
+                    selectionArgs = new String[0];
+                }
+                return new CursorLoader(this, itemsQueryUri, MAIN_LIST_PROJECTION, selection, selectionArgs, sortOrder);
             default:
                 throw new IllegalArgumentException("Loader Not Implemented: " + loaderId);
         }
