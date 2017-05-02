@@ -107,12 +107,10 @@ public class ReadLaterDbUtils {
             // конвертируемые в обе стороны без потерь
             float[] colorHsv = new float[3];
             Color.colorToHSV(randomizer.nextInt(), colorHsv);
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL, label + " " + i);
-            contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION, description.toString().trim());
-            contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR, Color.HSVToColor(colorHsv));
-            context.getContentResolver().insert(ReadLaterContract.ReadLaterEntry.CONTENT_URI, contentValues);
+            insertItem(context,
+                    new ReadLaterItem(label + " " + i, description.toString().trim(), Color.HSVToColor(colorHsv)));
         }
+
     }
 
     /** Удаляет данные из базы данных (на основании предоставленного cursor).
