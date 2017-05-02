@@ -8,7 +8,7 @@ import android.net.Uri;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
-import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
 import java.util.Random;
 
@@ -26,6 +26,17 @@ public class ReadLaterDbUtils {
         throw new UnsupportedOperationException("Класс ReadLaterDbUtils - static util, не может иметь экземпляров");
     }
 
+    /** Возвращает строку selection для использования в поиске по строке.
+     * Строка selection это: SELECT * FROM table WHERE (вот эта часть) ORDER BY _id ASC)
+     * Параметр запроса отмечен как "?"
+     *
+     * @return Строка selection, например "_id IN (SELECT docid FROM table_fts WHERE table_fts MATCH ?)"
+     */
+    public static String getSelectionForTextQuery() {
+        return String.format("_id IN (SELECT docid FROM %s WHERE %s MATCH ?)",
+                ReadLaterEntry.TABLE_NAME_FTS, ReadLaterEntry.TABLE_NAME_FTS);
+    }
+
     /** Добавляет новый элемент в базу данных.
      *
      * @param context Контекст
@@ -35,13 +46,13 @@ public class ReadLaterDbUtils {
     public static boolean insertItem(Context context, ReadLaterItem item) {
         final long currentTime = System.currentTimeMillis();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL, item.getLabel());
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION, item.getDescription());
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR, item.getColor());
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED, currentTime);
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, currentTime);
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
-        Uri uri = context.getContentResolver().insert(ReadLaterContract.ReadLaterEntry.CONTENT_URI, contentValues);
+        contentValues.put(ReadLaterEntry.COLUMN_LABEL, item.getLabel());
+        contentValues.put(ReadLaterEntry.COLUMN_DESCRIPTION, item.getDescription());
+        contentValues.put(ReadLaterEntry.COLUMN_COLOR, item.getColor());
+        contentValues.put(ReadLaterEntry.COLUMN_DATE_CREATED, currentTime);
+        contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, currentTime);
+        contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
+        Uri uri = context.getContentResolver().insert(ReadLaterEntry.CONTENT_URI, contentValues);
         return uri != null;
     }
 
@@ -55,13 +66,13 @@ public class ReadLaterDbUtils {
     public static boolean updateItem(Context context, ReadLaterItem item, int uid) {
         final long currentTime = System.currentTimeMillis();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL, item.getLabel());
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION, item.getDescription());
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR, item.getColor());
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, currentTime);
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
+        contentValues.put(ReadLaterEntry.COLUMN_LABEL, item.getLabel());
+        contentValues.put(ReadLaterEntry.COLUMN_DESCRIPTION, item.getDescription());
+        contentValues.put(ReadLaterEntry.COLUMN_COLOR, item.getColor());
+        contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, currentTime);
+        contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
         int updated = context.getContentResolver()
-                .update(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
+                .update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
         return updated > 0;
     }
 
@@ -74,9 +85,9 @@ public class ReadLaterDbUtils {
     public static boolean updateItemViewDate(Context context, int uid) {
         final long currentTime = System.currentTimeMillis();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
+        contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
         int updated = context.getContentResolver()
-                .update(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
+                .update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
         return updated > 0;
     }
 
@@ -128,7 +139,7 @@ public class ReadLaterDbUtils {
         for (int i = 0; i < cursor.getCount(); i++) {
             cursor.moveToPosition(i);
             int uid = cursor.getInt(indexColumnId);
-            context.getContentResolver().delete(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), null, null);
+            context.getContentResolver().delete(ReadLaterEntry.buildUriForOneItem(uid), null, null);
         }
     }
 

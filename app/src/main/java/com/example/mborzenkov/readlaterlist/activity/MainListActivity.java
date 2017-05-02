@@ -206,10 +206,8 @@ public class MainListActivity extends AppCompatActivity implements
                 String selection;
                 String[] selectionArgs;
                 if (!mSearchQuery.isEmpty()) {
-                    String query = String.format("%%%s%%",mSearchQuery);
-                    selection = ReadLaterContract.ReadLaterEntry.COLUMN_LABEL + " LIKE ? OR "
-                            + ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION + " LIKE ?";
-                    selectionArgs = new String[] {query, query};
+                    selection = ReadLaterDbUtils.getSelectionForTextQuery();
+                    selectionArgs = new String[] {mSearchQuery};
                 } else {
                     selection = "";
                     selectionArgs = new String[0];

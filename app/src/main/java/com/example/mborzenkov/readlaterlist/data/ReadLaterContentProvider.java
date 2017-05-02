@@ -6,8 +6,10 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
 import com.example.mborzenkov.readlaterlist.R;
 
@@ -64,7 +66,7 @@ public class ReadLaterContentProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS:
                 cursor = mReadLaterDbHelper.getReadableDatabase().query(
-                        ReadLaterContract.ReadLaterEntry.TABLE_NAME,
+                        ReadLaterEntry.TABLE_NAME,
                         projection,
                         selection,
                         selectionArgs,
@@ -89,12 +91,10 @@ public class ReadLaterContentProvider extends ContentProvider {
 
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS_WITH_ID:
-                String id = uri.getPathSegments().get(1);
-                itemDeleted = mReadLaterDbHelper.getWritableDatabase().delete(
-                        ReadLaterContract.ReadLaterEntry.TABLE_NAME,
-                        "_id=?",
-                        new String[] {id});
-
+                String[] id = new String[] {uri.getPathSegments().get(1)};
+                SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+                itemDeleted = db.delete(ReadLaterEntry.TABLE_NAME, "_id=?", id);
+                db.delete(ReadLaterEntry.TABLE_NAME_FTS, "docid=?", id);
                 break;
             default:
                 throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
@@ -114,10 +114,15 @@ public class ReadLaterContentProvider extends ContentProvider {
 
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS:
-                long id = mReadLaterDbHelper.getWritableDatabase()
-                        .insert(ReadLaterContract.ReadLaterEntry.TABLE_NAME, null, values);
+                SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+                long id = db.insert(ReadLaterEntry.TABLE_NAME, null, values);
+                ContentValues ftsValues = new ContentValues();
+                ftsValues.put("docid", id);
+                ftsValues.put(ReadLaterEntry.COLUMN_LABEL, values.getAsString(ReadLaterEntry.COLUMN_LABEL));
+                ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION, values.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
+                db.insert(ReadLaterEntry.TABLE_NAME_FTS, null, ftsValues);
                 if (id > 0) {
-                    returnUri =  ContentUris.withAppendedId(ReadLaterContract.ReadLaterEntry.CONTENT_URI, id);
+                    returnUri =  ContentUris.withAppendedId(ReadLaterEntry.CONTENT_URI, id);
                 } else {
                     throw new android.database.SQLException(mContext.getString(R.string.db_error_insert) + uri);
                 }
@@ -140,12 +145,13 @@ public class ReadLaterContentProvider extends ContentProvider {
 
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS_WITH_ID:
-                String id = uri.getPathSegments().get(1);
-                itemUpdated = mReadLaterDbHelper.getWritableDatabase().update(
-                        ReadLaterContract.ReadLaterEntry.TABLE_NAME,
-                        values, "_id=?",
-                        new String[] {id});
-
+                String[] id = new String[] {uri.getPathSegments().get(1)};
+                SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+                itemUpdated = db.update(ReadLaterEntry.TABLE_NAME, values, "_id=?", id);
+                ContentValues ftsValues = new ContentValues();
+                ftsValues.put(ReadLaterEntry.COLUMN_LABEL, values.getAsString(ReadLaterEntry.COLUMN_LABEL));
+                ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION, values.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
+                itemUpdated = db.update(ReadLaterEntry.TABLE_NAME, ftsValues, "docid=?", id);
                 break;
             default:
                 throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
