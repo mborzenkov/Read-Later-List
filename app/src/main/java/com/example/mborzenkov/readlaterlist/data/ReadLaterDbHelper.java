@@ -12,7 +12,7 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
     /** Имя базы данных. */
     private static final String DATABASE_NAME = "readlaterlist.db";
     /** Версия базы данных. */
-    private static final int DATABASE_VERSION = 2; // Текущая: 2
+    private static final int DATABASE_VERSION = 3; // Текущая: 2
 
     public ReadLaterDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -21,7 +21,7 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         // Создание таблицы
-        final String sqlCreateWeatherTable =
+        final String sqlCreateReadLaterTable =
             "CREATE TABLE " + ReadLaterEntry.TABLE_NAME + " ("
                     + ReadLaterEntry._ID                       + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                     + ReadLaterEntry.COLUMN_LABEL              + " TEXT NOT NULL, "
@@ -30,14 +30,23 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
                     + ReadLaterEntry.COLUMN_DATE_CREATED       + " INTEGER NOT NULL, "
                     + ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED + " INTEGER NOT NULL, "
                     + ReadLaterEntry.COLUMN_DATE_LAST_VIEW     + " INTEGER NOT NULL);";
+        sqLiteDatabase.execSQL(sqlCreateReadLaterTable);
 
-        sqLiteDatabase.execSQL(sqlCreateWeatherTable);
+        final String sqlCreateFtsTable =
+                "CREATE VIRTUAL TABLE " + ReadLaterEntry.TABLE_NAME_FTS + " USING fts4 ("
+                        + "content='" + ReadLaterEntry.TABLE_NAME + "', "
+                        + ReadLaterEntry.COLUMN_LABEL              + ", "
+                        + ReadLaterEntry.COLUMN_DESCRIPTION        + ");";
+        sqLiteDatabase.execSQL(sqlCreateFtsTable);
+
+
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
         // Пока что мы просто дропаем всю таблицу и создаем новую
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ReadLaterEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ReadLaterEntry.TABLE_NAME_FTS);
         onCreate(sqLiteDatabase);
     }
 
