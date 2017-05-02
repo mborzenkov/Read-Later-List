@@ -148,10 +148,21 @@ public class ReadLaterContentProvider extends ContentProvider {
                 String[] id = new String[] {uri.getPathSegments().get(1)};
                 SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
                 itemUpdated = db.update(ReadLaterEntry.TABLE_NAME, values, "_id=?", id);
+                boolean updateFts = false;
                 ContentValues ftsValues = new ContentValues();
-                ftsValues.put(ReadLaterEntry.COLUMN_LABEL, values.getAsString(ReadLaterEntry.COLUMN_LABEL));
-                ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION, values.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
-                itemUpdated = db.update(ReadLaterEntry.TABLE_NAME, ftsValues, "docid=?", id);
+                if (values.containsKey(ReadLaterEntry.COLUMN_LABEL)) {
+                    ftsValues.put(ReadLaterEntry.COLUMN_LABEL,
+                            values.getAsString(ReadLaterEntry.COLUMN_LABEL));
+                    updateFts = true;
+                }
+                if (values.containsKey(ReadLaterEntry.COLUMN_DESCRIPTION)) {
+                    ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION,
+                            values.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
+                    updateFts = true;
+                }
+                if (updateFts) {
+                    db.update(ReadLaterEntry.TABLE_NAME_FTS, ftsValues, "docid=?", id);
+                }
                 break;
             default:
                 throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
