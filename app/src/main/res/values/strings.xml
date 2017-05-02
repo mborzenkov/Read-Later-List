@@ -42,12 +42,17 @@
         <string name="mainlist_drawer_sort_created">Created</string>
         <string name="mainlist_drawer_sort_modified">Modified</string>
         <string name="mainlist_drawer_sort_viewed">Viewed</string>
-        <string name="mainlist_drawer_backup_title">Backup data</string>
-        <string name="mainlist_drawer_backup_save">Save</string>
-        <string name="mainlist_drawer_backup_restore">Restore</string>
         <string name="mainlist_drawer_debug_title">Debug options</string>
         <string name="mainlist_drawer_deleteall_title">Delete all</string>
         <string name="mainlist_drawer_fillplaceholders_title">Fill data</string>
+        <!-- Бэкап -->
+        <string name="mainlist_drawer_backup_title">Backup data</string>
+        <string name="mainlist_drawer_backup_save">Save</string>
+        <string name="mainlist_drawer_backup_restore">Restore</string>
+        <string name="mainlist_drawer_backup_save_question_title">Save to file</string>
+        <string name="mainlist_drawer_backup_save_question_text">This action will make backup of db in file. Proceed?</string>
+        <string name="mainlist_drawer_backup_restore_question_title">Restore from file</string>
+        <string name="mainlist_drawer_backup_restore_question_text">This action will replace everything in db with data in backup file. Are you sure to proceed?</string>
 
     <!-- EditItemActivity -->
         <!-- Заголовки -->

@@ -86,13 +86,17 @@ public class ReadLaterContentProvider extends ContentProvider {
     public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
         // Обработчик запросов delete
         int itemDeleted;
+        SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
 
         // if (null == selection) selection = "1";
 
         switch (sUriMatcher.match(uri)) {
+            case CODE_READLATER_ITEMS:
+                itemDeleted = db.delete(ReadLaterEntry.TABLE_NAME, null, null);
+                db.delete(ReadLaterEntry.TABLE_NAME_FTS, null, null);
+                break;
             case CODE_READLATER_ITEMS_WITH_ID:
                 String[] id = new String[] {uri.getPathSegments().get(1)};
-                SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
                 itemDeleted = db.delete(ReadLaterEntry.TABLE_NAME, "_id=?", id);
                 db.delete(ReadLaterEntry.TABLE_NAME_FTS, "docid=?", id);
                 break;
@@ -134,6 +138,38 @@ public class ReadLaterContentProvider extends ContentProvider {
         mContext.getContentResolver().notifyChange(uri, null);
 
         return returnUri;
+    }
+
+    @Override
+    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
+        // Обработчик зарпосов bullk insert
+        int inserted = 0;
+
+        switch (sUriMatcher.match(uri)) {
+            case CODE_READLATER_ITEMS:
+                SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+                db.beginTransaction();
+                try {
+                    for (ContentValues value : values) {
+                        long id = db.insert(ReadLaterEntry.TABLE_NAME, null, value);
+                        ContentValues ftsValues = new ContentValues();
+                        ftsValues.put("docid", id);
+                        ftsValues.put(ReadLaterEntry.COLUMN_LABEL, value.getAsString(ReadLaterEntry.COLUMN_LABEL));
+                        ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION, value.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
+                        inserted++;
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                break;
+            default:
+                throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
+        }
+
+        mContext.getContentResolver().notifyChange(uri, null);
+
+        return inserted;
     }
 
     @Override

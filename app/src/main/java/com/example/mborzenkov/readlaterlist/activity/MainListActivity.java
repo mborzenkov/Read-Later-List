@@ -2,8 +2,10 @@ package com.example.mborzenkov.readlaterlist.activity;
 
 import android.app.DatePickerDialog;
 import android.app.SearchManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -12,10 +14,10 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,6 +38,7 @@ import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
+import com.example.mborzenkov.readlaterlist.utility.MainListBackupUtils;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 
@@ -393,14 +396,72 @@ public class MainListActivity extends AppCompatActivity implements
 
     public void clickOnBackupButton(View button) {
         // Click на кнопку бэкап
-        // TODO: Клик на кнопку бэкап
         switch (button.getId()) {
             case R.id.button_drawermainlist_backupsave:
+                new AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.mainlist_drawer_backup_save_question_title))
+                        .setMessage(getString(R.string.mainlist_drawer_backup_save_question_text))
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                new BackupAsyncTask().execute(true);
+                            }
+                        })
+                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // do nothing
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
                 break;
             case R.id.button_drawermainlist_backuprestore:
+                new AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.mainlist_drawer_backup_restore_question_title))
+                        .setMessage(getString(R.string.mainlist_drawer_backup_restore_question_text))
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                new BackupAsyncTask().execute(false);
+                            }
+                        })
+                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // do nothing
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
                 break;
             default:
                 break;
+        }
+        mDrawerLayout.closeDrawer(Gravity.RIGHT);
+    }
+
+    class BackupAsyncTask extends AsyncTask<Boolean, Void, Boolean> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            showLoading();
+        }
+
+        @Override
+        protected Boolean doInBackground(Boolean... saving) {
+            boolean saveMode = saving[0];
+            if (saveMode) {
+                MainListBackupUtils.saveEverythingAsJsonFile(MainListActivity.this);
+            } else {
+                MainListBackupUtils.restoreEverythingFromJsonFile(MainListActivity.this);
+            }
+            return saveMode;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean saveMode) {
+            super.onPostExecute(saveMode);
+            showDataView();
+            if (!saveMode) {
+                getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, MainListActivity.this);
+            }
         }
     }
 
@@ -452,9 +513,7 @@ public class MainListActivity extends AppCompatActivity implements
                     if (uid != UID_EMPTY) {
                         if (resultData == null) {
                             // Удаляет элемент, показывает снэкбар
-                            int deleted = getContentResolver()
-                                    .delete(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), null, null);
-                            if (deleted > 0) {
+                            if (ReadLaterDbUtils.deleteItem(this, uid)) {
                                 Snackbar.make(mItemListView,
                                         getString(R.string.snackbar_item_removed), Snackbar.LENGTH_LONG).show();
                                 showDataView();

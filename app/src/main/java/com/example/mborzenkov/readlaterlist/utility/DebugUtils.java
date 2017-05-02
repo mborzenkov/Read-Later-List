@@ -13,7 +13,10 @@ import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.activity.MainListActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterDbJson;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class DebugUtils {
@@ -56,7 +59,7 @@ public class DebugUtils {
                 .setMessage(context.getString(R.string.mainlist_menu_delete_all_question_text))
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        deleteItemsFromDatabase(context);
+                        ReadLaterDbUtils.deleteAll(context);
                         activity.getSupportLoaderManager().restartLoader(MainListActivity.ITEM_LOADER_ID, null,
                                 activity);
                     }
@@ -78,13 +81,11 @@ public class DebugUtils {
      */
     private static void addPlaceholdersToDatabase(Context context) {
 
-        // bulkInsert умышленно не был реализован, так как нигде не используется
-        // кроме этого метода, предназначенного для тестирования
-
         String[] text = context.getString(R.string.debug_large_text).split("\n");
         int textRows = text.length;
         String label = context.getString(R.string.mainlist_menu_add_placeholders_label);
         Random randomizer = new Random();
+        List<ReadLaterItem> listItems = new ArrayList<>();
         for (int i = 0; i < PLACEHOLDERS_COUNT; i++) {
             // Description создается из случайных строк large_text
             StringBuilder description = new StringBuilder();
@@ -97,33 +98,10 @@ public class DebugUtils {
             // конвертируемые в обе стороны без потерь
             float[] colorHsv = new float[3];
             Color.colorToHSV(randomizer.nextInt(), colorHsv);
-            ReadLaterDbUtils.insertItem(context,
-                    new ReadLaterItem(label + " " + i, description.toString().trim(), Color.HSVToColor(colorHsv)));
+            listItems.add(new ReadLaterItem(label + " " + i, description.toString().trim(), Color.HSVToColor(colorHsv)));
         }
+        ReadLaterDbUtils.bulkInsertItems(context, listItems);
 
     }
-
-    /** Удаляет данные из базы данных (на основании предоставленного cursor).
-     *
-     * @param context Контекст
-     * @param cursor Cursor, если указывает на все данные, то будут удалены все данные
-     * @param indexColumnId Индекс колонки с _id, по которым удаляются данные
-     */
-    private static void deleteItemsFromDatabase(Context context) {
-
-        // Массовое удаление умышленно не было реализован, так как нигде не используется
-        // кроме этого метода, предназначенного для тестирования
-        // А также с целью безопасности, отсутствие массового удаления снижает вероятность ошибочного стирания всего
-
-        ContentResolver contentResolver = context.getContentResolver();
-        Cursor allData = contentResolver.query(ReadLaterContract.ReadLaterEntry.CONTENT_URI, new String[] {"_id"}, null, null, null);
-
-        for (int i = 0; i < allData.getCount(); i++) {
-            allData.moveToPosition(i);
-            int uid = allData.getInt(0);
-            context.getContentResolver().delete(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), null, null);
-        }
-    }
-
 
 }

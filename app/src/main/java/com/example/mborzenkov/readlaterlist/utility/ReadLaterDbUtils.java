@@ -2,6 +2,7 @@ package com.example.mborzenkov.readlaterlist.utility;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.support.v4.content.CursorLoader;
 
@@ -9,8 +10,10 @@ import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterDbJson;
 
 import java.util.Arrays;
+import java.util.List;
 
 /** Класс для упрощения работы с базой данных.
  * Представляет собой набор static методов
@@ -51,13 +54,7 @@ public class ReadLaterDbUtils {
         return new CursorLoader(context, itemsQueryUri, projection, selection.toString(), selectionArgs, sortOrder);
     }
 
-    /** Добавляет новый элемент в базу данных.
-     *
-     * @param context Контекст
-     * @param item Элемент в виде ReadLaterItem
-     * @return True, если добавление было выполнено успешно
-     */
-    public static boolean insertItem(Context context, ReadLaterItem item) {
+    private static ContentValues getContentValuesForInsert(ReadLaterItem item) {
         final long currentTime = System.currentTimeMillis();
         ContentValues contentValues = new ContentValues();
         contentValues.put(ReadLaterEntry.COLUMN_LABEL, item.getLabel());
@@ -66,9 +63,47 @@ public class ReadLaterDbUtils {
         contentValues.put(ReadLaterEntry.COLUMN_DATE_CREATED, currentTime);
         contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, currentTime);
         contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
-        Uri uri = context.getContentResolver().insert(ReadLaterEntry.CONTENT_URI, contentValues);
+        return contentValues;
+    }
+
+    private static ContentValues getContentValuesForInsertFromJson(ReadLaterDbJson itemJson) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL, itemJson.getTitle());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION, itemJson.getDescription());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR, itemJson.getColor());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED, itemJson.getDateCreated());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, itemJson.getDateModified());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW, itemJson.getDateViewed());
+        return contentValues;
+    }
+
+    /** Добавляет новый элемент в базу данных.
+     *
+     * @param context Контекст
+     * @param item Элемент в виде ReadLaterItem
+     * @return True, если добавление было выполнено успешно
+     */
+    public static boolean insertItem(Context context, ReadLaterItem item) {
+        Uri uri = context.getContentResolver().insert(ReadLaterEntry.CONTENT_URI, getContentValuesForInsert(item));
         return uri != null;
     }
+
+    public static boolean bulkInsertJson(Context context, List<ReadLaterDbJson> dataJson) {
+        ContentValues[] values = new ContentValues[dataJson.size()];
+        for (int i = 0; i < dataJson.size(); i++) {
+            values[i] = getContentValuesForInsertFromJson(dataJson.get(i));
+        }
+        return context.getContentResolver().bulkInsert(ReadLaterEntry.CONTENT_URI, values) > 0;
+    }
+
+    public static boolean bulkInsertItems(Context context, List<ReadLaterItem> itemList) {
+        ContentValues[] values = new ContentValues[itemList.size()];
+        for (int i = 0; i < itemList.size(); i++) {
+            values[i] = getContentValuesForInsert(itemList.get(i));
+        }
+        return context.getContentResolver().bulkInsert(ReadLaterEntry.CONTENT_URI, values) > 0;
+    }
+
 
     /** Обновляет элемент в базе данных с uid.
      *
@@ -105,4 +140,13 @@ public class ReadLaterDbUtils {
         return updated > 0;
     }
 
+    public static boolean deleteItem(Context context, int uid) {
+        return context.getContentResolver()
+                .delete(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), null, null) > 0;
+    }
+
+    public static boolean deleteAll(Context context) {
+        return context.getContentResolver()
+                .delete(ReadLaterEntry.CONTENT_URI, null, null) > 0;
+    }
 }
