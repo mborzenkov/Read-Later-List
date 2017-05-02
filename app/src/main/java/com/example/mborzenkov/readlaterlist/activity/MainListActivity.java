@@ -1,51 +1,68 @@
 package com.example.mborzenkov.readlaterlist.activity;
 
+import android.app.DatePickerDialog;
 import android.app.SearchManager;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v7.app.AlertDialog;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.FilterQueryProvider;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
+import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
+import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
+import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
 
 /** Главная Activity, представляющая собой список. */
 public class MainListActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>,
         ItemListAdapter.ItemListAdapterOnClickHandler,
-        SearchView.OnQueryTextListener {
+        SearchView.OnQueryTextListener,
+        View.OnClickListener {
 
+    // Константы
+    /** Формат даты для вывода на формах редактирования дат. */
+    public static final String FORMAT_DATE = "dd/MM/yy";
+
+    // Intent
     /** Константа, обозначающая пустой UID. */
     public static final int UID_EMPTY = -1;
-
     /** ID запроса для создания нового элемента. */
     private static final int ITEM_ADD_NEW_REQUEST = 1;
     /** ID запроса для редактирования элемента. */
     private static final int ITEM_EDIT_REQUEST = 2;
 
+    // Database
     /** Используемые в MainListActivity колонки базы данных. */
     private static final String[] MAIN_LIST_PROJECTION = {
         ReadLaterContract.ReadLaterEntry._ID,
@@ -53,21 +70,26 @@ public class MainListActivity extends AppCompatActivity implements
         ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION,
         ReadLaterContract.ReadLaterEntry.COLUMN_COLOR
     };
-
-    // Индексы для колонок из MAIN_LIST_PROJECTION, для упрощения
+    /** Индексы для колонок из MAIN_LIST_PROJECTION, для упрощения. */
     static final int INDEX_COLUMN_ID = 0;
     static final int INDEX_COLUMN_LABEL = 1;
     static final int INDEX_COLUMN_DESCRIPTION = 2;
     static final int INDEX_COLUMN_COLOR = 3;
-
     /** ID Используемого LoadManager'а. */
-    private static final int ITEM_LOADER_ID = 13;
+    public static final int ITEM_LOADER_ID = 13;
 
     // Элементы layout
     private ItemListAdapter mItemListAdapter;
     private ListView mItemListView;
     private ProgressBar mLoadingIndicator;
     private LinearLayout mEmptyList;
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private LinearLayout mFavLinearLayout;
+    private Spinner mSavedFiltersSpinner;
+    private Spinner mDateFiltersSpinner;
+    private EditText mDateFromEditText;
+    private EditText mDateToEditText;
 
     /** Cursor с данными. */
     private Cursor mDataCursor;
@@ -77,6 +99,10 @@ public class MainListActivity extends AppCompatActivity implements
     private int mEditItemId = UID_EMPTY;
     /** Запрос поиска. */
     private String mSearchQuery = "";
+    /** Календарь для выбора. */
+    private Calendar mCalendar = Calendar.getInstance();
+    /** Редактируемое поле даты. */
+    private EditText mDateEditor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +130,9 @@ public class MainListActivity extends AppCompatActivity implements
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_main_loading);
         mEmptyList = (LinearLayout) findViewById(R.id.linearLayout_emptylist);
 
+        // Инициализация Drawer Layout
+        inflateDrawerLayout();
+
         // Показать иконку загрузки
         showLoading();
 
@@ -111,16 +140,125 @@ public class MainListActivity extends AppCompatActivity implements
         getSupportLoaderManager().initLoader(ITEM_LOADER_ID, null, this);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    /** Вызывается один раз в onCreate для создания всего связанного с DrawerLayout. */
+    private void inflateDrawerLayout() {
 
-        getMenuInflater().inflate(R.menu.menu_mainlist, menu);
+        // Объекты layout
+        mFavLinearLayout = (LinearLayout) findViewById(R.id.linearlayout_drawermainlist_favorites);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerlayout_mainlist);
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+                R.string.mainlist_drawer_title, R.string.mainlist_drawer_title) {
+            @Override
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+                getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, MainListActivity.this);
+            }
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                FavoriteColorsUtils.updateFavLayoutFromSharedPreferences(MainListActivity.this, mFavLinearLayout, null);
+            }
+        };
+        mDrawerLayout.addDrawerListener(mDrawerToggle);
+
+        // DatePicker на полях с датами
+        final DatePickerDialog.OnDateSetListener date = new DatePickerDialog.OnDateSetListener() {
+            private EditText dateEditor;
+            @Override
+            public void onDateSet(DatePicker view, int year, int monthOfYear,
+                                  int dayOfMonth) {
+                mCalendar.set(Calendar.YEAR, year);
+                mCalendar.set(Calendar.MONTH, monthOfYear);
+                mCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                SimpleDateFormat sdf = new SimpleDateFormat(FORMAT_DATE, Locale.US);
+                mDateEditor.setText(sdf.format(mCalendar.getTime()));
+                mDateEditor.setTag(mCalendar.getTimeInMillis());
+            }
+
+        };
+        View.OnClickListener onDateClick = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Сохраняем view, который сейчас редактируем
+                mDateEditor = (EditText) v;
+
+                // Открываем Dialog, установив заранее выбранную дату и границы
+                long timeSelected = (long) v.getTag();
+                if (timeSelected > 0) {
+                    mCalendar.setTimeInMillis(timeSelected);
+                }
+                DatePickerDialog dialog = new DatePickerDialog(MainListActivity.this, date, mCalendar
+                        .get(Calendar.YEAR), mCalendar.get(Calendar.MONTH),
+                        mCalendar.get(Calendar.DAY_OF_MONTH));
+                DatePicker picker = dialog.getDatePicker();
+                if (mDateEditor.getId() == R.id.edittext_drawermainlist_dateto) {
+                    picker.setMinDate((long) mDateFromEditText.getTag());
+                    picker.setMaxDate(System.currentTimeMillis());
+                } else {
+                    long timeAfter = (long) mDateToEditText.getTag();
+                    if (timeAfter > 0) {
+                        picker.setMaxDate(timeAfter);
+                    } else {
+                        picker.setMaxDate(System.currentTimeMillis());
+                    }
+                }
+
+                dialog.show();
+            }
+        };
+        mDateFromEditText = (EditText) findViewById(R.id.edittext_drawermainlist_datefrom);
+        mDateFromEditText.setOnClickListener(onDateClick);
+        mDateFromEditText.setTag(Long.valueOf(0));
+        mDateToEditText = (EditText) findViewById(R.id.edittext_drawermainlist_dateto);
+        mDateToEditText.setOnClickListener(onDateClick);
+        mDateToEditText.setTag(Long.valueOf(0));
+
+        // Добавляем Favorites на Drawer Layout
+        FavoriteColorsUtils.inflateFavLayout(this, mFavLinearLayout, this);
+
+        // Заполняем варианты запомненных фильтров
+        mSavedFiltersSpinner = (Spinner) findViewById(R.id.spinner_drawermainlist_filter);
+        ArrayAdapter<String> savedFiltersAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
+        savedFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        savedFiltersAdapter.addAll(MainListFilterUtils.getSavedFiltersContents(this).keySet());
+        mSavedFiltersSpinner.setAdapter(savedFiltersAdapter);
+
+        // Заполняем варианты фильтров по дате
+        mDateFiltersSpinner = (Spinner) findViewById(R.id.spinner_drawermainlist_datefilter);
+        ArrayAdapter<String> dateFiltersAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
+        dateFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        dateFiltersAdapter.addAll(MainListFilterUtils.getsDateFilters(this));
+        mDateFiltersSpinner.setAdapter(dateFiltersAdapter);
+        mDateFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                switch (position) {
+                    case MainListFilterUtils.INDEX_DATE_ALL:
+                        mDateFromEditText.setVisibility(View.GONE);
+                        mDateToEditText.setVisibility(View.GONE);
+                        break;
+                    default:
+                        mDateFromEditText.setVisibility(View.VISIBLE);
+                        mDateToEditText.setVisibility(View.VISIBLE);
+                        break;
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) { }
+        });
 
         // Специальные возможности создаются только в DEBUG
         /*if (!BuildConfig.DEBUG) {
             menu.removeItem(R.id.mainlist_action_add_placeholders);
             menu.removeItem(R.id.mainlist_action_delete_all);
         }*/
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        getMenuInflater().inflate(R.menu.menu_mainlist, menu);
 
         // Создание меню поиска
         SearchManager searchManager = (SearchManager) getSystemService(SEARCH_SERVICE);
@@ -134,51 +272,14 @@ public class MainListActivity extends AppCompatActivity implements
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        /*switch (item.getItemId()) {
-            case R.id.mainlist_action_add_placeholders:
-                // Действие "Заполнить данными" открывает окно подтверждения и по положительному ответу
-                // вызывает функцию для заполнения
-                new AlertDialog.Builder(this)
-                        .setTitle(getString(R.string.mainlist_menu_add_placeholders_question_title))
-                        .setMessage(getString(R.string.mainlist_menu_add_placeholders_question_text))
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                ReadLaterDbUtils.addPlaceholdersToDatabase(MainListActivity.this);
-                                getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, MainListActivity.this);
-                            }
-                        })
-                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // do nothing
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
-                return true;
-            case R.id.mainlist_action_delete_all:
-                // Действие "Удалить все" открывает окно подтверждения и по положительному ответу
-                // вызывает функцию для очистки
-                new AlertDialog.Builder(this)
-                        .setTitle(getString(R.string.mainlist_menu_delete_all_question_title))
-                        .setMessage(getString(R.string.mainlist_menu_delete_all_question_text))
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                ReadLaterDbUtils.deleteItemsFromDatabase(MainListActivity.this,
-                                        mDataCursor, INDEX_COLUMN_ID);
-                                getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, MainListActivity.this);
-                            }
-                        })
-                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // do nothing
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
+        switch (item.getItemId()) {
+            case R.id.mainlist_settings:
+                mDrawerLayout.openDrawer(Gravity.RIGHT);
                 return true;
             default:
                 break;
-        }*/
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -201,18 +302,8 @@ public class MainListActivity extends AppCompatActivity implements
         switch (loaderId) {
             case ITEM_LOADER_ID:
                 // Создаем новый CursorLoader, нужно все имеющееся в базе данных
-                Uri itemsQueryUri = ReadLaterContract.ReadLaterEntry.CONTENT_URI;
-                String sortOrder = ReadLaterContract.ReadLaterEntry._ID + " ASC";
-                String selection;
-                String[] selectionArgs;
-                if (!mSearchQuery.isEmpty()) {
-                    selection = ReadLaterDbUtils.getSelectionForTextQuery();
-                    selectionArgs = new String[] {mSearchQuery};
-                } else {
-                    selection = "";
-                    selectionArgs = new String[0];
-                }
-                return new CursorLoader(this, itemsQueryUri, MAIN_LIST_PROJECTION, selection, selectionArgs, sortOrder);
+                return ReadLaterDbUtils.getNewCursorLoader(this, MAIN_LIST_PROJECTION, mSearchQuery,
+                        MainListFilterUtils.getCurrentFilter());
             default:
                 throw new IllegalArgumentException("Loader Not Implemented: " + loaderId);
         }
@@ -223,7 +314,7 @@ public class MainListActivity extends AppCompatActivity implements
         // По завершению загрузки, подменяем Cursor в адаптере и показываем данные
         mDataCursor = data;
         mItemListAdapter.changeCursor(mDataCursor);
-        mItemListView.smoothScrollToPosition(mPosition);
+        // mItemListView.smoothScrollToPosition(mPosition);
         showDataView();
     }
 
@@ -246,6 +337,47 @@ public class MainListActivity extends AppCompatActivity implements
         editItemIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(data));
         startActivityForResult(editItemIntent, ITEM_EDIT_REQUEST);
     }
+
+    @Override
+    public void onClick(View v) {
+        // onClickListner
+        Log.i("CLICK", "ONCLICKLIST " + v.getTag());
+        /*View favCircle = mFavLinearLayout.getChildAt((int) v.getTag()).findViewById(R.id.imageButton_favorite_color);
+        GradientDrawable background = (GradientDrawable) favCircle.getBackground();
+        background.setStroke(4, Color.BLACK);*/
+    }
+
+    public void clickOnSortButton(View button) {
+        // click on sort
+        Log.i("CLICK", "SORTBY");
+    }
+
+    public void clickOnBackupButton(View button) {
+        Log.i("CLICK", "BACKUP");
+    }
+
+    public void clickOnDebugButton(View button) {
+        if (!BuildConfig.DEBUG) {
+            return;
+        }
+        switch (button.getId()) {
+            case R.id.button_drawermainlist_fillplaceholders:
+                // Действие "Заполнить данными" открывает окно подтверждения и по положительному ответу
+                // вызывает функцию для заполнения
+                DebugUtils.showAlertAndAddPlaceholders(this, this);
+                break;
+            case R.id.button_drawermainlist_deleteall:
+                // Действие "Удалить все" открывает окно подтверждения и по положительному ответу
+                // вызывает функцию для очистки
+                DebugUtils.showAlertAndDeleteItems(this, this);
+                break;
+            default:
+                break;
+        }
+        mDrawerLayout.closeDrawer(Gravity.RIGHT);
+    }
+
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -322,4 +454,5 @@ public class MainListActivity extends AppCompatActivity implements
         mEmptyList.setVisibility(View.INVISIBLE);
         mLoadingIndicator.setVisibility(View.VISIBLE);
     }
+
 }

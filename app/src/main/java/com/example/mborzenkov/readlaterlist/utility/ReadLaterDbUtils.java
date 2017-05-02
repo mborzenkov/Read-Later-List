@@ -2,25 +2,20 @@ package com.example.mborzenkov.readlaterlist.utility;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
-import android.graphics.Color;
 import android.net.Uri;
+import android.support.v4.content.CursorLoader;
 
-import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
-import java.util.Random;
+import java.util.Arrays;
 
 /** Класс для упрощения работы с базой данных.
  * Представляет собой набор static методов
  */
 public class ReadLaterDbUtils {
-
-    /** Количество плейсхолдеров, которое создается. */
-    private static final int PLACEHOLDERS_COUNT = 100;
-    /** Количество строк в description для автоматического создания. */
-    private static final int DESCRIPTION_LINES = 3;
 
     private ReadLaterDbUtils() {
         throw new UnsupportedOperationException("Класс ReadLaterDbUtils - static util, не может иметь экземпляров");
@@ -32,9 +27,28 @@ public class ReadLaterDbUtils {
      *
      * @return Строка selection, например "_id IN (SELECT docid FROM table_fts WHERE table_fts MATCH ?)"
      */
-    public static String getSelectionForTextQuery() {
-        return String.format("_id IN (SELECT docid FROM %s WHERE %s MATCH ?)",
-                ReadLaterEntry.TABLE_NAME_FTS, ReadLaterEntry.TABLE_NAME_FTS);
+    public static CursorLoader getNewCursorLoader(Context context, String[] projection,
+                                                  String searchQuery, MainListFilter filter) {
+
+        Uri itemsQueryUri = ReadLaterContract.ReadLaterEntry.CONTENT_URI;
+        StringBuilder selection = new StringBuilder();
+        String[] selectionArgs = new String[0];
+        String sortOrder = "";
+        if (filter != null) {
+            sortOrder = filter.getSqlSortOrder();
+            selection.append(filter.getSqlSelection());
+            selectionArgs = filter.getSqlSelectionArgs();
+        }
+        if (!searchQuery.isEmpty()) {
+            if (!selection.toString().trim().isEmpty()) {
+                selection.append(" AND ");
+            }
+            selection.append(String.format("_id IN (SELECT docid FROM %s WHERE %s MATCH ?)",
+                    ReadLaterEntry.TABLE_NAME_FTS, ReadLaterEntry.TABLE_NAME_FTS));
+            selectionArgs = Arrays.copyOf(selectionArgs, selectionArgs.length + 1);
+            selectionArgs[selectionArgs.length - 1] = searchQuery;
+        }
+        return new CursorLoader(context, itemsQueryUri, projection, selection.toString(), selectionArgs, sortOrder);
     }
 
     /** Добавляет новый элемент в базу данных.
@@ -89,58 +103,6 @@ public class ReadLaterDbUtils {
         int updated = context.getContentResolver()
                 .update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
         return updated > 0;
-    }
-
-    /** Заполняет базу данных плейсхолдерами (случайными данными).
-     *  Добавляет PLACEHOLDERS_COUNT штук записей с заранее определенными
-     *  Label, случайными description и случайными цветами
-     *
-     * @param context Контекст
-     */
-    public static void addPlaceholdersToDatabase(Context context) {
-
-        // bulkInsert умышленно не был реализован, так как нигде не используется
-        // кроме этого метода, предназначенного для тестирования
-
-        String[] text = context.getString(R.string.debug_large_text).split("\n");
-        int textRows = text.length;
-        String label = context.getString(R.string.mainlist_menu_add_placeholders_label);
-        Random randomizer = new Random();
-        for (int i = 0; i < PLACEHOLDERS_COUNT; i++) {
-            // Description создается из случайных строк large_text
-            StringBuilder description = new StringBuilder();
-            for (int j = 0; j < DESCRIPTION_LINES; j++) {
-                description.append(text[randomizer.nextInt(textRows)]).append('\n');
-            }
-            // Конвертация int в HSV и обратно нужна, чтобы ColorPickerActivity красиво работал
-            // (не каждый int без потерь конвертируется в HSV)
-            // Это допущение используется только в этом тестовом методе, во всех остальных местах используются цвета,
-            // конвертируемые в обе стороны без потерь
-            float[] colorHsv = new float[3];
-            Color.colorToHSV(randomizer.nextInt(), colorHsv);
-            insertItem(context,
-                    new ReadLaterItem(label + " " + i, description.toString().trim(), Color.HSVToColor(colorHsv)));
-        }
-
-    }
-
-    /** Удаляет данные из базы данных (на основании предоставленного cursor).
-     *
-     * @param context Контекст
-     * @param cursor Cursor, если указывает на все данные, то будут удалены все данные
-     * @param indexColumnId Индекс колонки с _id, по которым удаляются данные
-     */
-    public static void deleteItemsFromDatabase(Context context, Cursor cursor, int indexColumnId) {
-
-        // Массовое удаление умышленно не было реализован, так как нигде не используется
-        // кроме этого метода, предназначенного для тестирования
-        // А также с целью безопасности, отсутствие массового удаления снижает вероятность ошибочного стирания всего
-
-        for (int i = 0; i < cursor.getCount(); i++) {
-            cursor.moveToPosition(i);
-            int uid = cursor.getInt(indexColumnId);
-            context.getContentResolver().delete(ReadLaterEntry.buildUriForOneItem(uid), null, null);
-        }
     }
 
 }

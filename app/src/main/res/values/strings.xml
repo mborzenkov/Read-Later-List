@@ -30,6 +30,7 @@
         <string name="mainlist_drawer_filters_default">Default</string>
         <string name="mainlist_drawer_filters_save">+ Save filter</string>
         <string name="mainlist_drawer_filters_remove">- Remove filter</string>
+        <string name="mainlist_drawer_date_all">No date filter</string>
         <string name="mainlist_drawer_date_creation">Creation date</string>
         <string name="mainlist_drawer_date_modified">Last modify date</string>
         <string name="mainlist_drawer_date_viewed">Last view date</string>

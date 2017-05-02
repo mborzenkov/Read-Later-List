@@ -27,7 +27,8 @@
             android:id="@+id/spinner_drawermainlist_filter"
             style="@style/MainList.Drawer.Spinner.Filter"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_title"/>
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="8dp"/>
 
         <Spinner
             android:id="@+id/spinner_drawermainlist_datefilter"
@@ -36,33 +37,19 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_filter"/>
 
-        <TextView
-            android:id="@+id/textview_drawermainlist_datefrom"
-            style="@style/MainList.Drawer.Text.Hint"
-            android:text="@string/mainlist_drawer_datefrom_hint"
+        <EditText
+            android:id="@+id/edittext_drawermainlist_datefrom"
+            style="@style/MainList.Drawer.DateInput"
+            android:hint="@string/mainlist_drawer_datefrom_hint"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/spinner_drawermainlist_datefilter"/>
 
         <EditText
-            android:id="@+id/edittext_drawermainlist_datefrom"
-            style="@style/MainList.Drawer.DateInput"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_datefrom"/>
-
-        <TextView
-            android:id="@+id/textview_drawermainlist_dateto"
-            style="@style/MainList.Drawer.Text.Hint"
-            android:text="@string/mainlist_drawer_dateto_hint"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/edittext_drawermainlist_datefrom"/>
-
-        <EditText
             android:id="@+id/edittext_drawermainlist_dateto"
             style="@style/MainList.Drawer.DateInput"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_dateto"/>
+            android:hint="@string/mainlist_drawer_dateto_hint"
+            app:layout_constraintTop_toBottomOf="@+id/spinner_drawermainlist_datefilter"
+            app:layout_constraintLeft_toRightOf="@+id/edittext_drawermainlist_datefrom"/>
 
         <TextView
             android:id="@+id/textview_drawermainlist_color"
@@ -89,6 +76,7 @@
         <Button
             android:id="@+id/button_drawermainlist_sortname"
             style="@style/MainList.Drawer.Button.Sort"
+            android:onClick="clickOnSortButton"
             android:text="@string/mainlist_drawer_sort_label"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_sorting"/>
@@ -96,6 +84,7 @@
         <Button
             android:id="@+id/button_drawermainlist_sortcreate"
             style="@style/MainList.Drawer.Button.Sort"
+            android:onClick="clickOnSortButton"
             android:text="@string/mainlist_drawer_sort_created"
             app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_sortname"
             app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_sorting"/>
@@ -103,6 +92,7 @@
         <Button
             android:id="@+id/button_drawermainlist_sortmodified"
             style="@style/MainList.Drawer.Button.Sort"
+            android:onClick="clickOnSortButton"
             android:text="@string/mainlist_drawer_sort_modified"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_sortname"/>
@@ -110,6 +100,7 @@
         <Button
             android:id="@+id/button_drawermainlist_sortview"
             style="@style/MainList.Drawer.Button.Sort"
+            android:onClick="clickOnSortButton"
             android:text="@string/mainlist_drawer_sort_viewed"
             app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_sortmodified"
             app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_sortname"/>
@@ -124,6 +115,7 @@
         <Button
             android:id="@+id/button_drawermainlist_backupsave"
             style="@style/MainList.Drawer.Button.Save"
+            android:onClick="clickOnBackupButton"
             android:text="@string/mainlist_drawer_backup_save"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_backup"/>
@@ -131,6 +123,7 @@
         <Button
             android:id="@+id/button_drawermainlist_backuprestore"
             style="@style/MainList.Drawer.Button.Restore"
+            android:onClick="clickOnBackupButton"
             android:text="@string/mainlist_drawer_backup_restore"
             app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_backupsave"
             app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_backup"/>
@@ -145,6 +138,7 @@
         <Button
             android:id="@+id/button_drawermainlist_fillplaceholders"
             style="@style/MainList.Drawer.Button.Fill"
+            android:onClick="clickOnDebugButton"
             android:text="@string/mainlist_drawer_fillplaceholders_title"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_debug"/>
@@ -152,6 +146,7 @@
         <Button
             android:id="@+id/button_drawermainlist_deleteall"
             style="@style/MainList.Drawer.Button.Delete"
+            android:onClick="clickOnDebugButton"
             android:text="@string/mainlist_drawer_deleteall_title"
             app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_fillplaceholders"
             app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_debug"/>

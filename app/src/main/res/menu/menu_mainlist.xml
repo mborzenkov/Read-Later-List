@@ -11,4 +11,11 @@
         app:actionViewClass="android.support.v7.widget.SearchView"
         app:showAsAction="collapseActionView|ifRoom"/>
 
+    <item
+        android:id="@+id/mainlist_settings"
+        android:icon="@drawable/ic_menu_24dp"
+        android:orderInCategory="2"
+        android:title="@string/mainlist_drawer_title"
+        app:showAsAction="ifRoom"/>
+
 </menu>

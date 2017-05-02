@@ -47,7 +47,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
 
     // Объявляем все переменные
     /** Константа для использования в качестве ключа при сохранении массива Favorites. */
-    private static final String FAVORITES_KEY = "com.example.mborzenkov.colorpicker.favorites";
+    public static final String FAVORITES_KEY = "com.example.mborzenkov.colorpicker.favorites";
     /** Константа для использования в качестве ключа при сохранении выбранного цвета. */
     public static final String CHOSEN_KEY = "com.example.mborzenkov.colorpicker.chosen";
 
@@ -168,7 +168,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         mFavLinearLayout = (LinearLayout) findViewById(R.id.linearlayout_drawermainlist_favorites);
         mRgbValueTextView = (TextView) findViewById(R.id.textView_RGB_value);
         mHsvValueTextView = (TextView) findViewById(R.id.textView_HSV_value);
-        mSharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        mSharedPreferences = getSharedPreferences(FAVORITES_KEY, Context.MODE_PRIVATE);
         mHandler = new Handler();
         mVibrator = (Vibrator) applicationContext.getSystemService(VIBRATOR_SERVICE);
 
@@ -210,7 +210,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
 
         if (savedInstanceState == null) {
             for (int i = 0; i < maxFavorites; i++) {
-                int savedColor = mSharedPreferences.getInt(FAVORITES_KEY + "." + i, Color.TRANSPARENT);
+                int savedColor = mSharedPreferences.getInt(String.valueOf(i), Color.TRANSPARENT);
                 setFavoriteColor(i, savedColor);
             }
         }
@@ -393,7 +393,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
                     int colorFavorite = Color.HSVToColor(chosenColorHsv);
                     setFavoriteColor(position, colorFavorite);
                     SharedPreferences.Editor editor = mSharedPreferences.edit();
-                    editor.putInt(FAVORITES_KEY + "." + position, colorFavorite);
+                    editor.putInt(String.valueOf(position), colorFavorite);
                     editor.apply();
                     vibrate();
                     return true;

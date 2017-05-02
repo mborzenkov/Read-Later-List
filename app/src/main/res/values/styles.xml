@@ -73,6 +73,7 @@
         <item name="android:layout_width">@dimen/width_mainlist_drawer</item>
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_gravity">end</item>
+        <item name="android:background">@color/icons</item>
     </style>
     <style name="MainList.Drawer.Text">
         <item name="android:layout_width">wrap_content</item>
@@ -101,13 +102,14 @@
         <item name="android:layout_width">wrap_content</item>
     </style>
     <style name="MainList.Drawer.DateInput">
-        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_width">100dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginLeft">@dimen/marginleft_mainlist_drawer</item>
         <item name="android:layout_marginRight">@dimen/marginright_mainlist_drawer</item>
         <item name="android:layout_marginTop">@dimen/margintop_mainlist_drawer_dateinput</item>
         <item name="android:ems">@integer/mainlist_drawer_ems</item>
         <item name="android:inputType">date</item>
+        <item name="android:focusable">false</item>
     </style>
     <style name="MainList.Drawer.Favorite">
         <item name="android:layout_width">@dimen/size_mainlist_drawer_favoritecircle</item>

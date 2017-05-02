@@ -8,4 +8,8 @@
         android:color="@android:color/transparent"
         tools:color="@android:color/holo_green_dark" />
 
+    <stroke
+        android:width="2dp"
+        android:color="@color/accent" />
+
 </shape>

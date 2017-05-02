@@ -33,7 +33,7 @@
         <dimen name="margintop_mainlist_drawer_title">8dp</dimen>
         <dimen name="margintop_mainlist_drawer_text">16dp</dimen>
         <dimen name="margintop_mainlist_drawer_hint">8dp</dimen>
-        <dimen name="margintop_mainlist_drawer_dateinput">4dp</dimen>
+        <dimen name="margintop_mainlist_drawer_dateinput">8dp</dimen>
         <dimen name="margintop_mainlist_drawer_button">8dp</dimen>
         <dimen name="marginbottom_mainlist_drawer_text">8dp</dimen>
 
