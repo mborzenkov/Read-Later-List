@@ -22,6 +22,9 @@
         <string name="snackbar_item_removed">Item removed</string>
         <!-- Список -->
         <string name="mainlist_icon_contentdescription">Color</string>
+        <!-- Поиск -->
+        <string name="searchable_mainlist_hint">Search items</string>
+        <string name="mainlist_menu_search">Search</string>
 
     <!-- EditItemActivity -->
         <!-- Заголовки -->

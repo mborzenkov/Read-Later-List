@@ -1,5 +1,6 @@
 package com.example.mborzenkov.readlaterlist.activity;
 
+import android.app.SearchManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -13,7 +14,9 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,7 +34,8 @@ import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 /** Главная Activity, представляющая собой список. */
 public class MainListActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>,
-        ItemListAdapter.ItemListAdapterOnClickHandler {
+        ItemListAdapter.ItemListAdapterOnClickHandler,
+        SearchView.OnQueryTextListener {
 
     /** Константа, обозначающая пустой UID. */
     public static final int UID_EMPTY = -1;
@@ -106,10 +110,21 @@ public class MainListActivity extends AppCompatActivity implements
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+
+        getMenuInflater().inflate(R.menu.menu_mainlist, menu);
+
         // Специальные возможности создаются только в DEBUG
-        if (BuildConfig.DEBUG) {
-            getMenuInflater().inflate(R.menu.menu_mainlist, menu);
+        if (!BuildConfig.DEBUG) {
+            menu.removeItem(R.id.mainlist_action_add_placeholders);
+            menu.removeItem(R.id.mainlist_action_delete_all);
         }
+
+        SearchManager searchManager = (SearchManager) getSystemService(SEARCH_SERVICE);
+        SearchView searchView = (SearchView) menu.findItem(R.id.mainlist_action_search).getActionView();
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        searchView.setSubmitButtonEnabled(true);
+        searchView.setOnQueryTextListener(this);
+
         return true;
     }
 
@@ -161,6 +176,18 @@ public class MainListActivity extends AppCompatActivity implements
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        Log.i("EVENT", "Text submit");
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        Log.i("EVENT", "Text change");
+        return false;
     }
 
     @Override
@@ -280,11 +307,4 @@ public class MainListActivity extends AppCompatActivity implements
         mEmptyList.setVisibility(View.INVISIBLE);
         mLoadingIndicator.setVisibility(View.VISIBLE);
     }
-
-
-
-
-
-
-
 }
