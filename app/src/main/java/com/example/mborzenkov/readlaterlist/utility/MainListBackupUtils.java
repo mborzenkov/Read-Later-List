@@ -96,6 +96,7 @@ public class MainListBackupUtils {
             }
 
             if (restoredData.size() > 0) {
+                ReadLaterDbUtils.deleteAll(context);
                 ReadLaterDbUtils.bulkInsertJson(context, restoredData);
             }
         }
