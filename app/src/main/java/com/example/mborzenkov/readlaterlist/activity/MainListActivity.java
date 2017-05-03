@@ -5,6 +5,7 @@ import android.app.SearchManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.drawable.GradientDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -24,6 +25,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -35,6 +37,7 @@ import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
+import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
@@ -44,7 +47,9 @@ import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 /** Главная Activity, представляющая собой список. */
 public class MainListActivity extends AppCompatActivity implements
@@ -93,6 +98,11 @@ public class MainListActivity extends AppCompatActivity implements
     private Spinner mDateFiltersSpinner;
     private EditText mDateFromEditText;
     private EditText mDateToEditText;
+    private Button mSortByLabelButton;
+    private Button mSortByDateCreatedButton;
+    private Button mSortByDateModifiedButton;
+    private Button mSortByDateViewedButton;
+
 
     /** Cursor с данными. */
     private Cursor mDataCursor;
@@ -106,6 +116,12 @@ public class MainListActivity extends AppCompatActivity implements
     private Calendar mCalendar = Calendar.getInstance();
     /** Редактируемое поле даты. */
     private EditText mDateEditor;
+    /** Оригинальные названия кнопок сортировки. */
+    private Map<MainListFilter.SortType, String> mSortButtonsNames = new HashMap<>();
+    /** Добавляемый символ сортировки. */
+    private Map<MainListFilter.SortOrder, String> mSortOrderSymbols = new HashMap<>();
+    /** Избранные цвета. */
+    private int[] favColors;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -160,10 +176,63 @@ public class MainListActivity extends AppCompatActivity implements
             @Override
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
-                FavoriteColorsUtils.updateFavLayoutFromSharedPreferences(MainListActivity.this, mFavLinearLayout, null);
+                updateDrawerWithCurrentFilter();
             }
         };
         mDrawerLayout.addDrawerListener(mDrawerToggle);
+
+        // Заполняем варианты запомненных фильтров
+        mSavedFiltersSpinner = (Spinner) findViewById(R.id.spinner_drawermainlist_filter);
+        ArrayAdapter<String> savedFiltersAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
+        savedFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        savedFiltersAdapter.addAll(MainListFilterUtils.getSavedFiltersList(this));
+        mSavedFiltersSpinner.setAdapter(savedFiltersAdapter);
+        mSavedFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                // TODO: Выбор предопределенного фильтра
+                int indexSavedAdd = MainListFilterUtils.getIndexSavedAdd();
+                int indexSavedDelete = MainListFilterUtils.getIndexSavedDelete();
+                if (position == indexSavedAdd) {
+                    // показать окно ввода и сохранить данные
+                    // если ок, вызвать saveFilter
+                } else if (position == indexSavedDelete) {
+                    // показать окно подтверждения и удалить данные
+                    // если ок, вызвать removeSavedFilter
+                } else {
+                   //  MainListFilterUtils.clickOnSavedFilter(MainListActivity.this, position);
+                }
+                updateDrawerWithCurrentFilter();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) { }
+        });
+
+        // Заполняем варианты фильтров по дате
+        mDateFiltersSpinner = (Spinner) findViewById(R.id.spinner_drawermainlist_datefilter);
+        ArrayAdapter<String> dateFiltersAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
+        dateFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        dateFiltersAdapter.addAll(MainListFilterUtils.getsDateFiltersList(this));
+        mDateFiltersSpinner.setAdapter(dateFiltersAdapter);
+        mDateFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                MainListFilter filter = MainListFilterUtils.getCurrentFilter();
+                filter.setSelection(MainListFilterUtils.getDateFilterSelection(position));
+                switch (position) {
+                    case MainListFilterUtils.INDEX_DATE_ALL:
+                        mDateFromEditText.setVisibility(View.GONE);
+                        mDateToEditText.setVisibility(View.GONE);
+                        break;
+                    default:
+                        mDateFromEditText.setVisibility(View.VISIBLE);
+                        mDateToEditText.setVisibility(View.VISIBLE);
+                        break;
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) { }
+        });
 
         // DatePicker на полях с датами
         final DatePickerDialog.OnDateSetListener date = new DatePickerDialog.OnDateSetListener() {
@@ -176,7 +245,12 @@ public class MainListActivity extends AppCompatActivity implements
                 mCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
                 SimpleDateFormat sdf = new SimpleDateFormat(FORMAT_DATE, Locale.US);
                 mDateEditor.setText(sdf.format(mCalendar.getTime()));
-                mDateEditor.setTag(mCalendar.getTimeInMillis());
+                MainListFilter filter = MainListFilterUtils.getCurrentFilter();
+                if (mDateEditor.getId() == R.id.edittext_drawermainlist_datefrom) {
+                    filter.setDateFrom(mCalendar.getTimeInMillis());
+                } else {
+                    filter.setDateTo(mCalendar.getTimeInMillis());
+                }
             }
 
         };
@@ -206,7 +280,6 @@ public class MainListActivity extends AppCompatActivity implements
                         picker.setMaxDate(System.currentTimeMillis());
                     }
                 }
-
                 dialog.show();
             }
         };
@@ -218,59 +291,27 @@ public class MainListActivity extends AppCompatActivity implements
         mDateToEditText.setTag(Long.valueOf(0));
 
         // Добавляем Favorites на Drawer Layout
-        FavoriteColorsUtils.inflateFavLayout(this, mFavLinearLayout, this);
+        FavoriteColorsUtils.inflateFavLayout(this, mFavLinearLayout);
 
-        // Заполняем варианты запомненных фильтров
-        mSavedFiltersSpinner = (Spinner) findViewById(R.id.spinner_drawermainlist_filter);
-        ArrayAdapter<String> savedFiltersAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
-        savedFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        savedFiltersAdapter.addAll(MainListFilterUtils.getSavedFiltersList(this));
-        mSavedFiltersSpinner.setAdapter(savedFiltersAdapter);
-        mSavedFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
-                // TODO: Выбор предопределенного фильтра
-                int indexSavedAdd = MainListFilterUtils.getIndexSavedAdd();
-                int indexSavedDelete = MainListFilterUtils.getIndexSavedDelete();
-                if (position == indexSavedAdd) {
-                    // показать окно ввода и сохранить данные
-                    // если ок, вызвать saveFilter
-                } else if (position == indexSavedDelete) {
-                    // показать окно подтверждения и удалить данные
-                    // если ок, вызвать removeSavedFilter
-                } else {
-                    MainListFilterUtils.clickOnSavedFilter(MainListActivity.this, position);
-                }
-                updateDrawerWithCurrentFilter();
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) { }
-        });
+        // Запоминаем кнопки sortBy
+        mSortByLabelButton = (Button) findViewById(R.id.button_drawermainlist_sortname);
+        mSortByLabelButton.setTag(MainListFilter.SortType.LABEL);
+        mSortButtonsNames.put(MainListFilter.SortType.LABEL, mSortByLabelButton.getText().toString());
 
-        // Заполняем варианты фильтров по дате
-        mDateFiltersSpinner = (Spinner) findViewById(R.id.spinner_drawermainlist_datefilter);
-        ArrayAdapter<String> dateFiltersAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
-        dateFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        dateFiltersAdapter.addAll(MainListFilterUtils.getsDateFiltersList(this));
-        mDateFiltersSpinner.setAdapter(dateFiltersAdapter);
-        mDateFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
-                MainListFilterUtils.clickOnDateFilter(position);
-                switch (position) {
-                    case MainListFilterUtils.INDEX_DATE_ALL:
-                        mDateFromEditText.setVisibility(View.GONE);
-                        mDateToEditText.setVisibility(View.GONE);
-                        break;
-                    default:
-                        mDateFromEditText.setVisibility(View.VISIBLE);
-                        mDateToEditText.setVisibility(View.VISIBLE);
-                        break;
-                }
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) { }
-        });
+        mSortByDateCreatedButton = (Button) findViewById(R.id.button_drawermainlist_sortcreate);
+        mSortByDateCreatedButton.setTag(MainListFilter.SortType.DATE_CREATED);
+        mSortButtonsNames.put(MainListFilter.SortType.LABEL, mSortByDateCreatedButton.getText().toString());
+
+        mSortByDateModifiedButton = (Button) findViewById(R.id.button_drawermainlist_sortmodified);
+        mSortByDateModifiedButton.setTag(MainListFilter.SortType.DATE_MODIFIED);
+        mSortButtonsNames.put(MainListFilter.SortType.LABEL, mSortByDateModifiedButton.getText().toString());
+
+        mSortByDateViewedButton = (Button) findViewById(R.id.button_drawermainlist_sortview);
+        mSortByDateViewedButton.setTag(MainListFilter.SortType.DATE_VIEWED);
+        mSortButtonsNames.put(MainListFilter.SortType.LABEL, mSortByDateViewedButton.getText().toString());
+
+        mSortOrderSymbols.put(MainListFilter.SortOrder.ASC, getString(R.string.mainlist_drawer_sort_symb_asc));
+        mSortOrderSymbols.put(MainListFilter.SortOrder.DESC, getString(R.string.mainlist_drawer_sort_symb_desc));
 
         // Специальные возможности создаются только в DEBUG
         if (!BuildConfig.DEBUG) {
@@ -282,9 +323,39 @@ public class MainListActivity extends AppCompatActivity implements
     }
 
     private void updateDrawerWithCurrentFilter() {
-        mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedChosen());
-        mDateFiltersSpinner.setSelection(MainListFilterUtils.getIndexDateChosen());
-        // TODO: остальное
+        // TODO: Сохранение шаблонов
+        MainListFilter currentFilter = MainListFilterUtils.getCurrentFilter();
+        mDateFiltersSpinner.setSelection(0);
+        mDateFromEditText.setText(currentFilter.getDateFrom());
+        mDateToEditText.setText(currentFilter.getDateTo());
+        favColors = FavoriteColorsUtils.updateFavLayoutFromSharedPreferences(this, mFavLinearLayout, null,
+                MainListActivity.this, currentFilter.getColorFilter());
+        resetButtons();
+        Button selectedSortButton = null;
+        switch (currentFilter.getSortType()) {
+            case LABEL:
+                selectedSortButton = mSortByLabelButton;
+                break;
+            case DATE_CREATED:
+                selectedSortButton = mSortByDateCreatedButton;
+                break;
+            case DATE_MODIFIED:
+                selectedSortButton = mSortByDateModifiedButton;
+                break;
+            case DATE_VIEWED:
+                selectedSortButton = mSortByDateViewedButton;
+                break;
+            default:
+                break;
+        }
+        selectedSortButton.setActivated(true);
+    }
+
+    private void resetButtons() {
+        mSortByLabelButton.setActivated(false);
+        mSortByDateCreatedButton.setActivated(false);
+        mSortByDateModifiedButton.setActivated(false);
+        mSortByDateViewedButton.setActivated(false);
     }
 
     @Override
@@ -373,24 +444,25 @@ public class MainListActivity extends AppCompatActivity implements
     @Override
     public void onClick(View v) {
         // Click на drawer favorite
-        // TODO: Выбор favorite
-        MainListFilterUtils.clickOnColorFilter((int) v.getTag());
+        MainListFilter filter = MainListFilterUtils.getCurrentFilter();
+        v.setActivated(!v.isActivated());
+        int color = favColors[(int) v.getTag()];
+        if (v.isActivated()) {
+            filter.addColorFilter(color);
+        } else {
+            filter.removeColorFilter(color);
+        }
     }
 
-    public void clickOnSortButton(View button) {
+    public void clickOnSortButton(View view) {
         // Click на кнопку сортировки
-        // TODO: Клик на кнопку сортировки
-        switch (button.getId()) {
-            case R.id.button_drawermainlist_sortname:
-                break;
-            case R.id.button_drawermainlist_sortcreate:
-                break;
-            case R.id.button_drawermainlist_sortmodified:
-                break;
-            case R.id.button_drawermainlist_sortview:
-                break;
-            default:
-                break;
+        Button button = (Button) view;
+        if (button.getTag() != null) {
+            MainListFilter filter = MainListFilterUtils.getCurrentFilter();
+            MainListFilter.SortType buttonType = (MainListFilter.SortType) button.getTag();
+            filter.setSortType(buttonType);
+            updateDrawerWithCurrentFilter();
+            // TODO: сортировка в разных направлениях
         }
     }
 

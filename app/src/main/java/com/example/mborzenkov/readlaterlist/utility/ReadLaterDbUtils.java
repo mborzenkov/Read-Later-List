@@ -51,6 +51,8 @@ public class ReadLaterDbUtils {
             selectionArgs = Arrays.copyOf(selectionArgs, selectionArgs.length + 1);
             selectionArgs[selectionArgs.length - 1] = searchQuery;
         }
+        // TODO: убрать out
+        System.out.println(selection);
         return new CursorLoader(context, itemsQueryUri, projection, selection.toString(), selectionArgs, sortOrder);
     }
 

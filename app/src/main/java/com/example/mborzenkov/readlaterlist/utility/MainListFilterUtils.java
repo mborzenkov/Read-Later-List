@@ -7,10 +7,13 @@ import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MainListFilterUtils {
 
@@ -18,17 +21,12 @@ public class MainListFilterUtils {
 
     public static final int INDEX_DATE_ALL = 0;
 
-    private static Map<String, MainListFilter> sCustomFilters = null;
-    private static final int INDEX_SAVED_DEFAULT = 0;
-    private static int sIndexSavedChosen = 0;
-    private static int sIndexSavedAdd = 1;
-    private static int sIndexSavedDelete = 2;
-
-    private static List<String> sDateFilters = null;
-    private static int sIndexDateChosen = 0;
-
     private static MainListFilter sCurrentFilter = null;
 
+    private static Map<String, MainListFilter> sCustomFilters = null;
+    private static final int INDEX_SAVED_DEFAULT = 0;
+    private static int sIndexSavedAdd = 1;
+    private static int sIndexSavedDelete = 2;
 
     private MainListFilterUtils() {
         throw new UnsupportedOperationException("Класс MainListFilterUtils - static util, не может иметь экземпляров");
@@ -54,14 +52,25 @@ public class MainListFilterUtils {
     }
 
     public static List<String> getsDateFiltersList(Context context) {
-        if (sDateFilters == null) {
-            sDateFilters = new ArrayList<>();
-            sDateFilters.add(context.getString(R.string.mainlist_drawer_date_all));
-            sDateFilters.add(context.getString(R.string.mainlist_drawer_date_creation));
-            sDateFilters.add(context.getString(R.string.mainlist_drawer_date_modified));
-            sDateFilters.add(context.getString(R.string.mainlist_drawer_date_viewed));
+        List<String> dateFilters = new ArrayList<>();
+        dateFilters.add(context.getString(R.string.mainlist_drawer_date_all));
+        dateFilters.add(context.getString(R.string.mainlist_drawer_date_creation));
+        dateFilters.add(context.getString(R.string.mainlist_drawer_date_modified));
+        dateFilters.add(context.getString(R.string.mainlist_drawer_date_viewed));
+        return dateFilters;
+    }
+
+    public static MainListFilter.Selection getDateFilterSelection(int position) {
+        switch (position) {
+            case 1:
+                return MainListFilter.Selection.DATE_CREATED;
+            case 2:
+                return MainListFilter.Selection.DATE_MODIFIED;
+            case 3:
+                return MainListFilter.Selection.DATE_VIEWED;
+            default:
+                return MainListFilter.Selection.ALL;
         }
-        return sDateFilters;
     }
 
     public static MainListFilter getCurrentFilter() {
@@ -81,10 +90,10 @@ public class MainListFilterUtils {
             }
             sCurrentFilter = MainListFilter.fromString(sCustomFilters.get(iterator).toString());
         }
-        sIndexSavedChosen = position;
+        // sIndexSavedChosen = position;
     }
 
-    public static void saveFilter(Context context, String name) {
+    /*public static void saveFilter(Context context, String name) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(FILTER_KEY, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(name, sCurrentFilter.toString());
@@ -104,19 +113,7 @@ public class MainListFilterUtils {
         editor.remove(name);
         editor.apply();
         sCustomFilters = null;
-    }
-
-    public static void clickOnDateFilter(int position) {
-
-    }
-
-    public static void clickOnColorFilter(int position) {
-
-    }
-
-    public static void clickOnSortBy(int position) {
-
-    }
+    }*/
 
     public static int getIndexSavedAdd() {
         return sIndexSavedAdd;
@@ -124,14 +121,6 @@ public class MainListFilterUtils {
 
     public static int getIndexSavedDelete() {
         return sIndexSavedDelete;
-    }
-
-    public static int getIndexSavedChosen() {
-        return sIndexSavedChosen;
-    }
-
-    public static int getIndexDateChosen() {
-        return sIndexDateChosen;
     }
 
 }

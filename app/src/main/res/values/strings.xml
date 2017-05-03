@@ -42,6 +42,8 @@
         <string name="mainlist_drawer_sort_created">Created</string>
         <string name="mainlist_drawer_sort_modified">Modified</string>
         <string name="mainlist_drawer_sort_viewed">Viewed</string>
+        <string name="mainlist_drawer_sort_symb_asc">↡</string>
+        <string name="mainlist_drawer_sort_symb_desc">↑</string>
         <string name="mainlist_drawer_debug_title">Debug options</string>
         <string name="mainlist_drawer_deleteall_title">Delete all</string>
         <string name="mainlist_drawer_fillplaceholders_title">Fill data</string>

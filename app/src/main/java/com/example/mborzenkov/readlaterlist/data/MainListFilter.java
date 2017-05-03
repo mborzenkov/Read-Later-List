@@ -2,82 +2,79 @@ package com.example.mborzenkov.readlaterlist.data;
 
 import android.support.annotation.Nullable;
 
+import com.example.mborzenkov.readlaterlist.activity.MainListActivity;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class MainListFilter {
 
-    // TODO: Поменять названия на R.string
+    public enum SortType {
+        LABEL(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL),
+        DATE_CREATED(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED),
+        DATE_MODIFIED(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED),
+        DATE_VIEWED(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW);
 
-    private enum Sorting {
-        LABEL_ASC("Label", "Ascending",
-                ReadLaterContract.ReadLaterEntry.COLUMN_LABEL + " ASC"),
-        LABEL_DESC("Label", "Descending",
-                ReadLaterContract.ReadLaterEntry.COLUMN_LABEL + " DESC"),
-        DATE_CREATED_ASC("Creation date", "Ascending",
-                ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED + " ASC"),
-        DATE_CREATED_DESC("Creation date", "Descending",
-                ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED + " DESC"),
-        DATE_MODIFIED_ASC("Last modify", "Ascending",
-                ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED + " ASC"),
-        DATE_MODIFIED_DESC("Last modify", "Descending",
-                ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED + " DESC"),
-        DATE_VIEWED_ASC("Last view", "Ascending",
-                ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW + " ASC"),
-        DATE_VIEWED_DESC("Last view", "Descending",
-                ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW + " DESC");
-
-        private final String fieldLabel;
-        private final String directionLabel;
-        private final String sqlOrderBy;
-
-        Sorting(String fieldLabel, String directionLabel, String sqlOrderBy) {
-            this.fieldLabel = fieldLabel;
-            this.directionLabel = directionLabel;
-            this.sqlOrderBy = sqlOrderBy;
+        private final String columnName;
+        SortType(String columnName) {
+            this.columnName = columnName;
         }
 
-        @Override
-        public String toString() {
-            return String.format(Locale.US, "&s &s", fieldLabel, directionLabel);
+        private String getColumnName() {
+            return columnName;
+        }
+    }
+
+    public enum SortOrder {
+        ASC("ASC"),
+        DESC("DESC");
+
+        private final String orderByQuery;
+        SortOrder(String orderByQuery) {
+            this.orderByQuery = orderByQuery;
         }
 
-        public String getSqlOrderBy() {
-            return sqlOrderBy;
+        private String getOrderByQuery() {
+            return orderByQuery;
         }
     }
 
     public enum Selection {
-        ALL("No filter"),
-        DATE_CREATED("Creation date"),
-        DATE_MODIFIED("Last modify date"),
-        DATE_VIEWED("Last view date");
+        ALL(null),
+        DATE_CREATED(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED),
+        DATE_MODIFIED(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED),
+        DATE_VIEWED(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW);
 
-        private final String stringRep;
-
-        Selection(String stringRep) {
-            this.stringRep = stringRep;
+        private final String columnName;
+        Selection(String columnName) {
+            this.columnName = columnName;
         }
 
-        @Override
-        public String toString() {
-            return stringRep;
+        private String getColumnName() {
+            return columnName;
         }
     };
 
-    private Sorting sortOrder;
+    private SortType sortBy;
+    private SortOrder sortOrder;
     private Selection selection;
-    private @Nullable Date dateFrom;
-    private @Nullable Date dateTo;
-    private int[] colorFilter;
+    private Date dateFrom;
+    private Date dateTo;
+    private Set<Integer> colorFilter;
 
     public MainListFilter() {
         // default
-        sortOrder = Sorting.LABEL_ASC;
+        sortBy = SortType.LABEL;
+        sortOrder = SortOrder.ASC;
         selection = Selection.ALL;
         dateFrom = null;
         dateTo = null;
-        colorFilter = new int[0];
+        colorFilter = new HashSet<>();
     }
 
     public static MainListFilter fromString(String filterString) {
@@ -85,21 +82,113 @@ public class MainListFilter {
     }
 
     public String getSqlSortOrder() {
-        return sortOrder.getSqlOrderBy();
+        return String.format(Locale.US, "%s %s", sortBy.getColumnName(), sortOrder.getOrderByQuery());
     }
 
     public String getSqlSelection() {
-        return "";
+        StringBuilder sqlSelectionString = new StringBuilder();
+        if (selection != Selection.ALL) {
+            if (dateFrom != null) {
+                sqlSelectionString.append(selection.getColumnName()).append(">?");
+            }
+            if (dateTo != null) {
+                if (dateFrom != null) {
+                    sqlSelectionString.append(" AND ");
+                }
+                sqlSelectionString.append(selection.getColumnName()).append("<?");
+            }
+        }
+        if (!colorFilter.isEmpty()) {
+            if (dateFrom != null | dateTo != null) {
+                sqlSelectionString.append(" AND ");
+            }
+            sqlSelectionString.append(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR).append(" IN (");
+            for (Integer color : colorFilter) {
+                sqlSelectionString.append("?,");
+            }
+            sqlSelectionString.delete(sqlSelectionString.length() - 1, sqlSelectionString.length()).append(")");
+        }
+        return sqlSelectionString.toString();
     }
 
     public String[] getSqlSelectionArgs() {
-        return new String[0];
+        List<String> selectionArgs = new ArrayList<>();
+        if (selection != Selection.ALL) {
+            if (dateFrom != null) {
+                selectionArgs.add(String.valueOf(dateFrom.getTime()));
+            }
+            if (dateTo != null) {
+                selectionArgs.add(String.valueOf(dateTo.getTime()));
+            }
+        }
+        if (!colorFilter.isEmpty()) {
+            for (Integer color : colorFilter) {
+                selectionArgs.add(String.valueOf(color));
+            }
+        }
+        return selectionArgs.toArray(new String[selectionArgs.size()]);
     }
 
+    public String getDateFrom() {
+        if (dateFrom != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat(MainListActivity.FORMAT_DATE, Locale.US);
+            return sdf.format(dateFrom.getTime());
+        } else {
+            return "";
+        }
+    }
 
+    public String getDateTo() {
+        if (dateTo != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat(MainListActivity.FORMAT_DATE, Locale.US);
+            return sdf.format(dateTo.getTime());
+        } else {
+            return "";
+        }
+    }
 
-    @Override
-    public String toString() {
-        return super.toString();
+    public void setDateFrom(long dateMs) {
+        dateFrom = new Date(dateMs);
+    }
+
+    public void setDateTo(long dateMs) {
+        dateTo = new Date(dateMs);
+    }
+
+    public SortType getSortType() {
+        return sortBy;
+    }
+
+    public void setSortType(SortType sortType) {
+        sortBy = sortType;
+        sortOrder = SortOrder.ASC;
+    }
+
+    public SortOrder getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(SortOrder order) {
+        sortOrder = order;
+    }
+
+    public Selection getSelection() {
+        return selection;
+    }
+
+    public void setSelection(Selection newSelection) {
+        selection = newSelection;
+    }
+
+    public Set<Integer> getColorFilter() {
+        return colorFilter;
+    }
+
+    public void addColorFilter(int color) {
+        colorFilter.add(color);
+    }
+
+    public void removeColorFilter(int color) {
+        colorFilter.remove(color);
     }
 }
