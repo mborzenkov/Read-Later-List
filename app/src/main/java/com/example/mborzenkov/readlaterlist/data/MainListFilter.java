@@ -45,18 +45,24 @@ public class MainListFilter {
     }
 
     public enum Selection {
-        ALL(null),
-        DATE_CREATED(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED),
-        DATE_MODIFIED(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED),
-        DATE_VIEWED(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW);
+        ALL(0, null),
+        DATE_CREATED(1, ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED),
+        DATE_MODIFIED(2, ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED),
+        DATE_VIEWED(3, ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW);
 
         private final String columnName;
-        Selection(String columnName) {
+        private final int position;
+        Selection(int position, String columnName) {
+            this.position = position;
             this.columnName = columnName;
         }
 
         private String getColumnName() {
             return columnName;
+        }
+
+        public int getPosition() {
+            return position;
         }
     };
 

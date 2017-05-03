@@ -325,7 +325,7 @@ public class MainListActivity extends AppCompatActivity implements
     private void updateDrawerWithCurrentFilter() {
         // TODO: Сохранение шаблонов
         MainListFilter currentFilter = MainListFilterUtils.getCurrentFilter();
-        mDateFiltersSpinner.setSelection(0);
+        mDateFiltersSpinner.setSelection(currentFilter.getSelection().getPosition());
         mDateFromEditText.setText(currentFilter.getDateFrom());
         mDateToEditText.setText(currentFilter.getDateTo());
         favColors = FavoriteColorsUtils.updateFavLayoutFromSharedPreferences(this, mFavLinearLayout, null,
