@@ -20,11 +20,12 @@ public class MainListFilterUtils {
     public static final String FILTER_KEY = "com.example.mborzenkov.mainlist.filter";
 
     public static final int INDEX_DATE_ALL = 0;
+    public static final int INDEX_SAVED_DEFAULT = 0;
 
     private static MainListFilter sCurrentFilter = null;
 
     private static Map<String, MainListFilter> sCustomFilters = null;
-    private static final int INDEX_SAVED_DEFAULT = 0;
+    private static String sCurrentFilterName = null;
     private static int sIndexSavedAdd = 1;
     private static int sIndexSavedDelete = 2;
 
@@ -41,8 +42,8 @@ public class MainListFilterUtils {
             for (String key : userFilters.keySet()) {
                 sCustomFilters.put(key, MainListFilter.fromString((String) userFilters.get(key)));
             }
-            sIndexSavedDelete = sCustomFilters.size() - 1;
-            sIndexSavedAdd = sIndexSavedDelete - 1;
+            sIndexSavedAdd = sCustomFilters.size();
+            sIndexSavedDelete = sIndexSavedAdd + 1;
         }
         List<String> result = new ArrayList<>();
         result.addAll(sCustomFilters.keySet());
@@ -83,37 +84,37 @@ public class MainListFilterUtils {
     public static void clickOnSavedFilter(Context context, int position) {
         if (position == INDEX_SAVED_DEFAULT) {
             sCurrentFilter = new MainListFilter();
+            sCurrentFilterName = null;
         } else {
             Iterator iterator = sCustomFilters.keySet().iterator();
             for (int i = 0; i < position; i++) {
                 iterator.next();
             }
-            sCurrentFilter = MainListFilter.fromString(sCustomFilters.get(iterator).toString());
+            sCurrentFilter = sCustomFilters.get(iterator.toString());
+            sCurrentFilterName = iterator.toString();
         }
-        // sIndexSavedChosen = position;
     }
 
-    /*public static void saveFilter(Context context, String name) {
+    public static void saveFilter(Context context, String name) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(FILTER_KEY, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(name, sCurrentFilter.toString());
         editor.apply();
-        sCustomFilters = null;
+        sCustomFilters = null; // будет reset
+        sCurrentFilterName = name;
+        getSavedFiltersList(context);
     }
 
-    public static void removeSavedFilter(Context context, int position) {
-        Iterator iterator = sCustomFilters.keySet().iterator();
-        for (int i = 0; i < position; i++) {
-            iterator.next();
+    public static void removeCurrentFilter(Context context) {
+        if (sCurrentFilterName != null) {
+            SharedPreferences sharedPreferences = context.getSharedPreferences(FILTER_KEY, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.remove(sCurrentFilterName);
+            editor.apply();
+            sCustomFilters = null; // будет reset
+            sCurrentFilterName = null;
         }
-        String name = iterator.toString();
-
-        SharedPreferences sharedPreferences = context.getSharedPreferences(FILTER_KEY, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.remove(name);
-        editor.apply();
-        sCustomFilters = null;
-    }*/
+    }
 
     public static int getIndexSavedAdd() {
         return sIndexSavedAdd;
@@ -123,4 +124,17 @@ public class MainListFilterUtils {
         return sIndexSavedDelete;
     }
 
+    public static int getIndexSavedCurrent() {
+        if (sCurrentFilterName != null) {
+            Iterator iterator = sCustomFilters.keySet().iterator();
+            int position = 0;
+            while (iterator.hasNext()) {
+                if (iterator.toString().equals(sCurrentFilterName)) {
+                    return position;
+                }
+                position++;
+            }
+        }
+        return INDEX_SAVED_DEFAULT;
+    }
 }

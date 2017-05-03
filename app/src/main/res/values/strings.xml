@@ -28,7 +28,7 @@
         <string name="mainlist_drawer_title">Settings</string>
         <string name="mainlist_drawer_filters_title">Filter by</string>
         <string name="mainlist_drawer_filters_default">Default</string>
-        <string name="mainlist_drawer_filters_save">+ Save filter</string>
+        <string name="mainlist_drawer_filters_save">+ Add filter</string>
         <string name="mainlist_drawer_filters_remove">- Remove filter</string>
         <string name="mainlist_drawer_date_all">No date filter</string>
         <string name="mainlist_drawer_date_creation">Creation date</string>

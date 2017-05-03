@@ -151,7 +151,6 @@ public class MainListActivity extends AppCompatActivity implements
 
         // Инициализация Drawer Layout
         inflateDrawerLayout();
-        updateDrawerWithCurrentFilter();
 
         // Показать иконку загрузки
         showLoading();
@@ -190,19 +189,56 @@ public class MainListActivity extends AppCompatActivity implements
         mSavedFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
-                // TODO: Выбор предопределенного фильтра
                 int indexSavedAdd = MainListFilterUtils.getIndexSavedAdd();
                 int indexSavedDelete = MainListFilterUtils.getIndexSavedDelete();
                 if (position == indexSavedAdd) {
-                    // показать окно ввода и сохранить данные
-                    // если ок, вызвать saveFilter
+                    // TODO: strings
+                    final EditText editText = new EditText(MainListActivity.this);
+                    new AlertDialog.Builder(MainListActivity.this)
+                            .setTitle(getString(R.string.mainlist_drawer_backup_save_question_title))
+                            .setView(editText)
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    String input = editText.getText().toString().trim();
+                                    if (!input.isEmpty() && input != getString(R.string.mainlist_drawer_filters_default)) {
+                                        MainListFilterUtils.saveFilter(MainListActivity.this, input);
+                                        mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
+                                    }
+                                }
+                            })
+                            .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
+                                }
+                            })
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .show();
                 } else if (position == indexSavedDelete) {
-                    // показать окно подтверждения и удалить данные
-                    // если ок, вызвать removeSavedFilter
+                    final int currentIndex = MainListFilterUtils.getIndexSavedCurrent();
+                    if (currentIndex == MainListFilterUtils.INDEX_SAVED_DEFAULT) {
+                        mSavedFiltersSpinner.setSelection(currentIndex);
+                        return;
+                    }
+                    new AlertDialog.Builder(MainListActivity.this)
+                            .setTitle(getString(R.string.mainlist_drawer_backup_save_question_title))
+                            .setMessage(getString(R.string.mainlist_drawer_backup_save_question_text))
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    MainListFilterUtils.removeCurrentFilter(MainListActivity.this);
+                                    updateDrawerWithCurrentFilter();
+                                }
+                            })
+                            .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    mSavedFiltersSpinner.setSelection(currentIndex);
+                                }
+                            })
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .show();
                 } else {
-                   //  MainListFilterUtils.clickOnSavedFilter(MainListActivity.this, position);
+                    MainListFilterUtils.clickOnSavedFilter(MainListActivity.this, position);
+                    updateDrawerWithCurrentFilter();
                 }
-                updateDrawerWithCurrentFilter();
             }
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) { }
@@ -323,7 +359,6 @@ public class MainListActivity extends AppCompatActivity implements
     }
 
     private void updateDrawerWithCurrentFilter() {
-        // TODO: Сохранение шаблонов
         MainListFilter currentFilter = MainListFilterUtils.getCurrentFilter();
         mDateFiltersSpinner.setSelection(currentFilter.getSelection().getPosition());
         mDateFromEditText.setText(currentFilter.getDateFrom());
