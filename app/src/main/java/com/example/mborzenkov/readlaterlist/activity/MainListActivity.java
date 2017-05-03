@@ -203,16 +203,15 @@ public class MainListActivity extends AppCompatActivity implements
                                 public void onClick(DialogInterface dialog, int which) {
                                     String input = editText.getText().toString().trim();
                                     if (!input.isEmpty()
-                                            && input.equals(getString(R.string.mainlist_drawer_filters_default))) {
+                                            && !input.equals(getString(R.string.mainlist_drawer_filters_default))) {
                                         MainListFilterUtils.saveFilter(MainListActivity.this, input);
                                         savedFiltersAdapter.clear();
                                         savedFiltersAdapter.addAll(MainListFilterUtils
                                                 .getSavedFiltersList(MainListActivity.this));
                                         savedFiltersAdapter.notifyDataSetChanged();
                                         mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
-                                    } else {
-                                        mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
                                     }
+                                    mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
                                 }
                             })
                             .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
