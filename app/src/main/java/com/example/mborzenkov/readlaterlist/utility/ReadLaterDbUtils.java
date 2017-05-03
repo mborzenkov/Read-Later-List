@@ -2,12 +2,12 @@ package com.example.mborzenkov.readlaterlist.utility;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
 import android.support.v4.content.CursorLoader;
+import android.util.Log;
 
-import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterDbJson;
@@ -24,23 +24,24 @@ public class ReadLaterDbUtils {
         throw new UnsupportedOperationException("Класс ReadLaterDbUtils - static util, не может иметь экземпляров");
     }
 
-    /** Возвращает строку selection для использования в поиске по строке.
-     * Строка selection это: SELECT * FROM table WHERE (вот эта часть) ORDER BY _id ASC)
-     * Параметр запроса отмечен как "?"
+    /** Возвращает CursorLoader для указанного запроса, добавляя к нему поисковый запрос и фильтр, если имеются.
      *
-     * @return Строка selection, например "_id IN (SELECT docid FROM table_fts WHERE table_fts MATCH ?)"
+     * @param context Контекст
+     * @param projection Список необходимых полей
+     * @param searchQuery Поисковый запрос (если имеется)
+     * @param filter Фильтр (если назначен)
+     * @return Новый CursorLoader
      */
     public static CursorLoader getNewCursorLoader(Context context, String[] projection,
                                                   String searchQuery, MainListFilter filter) {
 
-        Uri itemsQueryUri = ReadLaterContract.ReadLaterEntry.CONTENT_URI;
         StringBuilder selection = new StringBuilder();
         String[] selectionArgs = new String[0];
         String sortOrder = "";
         if (filter != null) {
             sortOrder = filter.getSqlSortOrder();
-            selection.append(filter.getSqlSelection());
-            selectionArgs = filter.getSqlSelectionArgs();
+            selection.append(filter.getSqlSelection(context));
+            selectionArgs = filter.getSqlSelectionArgs(context);
         }
         if (!searchQuery.isEmpty()) {
             if (!selection.toString().trim().isEmpty()) {
@@ -51,10 +52,16 @@ public class ReadLaterDbUtils {
             selectionArgs = Arrays.copyOf(selectionArgs, selectionArgs.length + 1);
             selectionArgs[selectionArgs.length - 1] = searchQuery;
         }
-        System.out.println(selection);
-        return new CursorLoader(context, itemsQueryUri, projection, selection.toString(), selectionArgs, sortOrder);
+        Log.i("SELECTION", selection.toString());
+        return new CursorLoader(context, ReadLaterContract.ReadLaterEntry.CONTENT_URI,
+                projection, selection.toString(), selectionArgs, sortOrder);
     }
 
+    /** Возвращает ContentValues на основании ReadLaterItem. При этом все поля с датами заполняются текущим временем.
+     *
+     * @param item ReadLaterItem, на основании которого нужно подготовить ContentValues
+     * @return ContentValues
+     */
     private static ContentValues getContentValuesForInsert(ReadLaterItem item) {
         final long currentTime = System.currentTimeMillis();
         ContentValues contentValues = new ContentValues();
@@ -67,6 +74,12 @@ public class ReadLaterDbUtils {
         return contentValues;
     }
 
+    /** Возвращает ContentValues на основании ReadLaterDdJson.
+     * Этот тип данных используется в бэкапах.
+     *
+     * @param itemJson ReadLaterDbJson, на основании которого нужно подготовить ContentValues
+     * @return ContentValues
+     */
     private static ContentValues getContentValuesForInsertFromJson(ReadLaterDbJson itemJson) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL, itemJson.getTitle());
@@ -89,22 +102,31 @@ public class ReadLaterDbUtils {
         return uri != null;
     }
 
-    public static boolean bulkInsertJson(Context context, List<ReadLaterDbJson> dataJson) {
+    /** Производит массовое добавление данных.
+     *
+     * @param context Контекст
+     * @param dataJson Данные в формате ReadLaterDbJson.
+     */
+    public static void bulkInsertJson(Context context, List<ReadLaterDbJson> dataJson) {
         ContentValues[] values = new ContentValues[dataJson.size()];
         for (int i = 0; i < dataJson.size(); i++) {
             values[i] = getContentValuesForInsertFromJson(dataJson.get(i));
         }
-        return context.getContentResolver().bulkInsert(ReadLaterEntry.CONTENT_URI, values) > 0;
+        context.getContentResolver().bulkInsert(ReadLaterEntry.CONTENT_URI, values);
     }
 
-    public static boolean bulkInsertItems(Context context, List<ReadLaterItem> itemList) {
+    /** Производит массовое добавление данных. При этом все даты задаются равными текущему времени.
+     *
+     * @param context Контекст
+     * @param itemList Данные в формате ReadLaterItem.
+     */
+    public static void bulkInsertItems(Context context, List<ReadLaterItem> itemList) {
         ContentValues[] values = new ContentValues[itemList.size()];
         for (int i = 0; i < itemList.size(); i++) {
             values[i] = getContentValuesForInsert(itemList.get(i));
         }
-        return context.getContentResolver().bulkInsert(ReadLaterEntry.CONTENT_URI, values) > 0;
+        context.getContentResolver().bulkInsert(ReadLaterEntry.CONTENT_URI, values);
     }
-
 
     /** Обновляет элемент в базе данных с uid.
      *
@@ -141,13 +163,23 @@ public class ReadLaterDbUtils {
         return updated > 0;
     }
 
+    /** Производит удаление объекта из базы.
+     *
+     * @param context Контекст
+     * @param uid Уникальный id объекта
+     * @return true, если удаление выполнено успешно
+     */
     public static boolean deleteItem(Context context, int uid) {
         return context.getContentResolver()
                 .delete(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), null, null) > 0;
     }
 
-    public static boolean deleteAll(Context context) {
-        return context.getContentResolver()
-                .delete(ReadLaterEntry.CONTENT_URI, null, null) > 0;
+    /** Производит удаление всех данных из базы.
+     *
+     * @param context Контекст
+     */
+    public static void deleteAll(Context context) {
+        context.getContentResolver()
+                .delete(ReadLaterEntry.CONTENT_URI, null, null);
     }
 }

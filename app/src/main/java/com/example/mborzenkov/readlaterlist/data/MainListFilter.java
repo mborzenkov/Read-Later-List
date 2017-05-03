@@ -1,19 +1,25 @@
 package com.example.mborzenkov.readlaterlist.data;
 
-import android.support.annotation.Nullable;
+import android.content.Context;
+import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.activity.MainListActivity;
+import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
+import com.squareup.moshi.JsonAdapter;
+import com.squareup.moshi.Moshi;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+/** Этот класс представляет собой фильтр для MainList. */
 public class MainListFilter {
 
+    /** Типы сортировок. */
     public enum SortType {
         LABEL(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL),
         DATE_CREATED(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED),
@@ -30,6 +36,7 @@ public class MainListFilter {
         }
     }
 
+    /** Варианты порядков сортировок. */
     public enum SortOrder {
         ASC("ASC"),
         DESC("DESC");
@@ -44,6 +51,7 @@ public class MainListFilter {
         }
     }
 
+    /** Варианты фильтров. */
     public enum Selection {
         ALL(0, null),
         DATE_CREATED(1, ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED),
@@ -64,15 +72,16 @@ public class MainListFilter {
         public int getPosition() {
             return position;
         }
-    };
+    }
 
     private SortType sortBy;
     private SortOrder sortOrder;
     private Selection selection;
-    private Date dateFrom;
-    private Date dateTo;
+    private Long dateFrom;
+    private Long dateTo;
     private Set<Integer> colorFilter;
 
+    /** Создает новый объект с данными по умолчанию. */
     public MainListFilter() {
         // default
         sortBy = SortType.LABEL;
@@ -83,82 +92,139 @@ public class MainListFilter {
         colorFilter = new HashSet<>();
     }
 
+    /** Создает объект из строки.
+     * Подходящая строка возвращается объектом через toString().
+     *
+     * @param filterString Строка подходящего формата
+     * @return Объект
+     */
     public static MainListFilter fromString(String filterString) {
-        return new MainListFilter();
+        Moshi moshi = new Moshi.Builder().build();
+        JsonAdapter<MainListFilter> jsonAdapter = moshi.adapter(MainListFilter.class);
+        MainListFilter filter;
+        try {
+            filter = jsonAdapter.fromJson(filterString);
+        } catch (IOException e) {
+            Log.e("Parser error", "Ошибка разбора fromString из: " + filterString);
+            filter = new MainListFilter();
+        }
+        return filter;
     }
 
+    @Override
+    public String toString() {
+        Moshi moshi = new Moshi.Builder().build();
+        JsonAdapter<MainListFilter> jsonAdapter = moshi.adapter(MainListFilter.class);
+        return jsonAdapter.toJson(this);
+    }
+
+    /** Создает строку ORDER BY на основании объекта.
+     *
+     * @return Строка формата field ASC
+     */
     public String getSqlSortOrder() {
         return String.format(Locale.US, "%s %s", sortBy.getColumnName(), sortOrder.getOrderByQuery());
     }
 
-    public String getSqlSelection() {
+    /** Создает строку отбора WHERE на основании объекта.
+     * Переменные заменены на ?.
+     * В фильтр по цветам попадают только те цвета, которые присутствуют в избранных (хотя сохранены могут и другие).
+     *
+     * @param context Контекст
+     * @return Строка специального формата
+     */
+    public String getSqlSelection(Context context) {
         StringBuilder sqlSelectionString = new StringBuilder();
         if (selection != Selection.ALL) {
             if (dateFrom != null) {
-                sqlSelectionString.append(selection.getColumnName()).append(">?");
+                sqlSelectionString.append(selection.getColumnName()).append(">=?");
             }
             if (dateTo != null) {
                 if (dateFrom != null) {
                     sqlSelectionString.append(" AND ");
                 }
-                sqlSelectionString.append(selection.getColumnName()).append("<?");
+                sqlSelectionString.append(selection.getColumnName()).append("<=?");
             }
         }
         if (!colorFilter.isEmpty()) {
-            if (dateFrom != null | dateTo != null) {
-                sqlSelectionString.append(" AND ");
+            int[] favColors = FavoriteColorsUtils.getFavoriteColorsFromSharedPreferences(context, null);
+            Set<Integer> realColors = new HashSet<>();
+            for (int color : favColors) {
+                if (colorFilter.contains(color)) {
+                    realColors.add(color);
+                }
             }
-            sqlSelectionString.append(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR).append(" IN (");
-            for (Integer color : colorFilter) {
-                sqlSelectionString.append("?,");
+            if (!realColors.isEmpty()) {
+                if (selection != Selection.ALL && (dateFrom != null | dateTo != null)) {
+                    sqlSelectionString.append(" AND ");
+                }
+                sqlSelectionString.append(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR).append(" IN (");
+                for (Integer color : realColors) {
+                    sqlSelectionString.append("?,");
+                }
+                sqlSelectionString.delete(sqlSelectionString.length() - 1, sqlSelectionString.length()).append(')');
             }
-            sqlSelectionString.delete(sqlSelectionString.length() - 1, sqlSelectionString.length()).append(")");
         }
         return sqlSelectionString.toString();
     }
 
-    public String[] getSqlSelectionArgs() {
+    /** Создает selectionArgs на основании объекта.
+     * selectionArgs ровно столько, сколько "?" в getSqlSelection и порядок у них соответствующий.
+     *
+     * @param context Контекст
+     * @return Набор аргументов
+     */
+    public String[] getSqlSelectionArgs(Context context) {
         List<String> selectionArgs = new ArrayList<>();
         if (selection != Selection.ALL) {
             if (dateFrom != null) {
-                selectionArgs.add(String.valueOf(dateFrom.getTime()));
+                selectionArgs.add(String.valueOf(dateFrom));
             }
             if (dateTo != null) {
-                selectionArgs.add(String.valueOf(dateTo.getTime()));
+                selectionArgs.add(String.valueOf(dateTo));
             }
         }
         if (!colorFilter.isEmpty()) {
-            for (Integer color : colorFilter) {
+            int[] favColors = FavoriteColorsUtils.getFavoriteColorsFromSharedPreferences(context, null);
+            Set<Integer> realColors = new HashSet<>();
+            for (int color : favColors) {
+                if (colorFilter.contains(color)) {
+                    realColors.add(color);
+                }
+            }
+            for (Integer color : realColors) {
                 selectionArgs.add(String.valueOf(color));
             }
         }
         return selectionArgs.toArray(new String[selectionArgs.size()]);
     }
 
+    /** Возвращает форматированную дату "от". */
     public String getDateFrom() {
         if (dateFrom != null) {
             SimpleDateFormat sdf = new SimpleDateFormat(MainListActivity.FORMAT_DATE, Locale.US);
-            return sdf.format(dateFrom.getTime());
+            return sdf.format(dateFrom);
         } else {
             return "";
         }
     }
 
+    /** Возвращает форматированную дату "до". */
     public String getDateTo() {
         if (dateTo != null) {
             SimpleDateFormat sdf = new SimpleDateFormat(MainListActivity.FORMAT_DATE, Locale.US);
-            return sdf.format(dateTo.getTime());
+            return sdf.format(dateTo);
         } else {
             return "";
         }
     }
 
     public void setDateFrom(long dateMs) {
-        dateFrom = new Date(dateMs);
+        dateFrom = dateMs;
     }
 
     public void setDateTo(long dateMs) {
-        dateTo = new Date(dateMs);
+        dateTo = dateMs;
     }
 
     public SortType getSortType() {

@@ -5,7 +5,6 @@ import android.app.SearchManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.drawable.GradientDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -64,7 +63,7 @@ public class MainListActivity extends AppCompatActivity implements
 
     // Intent
     /** Константа, обозначающая пустой UID. */
-    public static final int UID_EMPTY = -1;
+    private static final int UID_EMPTY = -1;
     /** ID запроса для создания нового элемента. */
     private static final int ITEM_ADD_NEW_REQUEST = 1;
     /** ID запроса для редактирования элемента. */
@@ -79,7 +78,7 @@ public class MainListActivity extends AppCompatActivity implements
         ReadLaterContract.ReadLaterEntry.COLUMN_COLOR
     };
     /** Индексы для колонок из MAIN_LIST_PROJECTION, для упрощения. */
-    static final int INDEX_COLUMN_ID = 0;
+    private static final int INDEX_COLUMN_ID = 0;
     static final int INDEX_COLUMN_LABEL = 1;
     static final int INDEX_COLUMN_DESCRIPTION = 2;
     static final int INDEX_COLUMN_COLOR = 3;
@@ -91,8 +90,9 @@ public class MainListActivity extends AppCompatActivity implements
     private ListView mItemListView;
     private ProgressBar mLoadingIndicator;
     private LinearLayout mEmptyList;
+
+    // Элементы Drawer Layout
     private DrawerLayout mDrawerLayout;
-    private ActionBarDrawerToggle mDrawerToggle;
     private LinearLayout mFavLinearLayout;
     private Spinner mSavedFiltersSpinner;
     private Spinner mDateFiltersSpinner;
@@ -103,11 +103,8 @@ public class MainListActivity extends AppCompatActivity implements
     private Button mSortByDateModifiedButton;
     private Button mSortByDateViewedButton;
 
-
     /** Cursor с данными. */
     private Cursor mDataCursor;
-    /** Текущая позиция mDataCursor. */
-    private int mPosition = 0;
     /** ID текущего редактируемого элемента. */
     private int mEditItemId = UID_EMPTY;
     /** Запрос поиска. */
@@ -165,24 +162,28 @@ public class MainListActivity extends AppCompatActivity implements
         // Объекты layout
         mFavLinearLayout = (LinearLayout) findViewById(R.id.linearlayout_drawermainlist_favorites);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerlayout_mainlist);
-        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
                 R.string.mainlist_drawer_title, R.string.mainlist_drawer_title) {
+
             @Override
             public void onDrawerClosed(View view) {
+                // При закрытии - устанавливаем фильтр
                 super.onDrawerClosed(view);
                 getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, MainListActivity.this);
             }
+
             @Override
             public void onDrawerOpened(View drawerView) {
+                //  При открытии - обновляем Drawer на основании фильтра
                 super.onDrawerOpened(drawerView);
                 updateDrawerWithCurrentFilter();
             }
         };
-        mDrawerLayout.addDrawerListener(mDrawerToggle);
+        mDrawerLayout.addDrawerListener(drawerToggle);
 
         // Заполняем варианты запомненных фильтров
         mSavedFiltersSpinner = (Spinner) findViewById(R.id.spinner_drawermainlist_filter);
-        ArrayAdapter<String> savedFiltersAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
+        final ArrayAdapter<String> savedFiltersAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
         savedFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         savedFiltersAdapter.addAll(MainListFilterUtils.getSavedFiltersList(this));
         mSavedFiltersSpinner.setAdapter(savedFiltersAdapter);
@@ -192,16 +193,24 @@ public class MainListActivity extends AppCompatActivity implements
                 int indexSavedAdd = MainListFilterUtils.getIndexSavedAdd();
                 int indexSavedDelete = MainListFilterUtils.getIndexSavedDelete();
                 if (position == indexSavedAdd) {
-                    // TODO: strings
+                    // Вариант 1: Клик на кнопку "+ Добавить"
+                    // Показываем окно ввода текста, сохраняем при успешном вводе
                     final EditText editText = new EditText(MainListActivity.this);
                     new AlertDialog.Builder(MainListActivity.this)
-                            .setTitle(getString(R.string.mainlist_drawer_backup_save_question_title))
+                            .setTitle(getString(R.string.mainlist_drawer_filters_save_question_title))
                             .setView(editText)
                             .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     String input = editText.getText().toString().trim();
-                                    if (!input.isEmpty() && input != getString(R.string.mainlist_drawer_filters_default)) {
+                                    if (!input.isEmpty()
+                                            && input.equals(getString(R.string.mainlist_drawer_filters_default))) {
                                         MainListFilterUtils.saveFilter(MainListActivity.this, input);
+                                        savedFiltersAdapter.clear();
+                                        savedFiltersAdapter.addAll(MainListFilterUtils
+                                                .getSavedFiltersList(MainListActivity.this));
+                                        savedFiltersAdapter.notifyDataSetChanged();
+                                        mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
+                                    } else {
                                         mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
                                     }
                                 }
@@ -214,17 +223,23 @@ public class MainListActivity extends AppCompatActivity implements
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .show();
                 } else if (position == indexSavedDelete) {
+                    // Вариант 2: Клик на кнопку "- Удалить"
+                    // Показываем окно подтверждения, удаляем при положительном ответе
                     final int currentIndex = MainListFilterUtils.getIndexSavedCurrent();
                     if (currentIndex == MainListFilterUtils.INDEX_SAVED_DEFAULT) {
                         mSavedFiltersSpinner.setSelection(currentIndex);
                         return;
                     }
                     new AlertDialog.Builder(MainListActivity.this)
-                            .setTitle(getString(R.string.mainlist_drawer_backup_save_question_title))
-                            .setMessage(getString(R.string.mainlist_drawer_backup_save_question_text))
+                            .setTitle(getString(R.string.mainlist_drawer_filters_remove_question_title))
+                            .setMessage(getString(R.string.mainlist_drawer_filters_remove_question_text))
                             .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     MainListFilterUtils.removeCurrentFilter(MainListActivity.this);
+                                    savedFiltersAdapter.clear();
+                                    savedFiltersAdapter.addAll(MainListFilterUtils
+                                            .getSavedFiltersList(MainListActivity.this));
+                                    savedFiltersAdapter.notifyDataSetChanged();
                                     updateDrawerWithCurrentFilter();
                                 }
                             })
@@ -236,17 +251,19 @@ public class MainListActivity extends AppCompatActivity implements
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .show();
                 } else {
+                    // Остальные варианты - выбираем
                     MainListFilterUtils.clickOnSavedFilter(MainListActivity.this, position);
                     updateDrawerWithCurrentFilter();
                 }
             }
+
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) { }
         });
 
         // Заполняем варианты фильтров по дате
         mDateFiltersSpinner = (Spinner) findViewById(R.id.spinner_drawermainlist_datefilter);
-        ArrayAdapter<String> dateFiltersAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
+        ArrayAdapter<String> dateFiltersAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
         dateFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         dateFiltersAdapter.addAll(MainListFilterUtils.getsDateFiltersList(this));
         mDateFiltersSpinner.setAdapter(dateFiltersAdapter);
@@ -266,13 +283,13 @@ public class MainListActivity extends AppCompatActivity implements
                         break;
                 }
             }
+
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) { }
         });
 
         // DatePicker на полях с датами
         final DatePickerDialog.OnDateSetListener date = new DatePickerDialog.OnDateSetListener() {
-            private EditText dateEditor;
             @Override
             public void onDateSet(DatePicker view, int year, int monthOfYear,
                                   int dayOfMonth) {
@@ -283,8 +300,14 @@ public class MainListActivity extends AppCompatActivity implements
                 mDateEditor.setText(sdf.format(mCalendar.getTime()));
                 MainListFilter filter = MainListFilterUtils.getCurrentFilter();
                 if (mDateEditor.getId() == R.id.edittext_drawermainlist_datefrom) {
+                    mCalendar.set(Calendar.HOUR_OF_DAY, 0);
+                    mCalendar.set(Calendar.MINUTE, 0);
+                    mCalendar.set(Calendar.SECOND, 0);
                     filter.setDateFrom(mCalendar.getTimeInMillis());
                 } else {
+                    mCalendar.set(Calendar.HOUR_OF_DAY, 23);
+                    mCalendar.set(Calendar.MINUTE, 59);
+                    mCalendar.set(Calendar.SECOND, 59);
                     filter.setDateTo(mCalendar.getTimeInMillis());
                 }
             }
@@ -319,12 +342,13 @@ public class MainListActivity extends AppCompatActivity implements
                 dialog.show();
             }
         };
+        long zeroLong = 0;
         mDateFromEditText = (EditText) findViewById(R.id.edittext_drawermainlist_datefrom);
         mDateFromEditText.setOnClickListener(onDateClick);
-        mDateFromEditText.setTag(Long.valueOf(0));
+        mDateFromEditText.setTag(zeroLong);
         mDateToEditText = (EditText) findViewById(R.id.edittext_drawermainlist_dateto);
         mDateToEditText.setOnClickListener(onDateClick);
-        mDateToEditText.setTag(Long.valueOf(0));
+        mDateToEditText.setTag(zeroLong);
 
         // Добавляем Favorites на Drawer Layout
         FavoriteColorsUtils.inflateFavLayout(this, mFavLinearLayout);
@@ -358,6 +382,7 @@ public class MainListActivity extends AppCompatActivity implements
 
     }
 
+    /** Обновляет Drawer в соответствии с выбранным фильтром. */
     private void updateDrawerWithCurrentFilter() {
         MainListFilter currentFilter = MainListFilterUtils.getCurrentFilter();
         mDateFiltersSpinner.setSelection(currentFilter.getSelection().getPosition());
@@ -383,10 +408,14 @@ public class MainListActivity extends AppCompatActivity implements
             default:
                 break;
         }
-        selectedSortButton.setActivated(true);
-        selectedSortButton.setText(selectedSortButton.getText().toString() + " " + mSortOrderSymbols.get(currentFilter.getSortOrder()));
+        if (selectedSortButton != null) {
+            selectedSortButton.setActivated(true);
+            selectedSortButton.setText(selectedSortButton.getText().toString()
+                    + " " + mSortOrderSymbols.get(currentFilter.getSortOrder()));
+        }
     }
 
+    /** Сбрасывает все кнопки SortBy. */
     private void resetButtons() {
         mSortByLabelButton.setActivated(false);
         mSortByLabelButton.setText(mSortButtonsNames.get(MainListFilter.SortType.LABEL));
@@ -471,7 +500,6 @@ public class MainListActivity extends AppCompatActivity implements
     @Override
     public void onClick(int position) {
         // При нажатии на элемент, открываем EditItemActivity Activity для его редактирования
-        mPosition = position;
         mDataCursor.moveToPosition(position);
         mEditItemId = mDataCursor.getInt(INDEX_COLUMN_ID);
         Intent editItemIntent = new Intent(MainListActivity.this, EditItemActivity.class);
@@ -494,6 +522,7 @@ public class MainListActivity extends AppCompatActivity implements
         }
     }
 
+    /** Обработчик нажатия Sort button. */
     public void clickOnSortButton(View view) {
         // Click на кнопку сортировки
         Button button = (Button) view;
@@ -509,6 +538,7 @@ public class MainListActivity extends AppCompatActivity implements
         }
     }
 
+    /** Обработчик нажатия на Backup button. */
     public void clickOnBackupButton(View button) {
         // Click на кнопку бэкап
         switch (button.getId()) {
@@ -552,7 +582,8 @@ public class MainListActivity extends AppCompatActivity implements
         mDrawerLayout.closeDrawer(Gravity.RIGHT);
     }
 
-    class BackupAsyncTask extends AsyncTask<Boolean, Void, Boolean> {
+    /** AsyncTask для загрузки данных из бэкапа в многопоточном режиме. */
+    private class BackupAsyncTask extends AsyncTask<Boolean, Void, Boolean> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -580,6 +611,7 @@ public class MainListActivity extends AppCompatActivity implements
         }
     }
 
+    /** Обрабатывает нажатия на кнопки специальных возможностей. */
     public void clickOnDebugButton(View button) {
         if (!BuildConfig.DEBUG) {
             return;

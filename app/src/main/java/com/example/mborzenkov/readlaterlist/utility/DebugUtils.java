@@ -1,19 +1,13 @@
 package com.example.mborzenkov.readlaterlist.utility;
 
-import android.app.Activity;
-import android.app.LoaderManager;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.database.Cursor;
 import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.activity.MainListActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
-import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
-import com.example.mborzenkov.readlaterlist.data.ReadLaterDbJson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +24,11 @@ public class DebugUtils {
         throw new UnsupportedOperationException("Класс DebugUtils - static util, не может иметь экземпляров");
     }
 
+    /** Показывает предупреждение и выполняет добавление данных при подтверждении.
+     *
+     * @param context Контекст
+     * @param activity Активити для обновления данных
+     */
     public static void showAlertAndAddPlaceholders(final Context context, final MainListActivity activity) {
 
         new AlertDialog.Builder(context)
@@ -52,6 +51,11 @@ public class DebugUtils {
 
     }
 
+    /** Показывает предупреждение и выполняет удаление данных при подтверждении.
+     *
+     * @param context Контекст
+     * @param activity Активити для обновления данных
+     */
     public static void showAlertAndDeleteItems(final Context context, final MainListActivity activity) {
 
         new AlertDialog.Builder(context)
@@ -98,7 +102,8 @@ public class DebugUtils {
             // конвертируемые в обе стороны без потерь
             float[] colorHsv = new float[3];
             Color.colorToHSV(randomizer.nextInt(), colorHsv);
-            listItems.add(new ReadLaterItem(label + " " + i, description.toString().trim(), Color.HSVToColor(colorHsv)));
+            listItems.add(new ReadLaterItem(label + " " + i,
+                    description.toString().trim(), Color.HSVToColor(colorHsv)));
         }
         ReadLaterDbUtils.bulkInsertItems(context, listItems);
 

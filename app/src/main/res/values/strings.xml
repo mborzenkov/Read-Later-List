@@ -30,20 +30,23 @@
         <string name="mainlist_drawer_filters_default">Default</string>
         <string name="mainlist_drawer_filters_save">+ Add filter</string>
         <string name="mainlist_drawer_filters_remove">- Remove filter</string>
+        <string name="mainlist_drawer_filters_save_question_title">Type name for new filter</string>
+        <string name="mainlist_drawer_filters_remove_question_title">Remove filter</string>
+        <string name="mainlist_drawer_filters_remove_question_text">This action will remove selected filter permanently. Are you sure to proceed?</string>
         <string name="mainlist_drawer_date_all">No date filter</string>
         <string name="mainlist_drawer_date_creation">Creation date</string>
         <string name="mainlist_drawer_date_modified">Last modify date</string>
         <string name="mainlist_drawer_date_viewed">Last view date</string>
-        <string name="mainlist_drawer_datefrom_hint">from</string>
-        <string name="mainlist_drawer_dateto_hint">to</string>
+        <string name="mainlist_drawer_datefrom_hint"><font size="12">from</font></string>
+        <string name="mainlist_drawer_dateto_hint"><font size="12">to</font></string>
         <string name="mainlist_drawer_color_title">Colors</string>
         <string name="mainlist_drawer_sort_title">Sort by</string>
         <string name="mainlist_drawer_sort_label">Label</string>
         <string name="mainlist_drawer_sort_created">Created</string>
         <string name="mainlist_drawer_sort_modified">Modified</string>
         <string name="mainlist_drawer_sort_viewed">Viewed</string>
-        <string name="mainlist_drawer_sort_symb_asc">↡</string>
-        <string name="mainlist_drawer_sort_symb_desc">↑</string>
+        <string name="mainlist_drawer_sort_symb_asc" translatable="false">↡</string>
+        <string name="mainlist_drawer_sort_symb_desc" translatable="false">↑</string>
         <string name="mainlist_drawer_debug_title">Debug options</string>
         <string name="mainlist_drawer_deleteall_title">Delete all</string>
         <string name="mainlist_drawer_fillplaceholders_title">Fill data</string>

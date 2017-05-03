@@ -29,7 +29,6 @@
         <!-- Фильтр -->
         <dimen name="width_mainlist_drawer">240dp</dimen>
         <dimen name="width_mainlist_drawer_dateinput">100dp</dimen>
-        <dimen name="width_mainlist_drawer_filter">100dp</dimen>
         <dimen name="marginleft_mainlist_drawer">16dp</dimen>
         <dimen name="marginright_mainlist_drawer">16dp</dimen>
         <dimen name="margintop_mainlist_drawer_title">8dp</dimen>

@@ -47,7 +47,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
 
     // Объявляем все переменные
     /** Константа для использования в качестве ключа при сохранении массива Favorites. */
-    public static final String FAVORITES_KEY = "com.example.mborzenkov.colorpicker.favorites";
+    private static final String FAVORITES_KEY = "com.example.mborzenkov.colorpicker.favorites";
     /** Константа для использования в качестве ключа при сохранении выбранного цвета. */
     public static final String CHOSEN_KEY = "com.example.mborzenkov.colorpicker.chosen";
 

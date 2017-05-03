@@ -12,7 +12,7 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
     /** Имя базы данных. */
     private static final String DATABASE_NAME = "readlaterlist.db";
     /** Версия базы данных. */
-    private static final int DATABASE_VERSION = 2; // Текущая: 2
+    private static final int DATABASE_VERSION = 3; // Текущая: 3
 
     public ReadLaterDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -40,6 +40,7 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(sqlCreateFtsTable);
     }
 
+    // Создание таблицы для полнотекстового поиска
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
         // Пока что мы просто дропаем всю таблицу и создаем новую
@@ -52,6 +53,6 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // TODO: onDowngrade не должно быть в Release
         // Тут он нужен для тестирования, чтобы не увеличивать бесконечно версию БД
-        onUpgrade(db, 0, 2);
+        onUpgrade(db, 0, 3);
     }
 }

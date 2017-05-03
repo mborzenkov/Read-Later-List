@@ -9,9 +9,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
 import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
 /** Контент провайдер для работы с базой данных. */
 public class ReadLaterContentProvider extends ContentProvider {
@@ -155,7 +155,9 @@ public class ReadLaterContentProvider extends ContentProvider {
                         ContentValues ftsValues = new ContentValues();
                         ftsValues.put("docid", id);
                         ftsValues.put(ReadLaterEntry.COLUMN_LABEL, value.getAsString(ReadLaterEntry.COLUMN_LABEL));
-                        ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION, value.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
+                        ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION,
+                                value.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
+                        db.insert(ReadLaterEntry.TABLE_NAME_FTS, null, ftsValues);
                         inserted++;
                     }
                     db.setTransactionSuccessful();

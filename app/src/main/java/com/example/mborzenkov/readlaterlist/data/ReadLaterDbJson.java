@@ -10,9 +10,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+/** Специальная версия ReadLaterItem для простой работы с Json. */
 public class ReadLaterDbJson {
 
-    private static final String FORMAT_DATE = "yyyy-MM-dd'T'hh:mm:ssXXX";
+    /** Формат сохраняемых дат. */
+    private static final String FORMAT_DATE = "yyyy-MM-dd'T'hh:mm:ss.SSSZ";
 
     private final String title;
     private final String description;
@@ -31,12 +33,18 @@ public class ReadLaterDbJson {
         this.viewed = viewed;
     }
 
+    /** Создает объект на основании курсора.
+     *
+     * @param cursor Курсор
+     * @return Объект
+     */
     public static ReadLaterDbJson fromCursor(Cursor cursor) {
         SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
         return new ReadLaterDbJson(
                 cursor.getString(cursor.getColumnIndex(ReadLaterEntry.COLUMN_LABEL)),
                 cursor.getString(cursor.getColumnIndex(ReadLaterEntry.COLUMN_DESCRIPTION)),
-                String.format("#%s", Integer.toString(cursor.getInt(cursor.getColumnIndex(ReadLaterEntry.COLUMN_COLOR)), 16)),
+                String.format("#%s", Integer.toString(
+                        cursor.getInt(cursor.getColumnIndex(ReadLaterEntry.COLUMN_COLOR)), 16)),
                 dateFormatter.format(
                         new Date(cursor.getLong(cursor.getColumnIndex(ReadLaterEntry.COLUMN_DATE_CREATED)))),
                 dateFormatter.format(
@@ -57,32 +65,35 @@ public class ReadLaterDbJson {
         return Integer.valueOf(color.substring(1), 16);
     }
 
+    /** Возвращает дату создания. */
     public long getDateCreated() {
         SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
         try {
             return dateFormatter.parse(created).getTime();
         } catch (ParseException e) {
-            Log.e("Parse error", "Ошибка разбора даты создания: " + e.toString());
+            Log.e("Parse error", String.format("%s %s", "Ошибка разбора даты создания: ", e.toString()));
         }
         return 0;
     }
 
+    /** Возвращает дату изменения. */
     public long getDateModified() {
         SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
         try {
             return dateFormatter.parse(edited).getTime();
         } catch (ParseException e) {
-            Log.e("Parse error", "Ошибка разбора даты изменения: " + e.toString());
+            Log.e("Parse error", String.format("%s %s", "Ошибка разбора даты изменения: ", e.toString()));
         }
         return 0;
     }
 
+    /** Возвращает дату просмотра. */
     public long getDateViewed() {
         SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
         try {
             return dateFormatter.parse(viewed).getTime();
         } catch (ParseException e) {
-            Log.e("Parse error", "Ошибка разбора даты просмотра: " + e.toString());
+            Log.e("Parse error", String.format("%s %s", "Ошибка разбора даты просмотра: ", e.toString()));
         }
         return 0;
     }
