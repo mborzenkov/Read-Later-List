@@ -168,8 +168,8 @@ public class MainListFilter {
         return sortOrder;
     }
 
-    public void setSortOrder(SortOrder order) {
-        sortOrder = order;
+    public void nextSortOrder() {
+        sortOrder = sortOrder == SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC;
     }
 
     public Selection getSelection() {

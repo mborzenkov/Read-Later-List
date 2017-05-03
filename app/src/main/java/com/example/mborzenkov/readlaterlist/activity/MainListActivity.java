@@ -300,15 +300,15 @@ public class MainListActivity extends AppCompatActivity implements
 
         mSortByDateCreatedButton = (Button) findViewById(R.id.button_drawermainlist_sortcreate);
         mSortByDateCreatedButton.setTag(MainListFilter.SortType.DATE_CREATED);
-        mSortButtonsNames.put(MainListFilter.SortType.LABEL, mSortByDateCreatedButton.getText().toString());
+        mSortButtonsNames.put(MainListFilter.SortType.DATE_CREATED, mSortByDateCreatedButton.getText().toString());
 
         mSortByDateModifiedButton = (Button) findViewById(R.id.button_drawermainlist_sortmodified);
         mSortByDateModifiedButton.setTag(MainListFilter.SortType.DATE_MODIFIED);
-        mSortButtonsNames.put(MainListFilter.SortType.LABEL, mSortByDateModifiedButton.getText().toString());
+        mSortButtonsNames.put(MainListFilter.SortType.DATE_MODIFIED, mSortByDateModifiedButton.getText().toString());
 
         mSortByDateViewedButton = (Button) findViewById(R.id.button_drawermainlist_sortview);
         mSortByDateViewedButton.setTag(MainListFilter.SortType.DATE_VIEWED);
-        mSortButtonsNames.put(MainListFilter.SortType.LABEL, mSortByDateViewedButton.getText().toString());
+        mSortButtonsNames.put(MainListFilter.SortType.DATE_VIEWED, mSortByDateViewedButton.getText().toString());
 
         mSortOrderSymbols.put(MainListFilter.SortOrder.ASC, getString(R.string.mainlist_drawer_sort_symb_asc));
         mSortOrderSymbols.put(MainListFilter.SortOrder.DESC, getString(R.string.mainlist_drawer_sort_symb_desc));
@@ -349,13 +349,18 @@ public class MainListActivity extends AppCompatActivity implements
                 break;
         }
         selectedSortButton.setActivated(true);
+        selectedSortButton.setText(selectedSortButton.getText().toString() + " " + mSortOrderSymbols.get(currentFilter.getSortOrder()));
     }
 
     private void resetButtons() {
         mSortByLabelButton.setActivated(false);
+        mSortByLabelButton.setText(mSortButtonsNames.get(MainListFilter.SortType.LABEL));
         mSortByDateCreatedButton.setActivated(false);
+        mSortByDateCreatedButton.setText(mSortButtonsNames.get(MainListFilter.SortType.DATE_CREATED));
         mSortByDateModifiedButton.setActivated(false);
+        mSortByDateModifiedButton.setText(mSortButtonsNames.get(MainListFilter.SortType.DATE_MODIFIED));
         mSortByDateViewedButton.setActivated(false);
+        mSortByDateViewedButton.setText(mSortButtonsNames.get(MainListFilter.SortType.DATE_VIEWED));
     }
 
     @Override
@@ -460,9 +465,12 @@ public class MainListActivity extends AppCompatActivity implements
         if (button.getTag() != null) {
             MainListFilter filter = MainListFilterUtils.getCurrentFilter();
             MainListFilter.SortType buttonType = (MainListFilter.SortType) button.getTag();
-            filter.setSortType(buttonType);
+            if (button.isActivated()) {
+                filter.nextSortOrder();
+            } else {
+                filter.setSortType(buttonType);
+            }
             updateDrawerWithCurrentFilter();
-            // TODO: сортировка в разных направлениях
         }
     }
 
