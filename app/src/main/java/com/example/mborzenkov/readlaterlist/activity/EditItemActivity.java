@@ -10,7 +10,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -25,6 +24,7 @@ import android.widget.ImageButton;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
+import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
 
 /**
  * Activity для редактирования элемента MainListActivity
@@ -129,21 +129,11 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         int id = item.getItemId();
         switch (id) {
             case R.id.edititem_action_delete:
-                new AlertDialog.Builder(this)
-                        .setTitle(getString(R.string.edititem_menu_delete_question_title))
-                        .setMessage(getString(R.string.edititem_menu_delete_question_text))
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                sendResult(null);
-                            }
-                        })
-                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // ничего не делаем
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
+                ActivityUtils.showAlertDialog(EditItemActivity.this,
+                    getString(R.string.edititem_menu_delete_question_title),
+                    getString(R.string.edititem_menu_delete_question_text),
+                    () -> sendResult(null),
+                    null);
                 return true;
             case R.id.edititem_action_save:
                 finishEditing();
