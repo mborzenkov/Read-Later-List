@@ -160,6 +160,7 @@
     <style name="EditItem.AppBarTextField" parent="EditItem.TextField">
         <item name="android:maxLines">@integer/edititem_headerlines</item>
         <item name="android:nextFocusDown">@id/et_edit_item_description</item>
+        <item name="android:textColor">@color/icons</item>
     </style>
     <style name="EditItem.FABSave">
         <item name="android:layout_width">@dimen/size_edititem_fabsave</item>
