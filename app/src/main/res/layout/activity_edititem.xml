@@ -22,7 +22,7 @@
             style="@style/EditItem.AppBarTextInputLayout"
             app:errorEnabled="true">
 
-            <EditText
+            <android.support.design.widget.TextInputEditText
                 android:id="@+id/et_edit_item_label"
                 style="@style/EditItem.AppBarTextField"
                 android:layout_width="match_parent"

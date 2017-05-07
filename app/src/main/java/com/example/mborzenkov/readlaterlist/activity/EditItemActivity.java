@@ -1,12 +1,12 @@
 package com.example.mborzenkov.readlaterlist.activity;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -14,11 +14,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.EditText;
 import android.widget.ImageButton;
 
 import com.example.mborzenkov.readlaterlist.R;
@@ -44,11 +44,13 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
     private enum EditModes { NEW, EDIT }
     /** Текущий режим. */
     private EditModes mMode = EditModes.NEW;
+    /** Признак наличия изменений. */
+    private boolean mModified = false;
 
     // Объекты layout
-    private EditText mLabelEditText;
+    private TextInputEditText mLabelEditText;
     private TextInputLayout mLabelInputLayout;
-    private EditText mDescriptionEditText;
+    private TextInputEditText mDescriptionEditText;
     private ImageButton mColorImageButton;
 
     @Override
@@ -68,22 +70,9 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         }
 
         // Инициализация объектов layout
-        mLabelEditText = (EditText) findViewById(R.id.et_edit_item_label);
-        mLabelEditText.addTextChangedListener(new TextWatcher() {
-            // TextChangedListener тут нужен только для сброса ошибок
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                mLabelInputLayout.setError(null);
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) { }
-
-            @Override
-            public void afterTextChanged(Editable s) { }
-        });
+        mLabelEditText = (TextInputEditText) findViewById(R.id.et_edit_item_label);
         mLabelInputLayout = (TextInputLayout) findViewById(R.id.til_edit_item_label);
-        mDescriptionEditText = (EditText) findViewById(R.id.et_edit_item_description);
+        mDescriptionEditText = (TextInputEditText) findViewById(R.id.et_edit_item_description);
         mColorImageButton = (ImageButton) findViewById(R.id.ib_edit_item_color);
         mColorImageButton.setOnClickListener(this);
 
@@ -111,6 +100,32 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
                 getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
             }
         }
+        mLabelEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                mLabelInputLayout.setError(null);
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                mModified = true;
+            }
+        });
+        mDescriptionEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                mModified = true;
+            }
+        });
         updateChosenColor();
     }
 
@@ -137,6 +152,9 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
                 return true;
             case R.id.edititem_action_save:
                 finishEditing();
+                return true;
+            case android.R.id.home:
+                onBackPressed();
                 return true;
             default:
                 break;
@@ -178,8 +196,12 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         // Принимает данные из ColorPickerActivity, сохраняет их
         if (resultCode == RESULT_OK && requestCode == ITEM_EDIT_COLOR_REQUEST
                 && data != null && data.hasExtra(ColorPickerActivity.CHOSEN_KEY)) {
-            mChosenColor = data.getIntExtra(ColorPickerActivity.CHOSEN_KEY, Color.TRANSPARENT);
-            updateChosenColor();
+            int newColor = data.getIntExtra(ColorPickerActivity.CHOSEN_KEY, Color.TRANSPARENT);
+            if (mChosenColor != newColor) {
+                mChosenColor = newColor;
+                updateChosenColor();
+                mModified = true;
+            }
         }
     }
 
@@ -218,4 +240,16 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        if (mModified) {
+            ActivityUtils.showAlertDialog(EditItemActivity.this,
+                    getString(R.string.edititem_menu_back_question_title),
+                    getString(R.string.edititem_menu_back_question_text),
+                    super::onBackPressed,
+                    null);
+        } else {
+            super.onBackPressed();
+        }
+    }
 }

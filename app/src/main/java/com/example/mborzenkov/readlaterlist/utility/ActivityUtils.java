@@ -18,13 +18,16 @@ public class ActivityUtils {
     }
 
     public static void showAlertDialog(@NonNull  final Context context,
-                                       @NonNull  final String title,
+                                       @Nullable final String title,
                                        @Nullable final String message,
                                        @Nullable final Runnable positiveAction,
                                        @Nullable final Runnable negativeAction) {
 
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
-        dialogBuilder.setTitle(title);
+        if (title != null) {
+            dialogBuilder.setTitle(title);
+            dialogBuilder.setIcon(android.R.drawable.ic_dialog_alert);
+        }
         if (message != null) {
             dialogBuilder.setMessage(message);
         }
@@ -38,21 +41,24 @@ public class ActivityUtils {
                 negativeAction.run();
             }
         });
-        dialogBuilder.setIcon(android.R.drawable.ic_dialog_alert);
         dialogBuilder.show();
 
     }
 
     public static void showInputTextDialog(@NonNull  final Context context,
-                                           @NonNull  final String title,
-                                           @Nullable final String message,
                                            @NonNull  final EditText view,
+                                           @Nullable final String title,
+                                           @Nullable final String message,
                                            @Nullable final Consumer<String> positiveAction,
                                            @Nullable final Runnable negativeAction) {
 
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
         dialogBuilder.setTitle(title);
         dialogBuilder.setView(view);
+        if (title != null) {
+            dialogBuilder.setTitle(title);
+            dialogBuilder.setIcon(android.R.drawable.ic_dialog_alert);
+        }
         if (message != null) {
             dialogBuilder.setMessage(message);
         }
@@ -66,7 +72,6 @@ public class ActivityUtils {
                 negativeAction.run();
             }
         });
-        dialogBuilder.setIcon(android.R.drawable.ic_dialog_alert);
         dialogBuilder.show();
 
     }

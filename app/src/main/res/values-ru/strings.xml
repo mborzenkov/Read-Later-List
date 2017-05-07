@@ -61,4 +61,6 @@
     <string name="mainlist_drawer_title">Настройки</string>
     <string name="mainlist_menu_search">Поиск</string>
     <string name="searchable_mainlist_hint">Поиск по базе</string>
+    <string name="edititem_menu_back_question_text">\"Вы уверены, что хотите отменить изменения?\"</string>
+    <string name="edititem_menu_back_question_title">Отменить изменения</string>
 </resources>
