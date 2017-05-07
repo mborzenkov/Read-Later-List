@@ -12,6 +12,11 @@ import android.widget.TextView;
 
 import com.example.mborzenkov.readlaterlist.R;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
+
 /** Адаптер для MainListActivity (очень простой).
  *      Этот адаптер имеет смысл переписать на RecyclerView
  *      Но так как по заданию было запрещено пользоваться RecyclerView, этого сделано не было
@@ -23,6 +28,8 @@ class ItemListAdapter extends ResourceCursorAdapter {
     private final Context mContext;
     /** Обработчик нажатий. */
     private final ItemListAdapterOnClickHandler mClickHandler;
+    /** Формат выводимых дат. */
+    public static final String FORMAT_DATE = "dd.MM.yy HH:mm";
 
     /** Интерфейс для обработчика нажатий. */
     public interface ItemListAdapterOnClickHandler {
@@ -41,12 +48,14 @@ class ItemListAdapter extends ResourceCursorAdapter {
         private final TextView labelTextView;
         private final TextView descriptionTextView;
         private final ImageView colorImageView;
+        private final TextView dateTextView;
         private int position;
 
         ItemListViewHolder(View view) {
             labelTextView = (TextView) view.findViewById(R.id.tv_item_label);
             descriptionTextView = (TextView) view.findViewById(R.id.tv_item_description);
             colorImageView = (ImageView) view.findViewById(R.id.iv_item_color);
+            dateTextView = (TextView) view.findViewById(R.id.tv_item_date);
             view.setOnClickListener(this);
         }
 
@@ -65,6 +74,9 @@ class ItemListAdapter extends ResourceCursorAdapter {
         viewHolder.descriptionTextView.setText(cursor.getString(MainListActivity.INDEX_COLUMN_DESCRIPTION));
         ((GradientDrawable) viewHolder.colorImageView.getBackground())
                 .setColor(cursor.getInt(MainListActivity.INDEX_COLUMN_COLOR));
+        long date = cursor.getLong(MainListActivity.INDEX_COLUMN_DATE_LAST_MODIFIED);
+        SimpleDateFormat sdf = new SimpleDateFormat(FORMAT_DATE, Locale.US);
+        viewHolder.dateTextView.setText(sdf.format(date));
         viewHolder.position = cursor.getPosition();
     }
 

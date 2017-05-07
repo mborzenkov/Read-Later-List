@@ -84,8 +84,8 @@ public class MainListFilter {
     /** Создает новый объект с данными по умолчанию. */
     public MainListFilter() {
         // default
-        sortBy = SortType.LABEL;
-        sortOrder = SortOrder.ASC;
+        sortBy = SortType.DATE_MODIFIED;
+        sortOrder = SortOrder.DESC;
         selection = Selection.ALL;
         dateFrom = null;
         dateTo = null;

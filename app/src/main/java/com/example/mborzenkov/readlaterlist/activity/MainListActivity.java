@@ -75,13 +75,15 @@ public class MainListActivity extends AppCompatActivity implements
         ReadLaterContract.ReadLaterEntry._ID,
         ReadLaterContract.ReadLaterEntry.COLUMN_LABEL,
         ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION,
-        ReadLaterContract.ReadLaterEntry.COLUMN_COLOR
+        ReadLaterContract.ReadLaterEntry.COLUMN_COLOR,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED
     };
     /** Индексы для колонок из MAIN_LIST_PROJECTION, для упрощения. */
     private static final int INDEX_COLUMN_ID = 0;
     static final int INDEX_COLUMN_LABEL = 1;
     static final int INDEX_COLUMN_DESCRIPTION = 2;
     static final int INDEX_COLUMN_COLOR = 3;
+    static final int INDEX_COLUMN_DATE_LAST_MODIFIED = 4;
     /** ID Используемого LoadManager'а. */
     public static final int ITEM_LOADER_ID = 13;
 
@@ -198,9 +200,9 @@ public class MainListActivity extends AppCompatActivity implements
                     // Показываем окно ввода текста, сохраняем при успешном вводе
                     final EditText editText = new EditText(MainListActivity.this);
                     ActivityUtils.showInputTextDialog(MainListActivity.this,
+                        editText,
                         getString(R.string.mainlist_drawer_filters_save_question_title),
                         null,
-                        editText,
                         (String input) -> saveFilter(input),
                         () -> resetSavedFilterSelection());
 

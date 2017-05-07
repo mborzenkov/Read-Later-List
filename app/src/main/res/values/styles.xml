@@ -50,6 +50,7 @@
         <item name="android:layout_marginRight">@dimen/marginright_mainlist_text</item>
     </style>
     <style name="MainList.PrimaryText" parent="MainList.Text">
+        <item name="android:layout_marginRight">@dimen/marginright_mainlist_primarytext</item>
         <item name="android:textSize">@dimen/textsize_mainlist_primarytext</item>
         <item name="android:textColor">@color/primary_text</item>
         <item name="android:singleLine">true</item>
@@ -59,6 +60,10 @@
         <item name="android:textColor">@color/secondary_text</item>
         <item name="android:layout_marginBottom">@dimen/marginbottom_mainlist_secondarytext</item>
         <item name="android:lines">@integer/mainlist_textlines</item>
+    </style>
+    <style name="MainList.Date" parent="MainList.SecondaryText">
+        <item name="android:layout_width">@dimen/width_mainlist_date</item>
+        <item name="android:lines">1</item>
     </style>
     <style name="MainList.FABAdd">
         <item name="android:layout_width">@dimen/size_mainlist_fabadd</item>
@@ -129,9 +134,27 @@
 
 
     <style name="EditItem" />
-    <style name="EditItem.Item" parent="MainList.Item" />
+    <style name="EditItem.Item">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="EditItem.Date">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/textsize_mainlist_secondarytext</item>
+        <item name="android:textColor">@color/secondary_text</item>
+        <item name="android:layout_marginTop">@dimen/margintop_edititem_date</item>
+    </style>
+    <style name="EditItem.Date.Label">
+        <item name="android:layout_marginLeft">@dimen/marginleft_edititem_date_label</item>
+    </style>
+    <style name="EditItem.Date.Value">
+        <item name="android:layout_marginLeft">@dimen/marginleft_edititem_date_value</item>
+    </style>
     <style name="EditItem.Icon">
         <item name="android:layout_marginLeft">@dimen/marginleft_edititem_icon</item>
+        <item name="android:layout_marginTop">@dimen/margintop_edititem_item</item>
         <item name="android:layout_width">@dimen/size_edititem_icon</item>
         <item name="android:layout_height">@dimen/size_edititem_icon</item>
         <item name="android:contentDescription">@string/edititem_icon_contentdescription</item>
@@ -139,6 +162,7 @@
     <style name="EditItem.TextInputLayout">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/margintop_edititem_item</item>
         <item name="android:layout_marginLeft">@dimen/marginleft_edititem_textinputlayout</item>
         <item name="android:layout_marginRight">@dimen/marginright_edititem_textinputlayout</item>
     </style>

@@ -13,11 +13,14 @@
 
         <dimen name="marginleft_mainlist_text">72dp</dimen>
         <dimen name="marginright_mainlist_text">16dp</dimen>
+        <dimen name="marginright_mainlist_primarytext">124dp</dimen>
 
         <dimen name="textsize_mainlist_primarytext">16sp</dimen>
 
         <dimen name="textsize_mainlist_secondarytext">14sp</dimen>
         <dimen name="marginbottom_mainlist_secondarytext">20dp</dimen>
+
+        <dimen name="width_mainlist_date">100dp</dimen>
 
         <dimen name="size_mainlist_fabadd">56dp</dimen>
         <dimen name="margin_mainlist_fabadd">16dp</dimen>
@@ -46,6 +49,13 @@
 
 
     <!-- EditItemActivity -->
+    <dimen name="paddingtop_edititem_item">16dp</dimen>
+    <dimen name="margintop_edititem_item">16dp</dimen>
+
+    <dimen name="margintop_edititem_date">8dp</dimen>
+    <dimen name="marginleft_edititem_date_label">16dp</dimen>
+    <dimen name="marginleft_edititem_date_value">88dp</dimen>
+
     <dimen name="size_edititem_icon">40dp</dimen>
     <dimen name="marginleft_edititem_icon">16dp</dimen>
 
