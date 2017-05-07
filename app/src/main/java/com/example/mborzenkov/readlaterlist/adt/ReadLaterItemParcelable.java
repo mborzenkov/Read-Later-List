@@ -7,12 +7,8 @@ import android.support.annotation.NonNull;
 /** Представляет вспомогательный класс для ReadLaterItem, который реализует интерфейс parcelable. */
 public final class ReadLaterItemParcelable implements Parcelable {
 
-    // TODO: KEY_UID тут не место. Нужно изменить место хранения константы.
-
     /** Константа для использования в Intent в качестве ключа при передаче объекта ReadLaterItem. */
     public static final String KEY_EXTRA = "com.example.mborzenkov.readlaterlist.readlateritem.extra";
-    /** Константа для использования в Intent в качестве ключа при передаче UID. */
-    public static final String KEY_UID = "com.example.mborzenkov.readlaterlist.readlateritem.uid";
 
     /** Объект ReadLaterItem, соответствующий экземпляру этого вспомогательного класса. */
     private final ReadLaterItem item;
@@ -37,7 +33,8 @@ public final class ReadLaterItemParcelable implements Parcelable {
         return item;
     }
 
-    public static final Parcelable.Creator<ReadLaterItemParcelable> CREATOR = new Parcelable.Creator<ReadLaterItemParcelable>() {
+    public static final Parcelable.Creator<ReadLaterItemParcelable> CREATOR =
+            new Parcelable.Creator<ReadLaterItemParcelable>() {
         @Override
         public ReadLaterItemParcelable createFromParcel(Parcel source) {
             String label = source.readString();

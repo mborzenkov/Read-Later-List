@@ -103,8 +103,7 @@ public class ReadLaterItem {
         int result = 17;
         result = 31 * result + label.hashCode();
         result = 31 * result + description.hashCode();
-        result = 31 * result + color;
-        return result;
+        return 31 * result + color;
     }
 
     /** Возвращает строковое представление ReadLaterItem.

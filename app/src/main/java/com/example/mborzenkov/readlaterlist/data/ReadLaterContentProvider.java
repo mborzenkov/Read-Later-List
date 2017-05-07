@@ -1,39 +1,38 @@
 package com.example.mborzenkov.readlaterlist.data;
 
-import android.annotation.TargetApi;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
-import com.example.mborzenkov.readlaterlist.App;
 import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
-/**
- * Контент провайдер для работы с базой данных
- */
+/** Контент провайдер для работы с базой данных. */
 public class ReadLaterContentProvider extends ContentProvider {
 
-    /** Код запроса всех данных */
+    /** Код запроса всех данных. */
     private static final int CODE_READLATER_ITEMS = 100;
-    /** Код запроса отдельного элемента */
+    /** Код запроса отдельного элемента. */
     private static final int CODE_READLATER_ITEMS_WITH_ID = 101;
 
-    /** Матчер для сравнения запрашиваемых uri */
+    /** Матчер для сравнения запрашиваемых uri. */
     private static final UriMatcher sUriMatcher = buildUriMatcher();
-    /** DbHelper для работы с базой */
+    /** DbHelper для работы с базой. */
     private ReadLaterDbHelper mReadLaterDbHelper;
+    /** Контекст. */
+    private Context mContext;
 
-    /**
-     * Создает новый UriMatcher
+    /** Создает новый UriMatcher.
+     *
      * @return Матчер для сравнения запрашиваемых uri
      */
-    public static UriMatcher buildUriMatcher() {
+    private static UriMatcher buildUriMatcher() {
 
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         final String authority = ReadLaterContract.CONTENT_AUTHORITY;
@@ -48,7 +47,8 @@ public class ReadLaterContentProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         // Создание DbHelper
-        mReadLaterDbHelper = new ReadLaterDbHelper(getContext());
+        mContext = getContext();
+        mReadLaterDbHelper = new ReadLaterDbHelper(mContext);
         return true;
     }
 
@@ -66,7 +66,7 @@ public class ReadLaterContentProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS:
                 cursor = mReadLaterDbHelper.getReadableDatabase().query(
-                        ReadLaterContract.ReadLaterEntry.TABLE_NAME,
+                        ReadLaterEntry.TABLE_NAME,
                         projection,
                         selection,
                         selectionArgs,
@@ -75,10 +75,10 @@ public class ReadLaterContentProvider extends ContentProvider {
                         sortOrder);
                 break;
             default:
-                throw new UnsupportedOperationException(getContext().getString(R.string.db_error_uriunknown) + uri);
+                throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
-        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        cursor.setNotificationUri(mContext.getContentResolver(), uri);
         return cursor;
     }
 
@@ -86,24 +86,26 @@ public class ReadLaterContentProvider extends ContentProvider {
     public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
         // Обработчик запросов delete
         int itemDeleted;
+        SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
 
-        if (null == selection) selection = "1";
+        // if (null == selection) selection = "1";
 
         switch (sUriMatcher.match(uri)) {
+            case CODE_READLATER_ITEMS:
+                itemDeleted = db.delete(ReadLaterEntry.TABLE_NAME, null, null);
+                db.delete(ReadLaterEntry.TABLE_NAME_FTS, null, null);
+                break;
             case CODE_READLATER_ITEMS_WITH_ID:
-                String id = uri.getPathSegments().get(1);
-                itemDeleted = mReadLaterDbHelper.getWritableDatabase().delete(
-                        ReadLaterContract.ReadLaterEntry.TABLE_NAME,
-                        "_id=?",
-                        new String[] {id});
-
+                String[] id = new String[] {uri.getPathSegments().get(1)};
+                itemDeleted = db.delete(ReadLaterEntry.TABLE_NAME, "_id=?", id);
+                db.delete(ReadLaterEntry.TABLE_NAME_FTS, "docid=?", id);
                 break;
             default:
-                throw new UnsupportedOperationException(getContext().getString(R.string.db_error_uriunknown) + uri);
+                throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
         if (itemDeleted != 0) {
-            getContext().getContentResolver().notifyChange(uri, null);
+            mContext.getContentResolver().notifyChange(uri, null);
         }
 
         return itemDeleted;
@@ -116,20 +118,60 @@ public class ReadLaterContentProvider extends ContentProvider {
 
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS:
-                long id = mReadLaterDbHelper.getWritableDatabase().insert(ReadLaterContract.ReadLaterEntry.TABLE_NAME, null, values);
-                if ( id > 0 ) {
-                    returnUri =  ContentUris.withAppendedId(ReadLaterContract.ReadLaterEntry.CONTENT_URI, id);
+                SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+                long id = db.insert(ReadLaterEntry.TABLE_NAME, null, values);
+                ContentValues ftsValues = new ContentValues();
+                ftsValues.put("docid", id);
+                ftsValues.put(ReadLaterEntry.COLUMN_LABEL, values.getAsString(ReadLaterEntry.COLUMN_LABEL));
+                ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION, values.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
+                db.insert(ReadLaterEntry.TABLE_NAME_FTS, null, ftsValues);
+                if (id > 0) {
+                    returnUri =  ContentUris.withAppendedId(ReadLaterEntry.CONTENT_URI, id);
                 } else {
-                    throw new android.database.SQLException(getContext().getString(R.string.db_error_insert) + uri);
+                    throw new android.database.SQLException(mContext.getString(R.string.db_error_insert) + uri);
                 }
                 break;
             default:
-                throw new UnsupportedOperationException(getContext().getString(R.string.db_error_uriunknown) + uri);
+                throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
-        getContext().getContentResolver().notifyChange(uri, null);
+        mContext.getContentResolver().notifyChange(uri, null);
 
         return returnUri;
+    }
+
+    @Override
+    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
+        // Обработчик зарпосов bullk insert
+        int inserted = 0;
+
+        switch (sUriMatcher.match(uri)) {
+            case CODE_READLATER_ITEMS:
+                SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+                db.beginTransaction();
+                try {
+                    for (ContentValues value : values) {
+                        long id = db.insert(ReadLaterEntry.TABLE_NAME, null, value);
+                        ContentValues ftsValues = new ContentValues();
+                        ftsValues.put("docid", id);
+                        ftsValues.put(ReadLaterEntry.COLUMN_LABEL, value.getAsString(ReadLaterEntry.COLUMN_LABEL));
+                        ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION,
+                                value.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
+                        db.insert(ReadLaterEntry.TABLE_NAME_FTS, null, ftsValues);
+                        inserted++;
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                break;
+            default:
+                throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
+        }
+
+        mContext.getContentResolver().notifyChange(uri, null);
+
+        return inserted;
     }
 
     @Override
@@ -137,23 +179,35 @@ public class ReadLaterContentProvider extends ContentProvider {
         // Обработчик запросов update
         int itemUpdated;
 
-        if (null == selection) selection = "1";
+        // if (null == selection) selection = "1";
 
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS_WITH_ID:
-                String id = uri.getPathSegments().get(1);
-                itemUpdated = mReadLaterDbHelper.getWritableDatabase().update(
-                        ReadLaterContract.ReadLaterEntry.TABLE_NAME,
-                        values, "_id=?",
-                        new String[] {id});
-
+                String[] id = new String[] {uri.getPathSegments().get(1)};
+                SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+                itemUpdated = db.update(ReadLaterEntry.TABLE_NAME, values, "_id=?", id);
+                boolean updateFts = false;
+                ContentValues ftsValues = new ContentValues();
+                if (values.containsKey(ReadLaterEntry.COLUMN_LABEL)) {
+                    ftsValues.put(ReadLaterEntry.COLUMN_LABEL,
+                            values.getAsString(ReadLaterEntry.COLUMN_LABEL));
+                    updateFts = true;
+                }
+                if (values.containsKey(ReadLaterEntry.COLUMN_DESCRIPTION)) {
+                    ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION,
+                            values.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
+                    updateFts = true;
+                }
+                if (updateFts) {
+                    db.update(ReadLaterEntry.TABLE_NAME_FTS, ftsValues, "docid=?", id);
+                }
                 break;
             default:
-                throw new UnsupportedOperationException(getContext().getString(R.string.db_error_uriunknown) + uri);
+                throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
         if (itemUpdated != 0) {
-            getContext().getContentResolver().notifyChange(uri, null);
+            mContext.getContentResolver().notifyChange(uri, null);
         }
 
         return itemUpdated;

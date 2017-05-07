@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources tools:keep="@array/full_gradient" xmlns:tools="http://schemas.android.com/tools">
 
     <array name="full_gradient">
         <item>@color/red</item>

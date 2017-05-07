@@ -1,0 +1,21 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.mborzenkov.readlaterlist.activity.MainListActivity">
+
+    <item
+        android:id="@+id/mainlist_action_search"
+        android:icon="@drawable/ic_search_24dp"
+        android:orderInCategory="1"
+        android:title="@string/mainlist_menu_search"
+        app:actionViewClass="android.support.v7.widget.SearchView"
+        app:showAsAction="collapseActionView|ifRoom"/>
+
+    <item
+        android:id="@+id/mainlist_settings"
+        android:icon="@drawable/ic_menu_24dp"
+        android:orderInCategory="2"
+        android:title="@string/mainlist_drawer_title"
+        app:showAsAction="ifRoom"/>
+
+</menu>

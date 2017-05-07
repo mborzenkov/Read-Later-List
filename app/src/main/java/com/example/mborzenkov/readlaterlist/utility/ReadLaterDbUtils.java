@@ -2,109 +2,184 @@ package com.example.mborzenkov.readlaterlist.utility;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
-import android.graphics.Color;
 import android.net.Uri;
+import android.support.v4.content.CursorLoader;
+import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
-import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterDbJson;
 
-import java.util.Random;
+import java.util.Arrays;
+import java.util.List;
 
-/**
- * Класс для упрощения работы с базой данных
+/** Класс для упрощения работы с базой данных.
  * Представляет собой набор static методов
  */
 public class ReadLaterDbUtils {
 
-    /** Количество плейсхолдеров, которое создается */
-    private static final int PLACEHOLDERS_COUNT = 100;
-    /** Количество строк в description для автоматического создания */
-    private static final int DESCRIPTION_LINES = 3;
+    private ReadLaterDbUtils() {
+        throw new UnsupportedOperationException("Класс ReadLaterDbUtils - static util, не может иметь экземпляров");
+    }
 
-    private ReadLaterDbUtils() { throw new UnsupportedOperationException("Класс ReadLaterDbUtils - static util, не может иметь экземпляров"); }
+    /** Возвращает CursorLoader для указанного запроса, добавляя к нему поисковый запрос и фильтр, если имеются.
+     *
+     * @param context Контекст
+     * @param projection Список необходимых полей
+     * @param searchQuery Поисковый запрос (если имеется)
+     * @param filter Фильтр (если назначен)
+     * @return Новый CursorLoader
+     */
+    public static CursorLoader getNewCursorLoader(Context context, String[] projection,
+                                                  String searchQuery, MainListFilter filter) {
 
-    /**
-     * Добавляет новый элемент в базу данных
+        StringBuilder selection = new StringBuilder();
+        String[] selectionArgs = new String[0];
+        String sortOrder = "";
+        if (filter != null) {
+            sortOrder = filter.getSqlSortOrder();
+            selection.append(filter.getSqlSelection(context));
+            selectionArgs = filter.getSqlSelectionArgs(context);
+        }
+        if (!searchQuery.isEmpty()) {
+            if (!selection.toString().trim().isEmpty()) {
+                selection.append(" AND ");
+            }
+            selection.append(String.format("_id IN (SELECT docid FROM %s WHERE %s MATCH ?)",
+                    ReadLaterEntry.TABLE_NAME_FTS, ReadLaterEntry.TABLE_NAME_FTS));
+            selectionArgs = Arrays.copyOf(selectionArgs, selectionArgs.length + 1);
+            selectionArgs[selectionArgs.length - 1] = searchQuery;
+        }
+        Log.i("SELECTION", selection.toString());
+        return new CursorLoader(context, ReadLaterContract.ReadLaterEntry.CONTENT_URI,
+                projection, selection.toString(), selectionArgs, sortOrder);
+    }
+
+    /** Возвращает ContentValues на основании ReadLaterItem. При этом все поля с датами заполняются текущим временем.
+     *
+     * @param item ReadLaterItem, на основании которого нужно подготовить ContentValues
+     * @return ContentValues
+     */
+    private static ContentValues getContentValuesForInsert(ReadLaterItem item) {
+        final long currentTime = System.currentTimeMillis();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(ReadLaterEntry.COLUMN_LABEL, item.getLabel());
+        contentValues.put(ReadLaterEntry.COLUMN_DESCRIPTION, item.getDescription());
+        contentValues.put(ReadLaterEntry.COLUMN_COLOR, item.getColor());
+        contentValues.put(ReadLaterEntry.COLUMN_DATE_CREATED, currentTime);
+        contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, currentTime);
+        contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
+        return contentValues;
+    }
+
+    /** Возвращает ContentValues на основании ReadLaterDdJson.
+     * Этот тип данных используется в бэкапах.
+     *
+     * @param itemJson ReadLaterDbJson, на основании которого нужно подготовить ContentValues
+     * @return ContentValues
+     */
+    private static ContentValues getContentValuesForInsertFromJson(ReadLaterDbJson itemJson) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL, itemJson.getTitle());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION, itemJson.getDescription());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR, itemJson.getColor());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED, itemJson.getDateCreated());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, itemJson.getDateModified());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW, itemJson.getDateViewed());
+        return contentValues;
+    }
+
+    /** Добавляет новый элемент в базу данных.
+     *
      * @param context Контекст
      * @param item Элемент в виде ReadLaterItem
      * @return True, если добавление было выполнено успешно
      */
     public static boolean insertItem(Context context, ReadLaterItem item) {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL, item.getLabel());
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION, item.getDescription());
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR, item.getColor());
-        Uri uri = context.getContentResolver().insert(ReadLaterContract.ReadLaterEntry.CONTENT_URI, contentValues);
+        Uri uri = context.getContentResolver().insert(ReadLaterEntry.CONTENT_URI, getContentValuesForInsert(item));
         return uri != null;
     }
 
-    /**
-     * Обновляет элемент в базе данных с uid
+    /** Производит массовое добавление данных.
+     *
+     * @param context Контекст
+     * @param dataJson Данные в формате ReadLaterDbJson.
+     */
+    public static void bulkInsertJson(Context context, List<ReadLaterDbJson> dataJson) {
+        ContentValues[] values = new ContentValues[dataJson.size()];
+        for (int i = 0; i < dataJson.size(); i++) {
+            values[i] = getContentValuesForInsertFromJson(dataJson.get(i));
+        }
+        context.getContentResolver().bulkInsert(ReadLaterEntry.CONTENT_URI, values);
+    }
+
+    /** Производит массовое добавление данных. При этом все даты задаются равными текущему времени.
+     *
+     * @param context Контекст
+     * @param itemList Данные в формате ReadLaterItem.
+     */
+    public static void bulkInsertItems(Context context, List<ReadLaterItem> itemList) {
+        ContentValues[] values = new ContentValues[itemList.size()];
+        for (int i = 0; i < itemList.size(); i++) {
+            values[i] = getContentValuesForInsert(itemList.get(i));
+        }
+        context.getContentResolver().bulkInsert(ReadLaterEntry.CONTENT_URI, values);
+    }
+
+    /** Обновляет элемент в базе данных с uid.
+     *
      * @param context Контекст
      * @param item Элемент в виде ReadLaterItem
      * @param uid _id элемента для изменения
      * @return True, если изменение было выполнено успешно
      */
     public static boolean updateItem(Context context, ReadLaterItem item, int uid) {
+        final long currentTime = System.currentTimeMillis();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL, item.getLabel());
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION, item.getDescription());
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR, item.getColor());
-        int updated = context.getContentResolver().update(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
+        contentValues.put(ReadLaterEntry.COLUMN_LABEL, item.getLabel());
+        contentValues.put(ReadLaterEntry.COLUMN_DESCRIPTION, item.getDescription());
+        contentValues.put(ReadLaterEntry.COLUMN_COLOR, item.getColor());
+        contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, currentTime);
+        contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
+        int updated = context.getContentResolver()
+                .update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
         return updated > 0;
     }
 
-    /**
-     * Заполняет базу данных плейсхолдерами (случайными данными)
-     *      Добавляет PLACEHOLDERS_COUNT штук записей с заранее определенными Label, случайными description и случайными цветами
+    /** Обновляет дату просмотра элемента в базе данных с uid.
+     *
      * @param context Контекст
+     * @param uid _id элемента для изменения
+     * @return True, если изменение было выполнено успешно
      */
-    public static void addPlaceholdersToDatabase(Context context) {
-
-        // bulkInsert умышленно не был реализован, так как нигде не используется
-        // кроме этого метода, предназначенного для тестирования
-
-        String[] text = context.getString(R.string.debug_large_text).split("\n");
-        int textRows = text.length;
-        String label = context.getString(R.string.mainlist_menu_add_placeholders_label);
-        Random randomizer = new Random();
-        for (int i = 0; i < PLACEHOLDERS_COUNT; i++) {
-            // Description создается из случайных строк large_text
-            StringBuilder description = new StringBuilder();
-            for (int j = 0; j < DESCRIPTION_LINES; j++) {
-                description.append(text[randomizer.nextInt(text.length)] + "\n");
-            }
-            // Конвертация int в HSV и обратно нужна, чтобы ColorPicker красиво работал (не каждый int без потерь конвертируется в HSV)
-            // Это допущение используется только в этом тестовом методе, во всех остальных местах используются цвета, конвертируемые в обе стороны без потерь
-            float[] colorHSV = new float[3];
-            Color.colorToHSV(randomizer.nextInt(), colorHSV);
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL, label + " " + i);
-            contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION, description.toString().trim());
-            contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR, Color.HSVToColor(colorHSV));
-            Uri uri = context.getContentResolver().insert(ReadLaterContract.ReadLaterEntry.CONTENT_URI, contentValues);
-        }
+    public static boolean updateItemViewDate(Context context, int uid) {
+        final long currentTime = System.currentTimeMillis();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
+        int updated = context.getContentResolver()
+                .update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
+        return updated > 0;
     }
 
-    /**
-     * Удаляет данные из базы данных (на основании предоставленного cursor)
+    /** Производит удаление объекта из базы.
+     *
      * @param context Контекст
-     * @param cursor Cursor, если указывает на все данные, то будут удалены все данные
-     * @param indexColumnId Индекс колонки с _id, по которым удаляются данные
+     * @param uid Уникальный id объекта
+     * @return true, если удаление выполнено успешно
      */
-    public static void deleteItemsFromDatabase(Context context, Cursor cursor, int indexColumnId) {
-
-        // Массовое удаление умышленно не было реализован, так как нигде не используется
-        // кроме этого метода, предназначенного для тестирования
-        // А также с целью безопасности, отсутствие массового удаления снижает вероятность ошибочного стирания всех данных
-
-        for (int i = 0; i < cursor.getCount(); i++) {
-            cursor.moveToPosition(i);
-            int uid = cursor.getInt(indexColumnId);
-            context.getContentResolver().delete(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), null, null);
-        }
+    public static boolean deleteItem(Context context, int uid) {
+        return context.getContentResolver()
+                .delete(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), null, null) > 0;
     }
 
+    /** Производит удаление всех данных из базы.
+     *
+     * @param context Контекст
+     */
+    public static void deleteAll(Context context) {
+        context.getContentResolver()
+                .delete(ReadLaterEntry.CONTENT_URI, null, null);
+    }
 }

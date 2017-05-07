@@ -4,15 +4,13 @@
     <string name="title_activity_edit_item">Edit Item</string>
     <string name="title_activity_colorpicker">Choose color</string>
 
-    <!-- MainList -->
+    <!-- MainListActivity -->
         <!-- Онбординг для пустого списка -->
         <string name="mainlist_empty_label">List is empty</string>
         <string name="mainlist_empty_description">Add something to list with button on bottom right corner.</string>
         <!-- Меню -->
-        <string name="mainlist_menu_delete_all">Delete all</string>
         <string name="mainlist_menu_delete_all_question_title">Delete all</string>
         <string name="mainlist_menu_delete_all_question_text">This action will delete everything from db. Are you sure to proceed?</string>
-        <string name="mainlist_menu_add_placeholders">Fill placeholders</string>
         <string name="mainlist_menu_add_placeholders_question_title">Fill with placeholders</string>
         <string name="mainlist_menu_add_placeholders_question_text">This action will add placeholders. Proceed?</string>
         <string name="mainlist_menu_add_placeholders_label">Labeeeeel</string>
@@ -20,8 +18,48 @@
         <string name="snackbar_item_added">Item added</string>
         <string name="snackbar_item_edited">Item edited</string>
         <string name="snackbar_item_removed">Item removed</string>
+        <!-- Список -->
+        <string name="mainlist_icon_contentdescription">Color</string>
+        <!-- Поиск -->
+        <string name="searchable_mainlist_hint">Search items</string>
+        <string name="mainlist_menu_search">Search</string>
+        <!-- Фильтр -->
+        <!-- TODO: Перевод strings -->
+        <string name="mainlist_drawer_title">Settings</string>
+        <string name="mainlist_drawer_filters_title">Filter by</string>
+        <string name="mainlist_drawer_filters_default">Default</string>
+        <string name="mainlist_drawer_filters_save">+ Add filter</string>
+        <string name="mainlist_drawer_filters_remove">- Remove filter</string>
+        <string name="mainlist_drawer_filters_save_question_title">Type name for new filter</string>
+        <string name="mainlist_drawer_filters_remove_question_title">Remove filter</string>
+        <string name="mainlist_drawer_filters_remove_question_text">This action will remove selected filter permanently. Are you sure to proceed?</string>
+        <string name="mainlist_drawer_date_all">No date filter</string>
+        <string name="mainlist_drawer_date_creation">Creation date</string>
+        <string name="mainlist_drawer_date_modified">Last modify date</string>
+        <string name="mainlist_drawer_date_viewed">Last view date</string>
+        <string name="mainlist_drawer_datefrom_hint"><font size="12">from</font></string>
+        <string name="mainlist_drawer_dateto_hint"><font size="12">to</font></string>
+        <string name="mainlist_drawer_color_title">Colors</string>
+        <string name="mainlist_drawer_sort_title">Sort by</string>
+        <string name="mainlist_drawer_sort_label">Label</string>
+        <string name="mainlist_drawer_sort_created">Created</string>
+        <string name="mainlist_drawer_sort_modified">Modified</string>
+        <string name="mainlist_drawer_sort_viewed">Viewed</string>
+        <string name="mainlist_drawer_sort_symb_asc" translatable="false">↡</string>
+        <string name="mainlist_drawer_sort_symb_desc" translatable="false">↑</string>
+        <string name="mainlist_drawer_debug_title">Debug options</string>
+        <string name="mainlist_drawer_deleteall_title">Delete all</string>
+        <string name="mainlist_drawer_fillplaceholders_title">Fill data</string>
+        <!-- Бэкап -->
+        <string name="mainlist_drawer_backup_title">Backup data</string>
+        <string name="mainlist_drawer_backup_save">Save</string>
+        <string name="mainlist_drawer_backup_restore">Restore</string>
+        <string name="mainlist_drawer_backup_save_question_title">Save to file</string>
+        <string name="mainlist_drawer_backup_save_question_text">This action will make backup of db in file. Proceed?</string>
+        <string name="mainlist_drawer_backup_restore_question_title">Restore from file</string>
+        <string name="mainlist_drawer_backup_restore_question_text">This action will replace everything in db with data in backup file. Are you sure to proceed?</string>
 
-    <!-- EditItem -->
+    <!-- EditItemActivity -->
         <!-- Заголовки -->
         <string name="edititem_title_add">New item</string>
         <string name="edititem_title_edit">Edit item</string>
@@ -35,8 +73,11 @@
         <string name="edititem_menu_delete">Delete</string>
         <string name="edititem_menu_delete_question_title">Delete item</string>
         <string name="edititem_menu_delete_question_text">Are you sure to delete item?</string>
+        <string name="edititem_menu_save">Save</string>
+        <!-- Список -->
+        <string name="edititem_icon_contentdescription">Color</string>
 
-    <!-- ColorPicker -->
+    <!-- ColorPickerActivity -->
     <string name="colorpicker_chosen_label">Choose color</string>
     <string name="colorpicker_favorites_label">Favorite colors</string>
     <string name="colorpicker_RGB" translatable="false">RGB</string>
