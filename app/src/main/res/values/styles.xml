@@ -120,7 +120,6 @@
         <item name="android:layout_marginLeft">@dimen/marginleft_mainlist_drawer</item>
         <item name="android:layout_marginTop">@dimen/margintop_mainlist_drawer_button</item>
         <item name="android:background">@drawable/mainlist_drawer_button</item>
-        <item name="android:textSize">10sp</item>
     </style>
     <style name="MainList.Drawer.Button.Sort"/>
     <style name="MainList.Drawer.Button.Save"/>
