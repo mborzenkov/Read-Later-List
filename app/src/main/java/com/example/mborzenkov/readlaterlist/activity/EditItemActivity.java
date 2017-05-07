@@ -40,8 +40,10 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
 
     /** Текущий выбранный цвет в формате sRGB. */
     private int mChosenColor;
-    /** Признак - создается новый объект или редактируется имеющийся. */
-    private boolean mNewItem;
+    /** Признаки - создается новый объект или редактируется имеющийся. */
+    private enum EditModes { NEW, EDIT }
+    /** Текущий режим. */
+    private EditModes mMode = EditModes.NEW;
 
     // Объекты layout
     private EditText mLabelEditText;
@@ -96,11 +98,11 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
             mChosenColor = itemData.getColor();
             getSupportActionBar().setTitle(getString(R.string.edititem_title_edit));
             fab.setImageResource(R.drawable.ic_edit_24dp);
-            mNewItem = false;
+            mMode = EditModes.EDIT;
         } else {
             // В Intent не переданы данные или что-то пошло не так, в любом случае это новый объект
             // (возможно если что-то идет не так следует вызывать exception)
-            mNewItem = true;
+            mMode = EditModes.NEW;
             getSupportActionBar().setTitle(getString(R.string.edititem_title_add));
             fab.setImageResource(R.drawable.ic_add_24dp);
             mChosenColor = ContextCompat.getColor(this, R.color.item_default_color);
@@ -115,7 +117,7 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_edititem, menu);
-        if (mNewItem) {
+        if (mMode == EditModes.NEW) {
             // Кнопка удаления нужна только для редактируемых
             menu.removeItem(R.id.edititem_action_delete);
         }
