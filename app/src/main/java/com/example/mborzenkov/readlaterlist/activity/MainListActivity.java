@@ -14,7 +14,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
@@ -35,9 +34,11 @@ import android.widget.Spinner;
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
+import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
 import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 import com.example.mborzenkov.readlaterlist.utility.MainListBackupUtils;
@@ -75,13 +76,19 @@ public class MainListActivity extends AppCompatActivity implements
         ReadLaterContract.ReadLaterEntry._ID,
         ReadLaterContract.ReadLaterEntry.COLUMN_LABEL,
         ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION,
-        ReadLaterContract.ReadLaterEntry.COLUMN_COLOR
+        ReadLaterContract.ReadLaterEntry.COLUMN_COLOR,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW
     };
     /** Индексы для колонок из MAIN_LIST_PROJECTION, для упрощения. */
     private static final int INDEX_COLUMN_ID = 0;
     static final int INDEX_COLUMN_LABEL = 1;
     static final int INDEX_COLUMN_DESCRIPTION = 2;
     static final int INDEX_COLUMN_COLOR = 3;
+    static final int INDEX_COLUMN_DATE_CREATED = 4;
+    static final int INDEX_COLUMN_DATE_LAST_MODIFIED = 5;
+    static final int INDEX_COLUMN_DATE_LAST_VIEW = 6;
     /** ID Используемого LoadManager'а. */
     public static final int ITEM_LOADER_ID = 13;
 
@@ -95,6 +102,7 @@ public class MainListActivity extends AppCompatActivity implements
     private DrawerLayout mDrawerLayout;
     private LinearLayout mFavLinearLayout;
     private Spinner mSavedFiltersSpinner;
+    private ArrayAdapter<String> mSavedFiltersAdapter;
     private Spinner mDateFiltersSpinner;
     private EditText mDateFromEditText;
     private EditText mDateToEditText;
@@ -183,10 +191,10 @@ public class MainListActivity extends AppCompatActivity implements
 
         // Заполняем варианты запомненных фильтров
         mSavedFiltersSpinner = (Spinner) findViewById(R.id.spinner_drawermainlist_filter);
-        final ArrayAdapter<String> savedFiltersAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
-        savedFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        savedFiltersAdapter.addAll(MainListFilterUtils.getSavedFiltersList(this));
-        mSavedFiltersSpinner.setAdapter(savedFiltersAdapter);
+        mSavedFiltersAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
+        mSavedFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mSavedFiltersAdapter.addAll(MainListFilterUtils.getSavedFiltersList(this));
+        mSavedFiltersSpinner.setAdapter(mSavedFiltersAdapter);
         mSavedFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
@@ -196,31 +204,13 @@ public class MainListActivity extends AppCompatActivity implements
                     // Вариант 1: Клик на кнопку "+ Добавить"
                     // Показываем окно ввода текста, сохраняем при успешном вводе
                     final EditText editText = new EditText(MainListActivity.this);
-                    new AlertDialog.Builder(MainListActivity.this)
-                            .setTitle(getString(R.string.mainlist_drawer_filters_save_question_title))
-                            .setView(editText)
-                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    String input = editText.getText().toString().trim();
-                                    if (!input.isEmpty()
-                                            && !input.equals(getString(R.string.mainlist_drawer_filters_default))) {
-                                        MainListFilterUtils.saveFilter(MainListActivity.this, input);
-                                        savedFiltersAdapter.clear();
-                                        savedFiltersAdapter.addAll(MainListFilterUtils
-                                                .getSavedFiltersList(MainListActivity.this));
-                                        savedFiltersAdapter.notifyDataSetChanged();
-                                        mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
-                                    }
-                                    mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
-                                }
-                            })
-                            .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
-                                }
-                            })
-                            .setIcon(android.R.drawable.ic_dialog_alert)
-                            .show();
+                    ActivityUtils.showInputTextDialog(MainListActivity.this,
+                        editText,
+                        getString(R.string.mainlist_drawer_filters_save_question_title),
+                        null,
+                        (String input) -> saveFilter(input),
+                        () -> resetSavedFilterSelection());
+
                 } else if (position == indexSavedDelete) {
                     // Вариант 2: Клик на кнопку "- Удалить"
                     // Показываем окно подтверждения, удаляем при положительном ответе
@@ -229,26 +219,11 @@ public class MainListActivity extends AppCompatActivity implements
                         mSavedFiltersSpinner.setSelection(currentIndex);
                         return;
                     }
-                    new AlertDialog.Builder(MainListActivity.this)
-                            .setTitle(getString(R.string.mainlist_drawer_filters_remove_question_title))
-                            .setMessage(getString(R.string.mainlist_drawer_filters_remove_question_text))
-                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    MainListFilterUtils.removeCurrentFilter(MainListActivity.this);
-                                    savedFiltersAdapter.clear();
-                                    savedFiltersAdapter.addAll(MainListFilterUtils
-                                            .getSavedFiltersList(MainListActivity.this));
-                                    savedFiltersAdapter.notifyDataSetChanged();
-                                    updateDrawerWithCurrentFilter();
-                                }
-                            })
-                            .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    mSavedFiltersSpinner.setSelection(currentIndex);
-                                }
-                            })
-                            .setIcon(android.R.drawable.ic_dialog_alert)
-                            .show();
+                    ActivityUtils.showAlertDialog(MainListActivity.this,
+                        getString(R.string.mainlist_drawer_filters_remove_question_title),
+                        getString(R.string.mainlist_drawer_filters_remove_question_text),
+                        () -> removeSavedFilter(),
+                        () -> resetSavedFilterSelection());
                 } else {
                     // Остальные варианты - выбираем
                     MainListFilterUtils.clickOnSavedFilter(MainListActivity.this, position);
@@ -381,6 +356,34 @@ public class MainListActivity extends AppCompatActivity implements
 
     }
 
+    private void reloadSavedFiltersList() {
+        mSavedFiltersAdapter.clear();
+        mSavedFiltersAdapter.addAll(MainListFilterUtils
+                .getSavedFiltersList(MainListActivity.this));
+        mSavedFiltersAdapter.notifyDataSetChanged();
+    }
+
+    private void removeSavedFilter() {
+        MainListFilterUtils.removeCurrentFilter(MainListActivity.this);
+        reloadSavedFiltersList();
+        updateDrawerWithCurrentFilter();
+    }
+
+    private void resetSavedFilterSelection() {
+        mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
+    }
+
+    private void saveFilter(String input) {
+        // pos
+        if (!input.isEmpty()
+                && !input.equals(getString(R.string.mainlist_drawer_filters_default))) {
+            MainListFilterUtils.saveFilter(MainListActivity.this, input);
+            reloadSavedFiltersList();
+            mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
+        }
+        resetSavedFilterSelection();
+    }
+
     /** Обновляет Drawer в соответствии с выбранным фильтром. */
     private void updateDrawerWithCurrentFilter() {
         MainListFilter currentFilter = MainListFilterUtils.getCurrentFilter();
@@ -502,8 +505,8 @@ public class MainListActivity extends AppCompatActivity implements
         mDataCursor.moveToPosition(position);
         mEditItemId = mDataCursor.getInt(INDEX_COLUMN_ID);
         Intent editItemIntent = new Intent(MainListActivity.this, EditItemActivity.class);
-        ReadLaterItem data = new ReadLaterItem(mDataCursor.getString(INDEX_COLUMN_LABEL),
-                mDataCursor.getString(INDEX_COLUMN_DESCRIPTION), mDataCursor.getInt(INDEX_COLUMN_COLOR));
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
+        ReadLaterItem data = dbAdapter.itemFromCursor(mDataCursor);
         editItemIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(data));
         startActivityForResult(editItemIntent, ITEM_EDIT_REQUEST);
     }
@@ -542,38 +545,18 @@ public class MainListActivity extends AppCompatActivity implements
         // Click на кнопку бэкап
         switch (button.getId()) {
             case R.id.button_drawermainlist_backupsave:
-                new AlertDialog.Builder(this)
-                        .setTitle(getString(R.string.mainlist_drawer_backup_save_question_title))
-                        .setMessage(getString(R.string.mainlist_drawer_backup_save_question_text))
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                new BackupAsyncTask().execute(true);
-                            }
-                        })
-                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // do nothing
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
+                ActivityUtils.showAlertDialog(MainListActivity.this,
+                    getString(R.string.mainlist_drawer_backup_save_question_title),
+                    getString(R.string.mainlist_drawer_backup_save_question_text),
+                    () -> new BackupAsyncTask().execute(true),
+                    null);
                 break;
             case R.id.button_drawermainlist_backuprestore:
-                new AlertDialog.Builder(this)
-                        .setTitle(getString(R.string.mainlist_drawer_backup_restore_question_title))
-                        .setMessage(getString(R.string.mainlist_drawer_backup_restore_question_text))
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                new BackupAsyncTask().execute(false);
-                            }
-                        })
-                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // do nothing
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
+                ActivityUtils.showAlertDialog(MainListActivity.this,
+                    getString(R.string.mainlist_drawer_backup_restore_question_title),
+                    getString(R.string.mainlist_drawer_backup_restore_question_text),
+                    () -> new BackupAsyncTask().execute(false),
+                    null);
                 break;
             default:
                 break;

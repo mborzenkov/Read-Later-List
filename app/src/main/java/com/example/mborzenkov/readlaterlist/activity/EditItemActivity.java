@@ -1,30 +1,34 @@
 package com.example.mborzenkov.readlaterlist.activity;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
+import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
+
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 /**
  * Activity для редактирования элемента MainListActivity
@@ -37,17 +41,27 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
 
     /** ID для открытия ColorPickerActivity на редактирование цвета. */
     private static final int ITEM_EDIT_COLOR_REQUEST = 11;
+    /** Формат дат. */
+    private static final String FORMAT_DATE = "dd.MM.yy HH:mm";
 
     /** Текущий выбранный цвет в формате sRGB. */
     private int mChosenColor;
-    /** Признак - создается новый объект или редактируется имеющийся. */
-    private boolean mNewItem;
+    /** Признаки - создается новый объект или редактируется имеющийся. */
+    private enum EditModes { NEW, EDIT }
+    /** Текущий режим. */
+    private EditModes mMode = EditModes.NEW;
+    /** Признак наличия изменений. */
+    private boolean mModified = false;
+    /** Редактируемый элемент. */
+    private @Nullable ReadLaterItem mFromItem = null;
 
     // Объекты layout
-    private EditText mLabelEditText;
+    private TextInputEditText mLabelEditText;
     private TextInputLayout mLabelInputLayout;
-    private EditText mDescriptionEditText;
+    private TextInputEditText mDescriptionEditText;
     private ImageButton mColorImageButton;
+    private TextView mDateCreatedTextView;
+    private TextView mDateModifiedTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,9 +80,42 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         }
 
         // Инициализация объектов layout
-        mLabelEditText = (EditText) findViewById(R.id.et_edit_item_label);
+        mLabelEditText = (TextInputEditText) findViewById(R.id.et_edit_item_label);
+        mLabelInputLayout = (TextInputLayout) findViewById(R.id.til_edit_item_label);
+        mDescriptionEditText = (TextInputEditText) findViewById(R.id.et_edit_item_description);
+        mDateCreatedTextView = (TextView) findViewById(R.id.tv_edititem_created_value);
+        mDateModifiedTextView = (TextView) findViewById(R.id.tv_edititem_modified_value);
+        mColorImageButton = (ImageButton) findViewById(R.id.ib_edit_item_color);
+        mColorImageButton.setOnClickListener(this);
+
+        // Чтение данных из Intent
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra(ReadLaterItemParcelable.KEY_EXTRA)) {
+            // В Intent были переданы данные об объекте, записываем их в соответствующие поля
+            SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
+            mFromItem =
+                    ((ReadLaterItemParcelable) intent.getParcelableExtra(ReadLaterItemParcelable.KEY_EXTRA)).getItem();
+            mLabelEditText.setText(mFromItem.getLabel());
+            mDescriptionEditText.setText(mFromItem.getDescription());
+            mDateCreatedTextView.setText(dateFormatter.format(mFromItem.getDateCreated()));
+            mDateModifiedTextView.setText(dateFormatter.format(mFromItem.getDateModified()));
+            mChosenColor = mFromItem.getColor();
+            getSupportActionBar().setTitle(getString(R.string.edititem_title_edit));
+            fab.setImageResource(R.drawable.ic_edit_24dp);
+            mMode = EditModes.EDIT;
+        } else {
+            // В Intent не переданы данные или что-то пошло не так, в любом случае это новый объект
+            // (возможно если что-то идет не так следует вызывать exception)
+            mMode = EditModes.NEW;
+            getSupportActionBar().setTitle(getString(R.string.edititem_title_add));
+            fab.setImageResource(R.drawable.ic_add_24dp);
+            mChosenColor = ContextCompat.getColor(this, R.color.item_default_color);
+            // Устанавливаем фокус и открываем клавиатуру на редактирование Label, чтобы все было красиво и удобно
+            if (mLabelEditText.requestFocus()) {
+                getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            }
+        }
         mLabelEditText.addTextChangedListener(new TextWatcher() {
-            // TextChangedListener тут нужен только для сброса ошибок
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 mLabelInputLayout.setError(null);
@@ -78,44 +125,29 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
             public void onTextChanged(CharSequence s, int start, int before, int count) { }
 
             @Override
-            public void afterTextChanged(Editable s) { }
-        });
-        mLabelInputLayout = (TextInputLayout) findViewById(R.id.til_edit_item_label);
-        mDescriptionEditText = (EditText) findViewById(R.id.et_edit_item_description);
-        mColorImageButton = (ImageButton) findViewById(R.id.ib_edit_item_color);
-        mColorImageButton.setOnClickListener(this);
-
-        // Чтение данных из Intent
-        Intent intent = getIntent();
-        if (intent != null && intent.hasExtra(ReadLaterItemParcelable.KEY_EXTRA)) {
-            // В Intent были переданы данные об объекте, записываем их в соответствующие поля
-            ReadLaterItem itemData =
-                    ((ReadLaterItemParcelable) intent.getParcelableExtra(ReadLaterItemParcelable.KEY_EXTRA)).getItem();
-            mLabelEditText.setText(itemData.getLabel());
-            mDescriptionEditText.setText(itemData.getDescription());
-            mChosenColor = itemData.getColor();
-            getSupportActionBar().setTitle(getString(R.string.edititem_title_edit));
-            fab.setImageResource(R.drawable.ic_edit_24dp);
-            mNewItem = false;
-        } else {
-            // В Intent не переданы данные или что-то пошло не так, в любом случае это новый объект
-            // (возможно если что-то идет не так следует вызывать exception)
-            mNewItem = true;
-            getSupportActionBar().setTitle(getString(R.string.edititem_title_add));
-            fab.setImageResource(R.drawable.ic_add_24dp);
-            mChosenColor = ContextCompat.getColor(this, R.color.item_default_color);
-            // Устанавливаем фокус и открываем клавиатуру на редактирование Label, чтобы все было красиво и удобно
-            if (mLabelEditText.requestFocus()) {
-                getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            public void afterTextChanged(Editable s) {
+                mModified = true;
             }
-        }
+        });
+        mDescriptionEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                mModified = true;
+            }
+        });
         updateChosenColor();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_edititem, menu);
-        if (mNewItem) {
+        if (mMode == EditModes.NEW) {
             // Кнопка удаления нужна только для редактируемых
             menu.removeItem(R.id.edititem_action_delete);
         }
@@ -127,24 +159,17 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         int id = item.getItemId();
         switch (id) {
             case R.id.edititem_action_delete:
-                new AlertDialog.Builder(this)
-                        .setTitle(getString(R.string.edititem_menu_delete_question_title))
-                        .setMessage(getString(R.string.edititem_menu_delete_question_text))
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                sendResult(null);
-                            }
-                        })
-                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // ничего не делаем
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
+                ActivityUtils.showAlertDialog(EditItemActivity.this,
+                    getString(R.string.edititem_menu_delete_question_title),
+                    getString(R.string.edititem_menu_delete_question_text),
+                    () -> sendResult(null),
+                    null);
                 return true;
             case R.id.edititem_action_save:
                 finishEditing();
+                return true;
+            case android.R.id.home:
+                onBackPressed();
                 return true;
             default:
                 break;
@@ -186,8 +211,12 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         // Принимает данные из ColorPickerActivity, сохраняет их
         if (resultCode == RESULT_OK && requestCode == ITEM_EDIT_COLOR_REQUEST
                 && data != null && data.hasExtra(ColorPickerActivity.CHOSEN_KEY)) {
-            mChosenColor = data.getIntExtra(ColorPickerActivity.CHOSEN_KEY, Color.TRANSPARENT);
-            updateChosenColor();
+            int newColor = data.getIntExtra(ColorPickerActivity.CHOSEN_KEY, Color.TRANSPARENT);
+            if (mChosenColor != newColor) {
+                mChosenColor = newColor;
+                updateChosenColor();
+                mModified = true;
+            }
         }
     }
 
@@ -218,12 +247,30 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
     private @Nullable ReadLaterItem packInputData() {
         String label = mLabelEditText.getText().toString();
         String description = mDescriptionEditText.getText().toString();
+        long currentTime = System.currentTimeMillis();
         if (!label.trim().isEmpty()) {
-            return new ReadLaterItem(label, description, mChosenColor);
+            if (mFromItem != null) {
+                return new ReadLaterItem(label, description, mChosenColor,
+                        mFromItem.getDateCreated(), currentTime, currentTime);
+            } else {
+                return new ReadLaterItem(label, description, mChosenColor, currentTime, currentTime, currentTime);
+            }
         } else {
             mLabelInputLayout.setError(getString(R.string.edititem_error_title_empty));
             return null;
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        if (mModified) {
+            ActivityUtils.showAlertDialog(EditItemActivity.this,
+                    getString(R.string.edititem_menu_back_question_title),
+                    getString(R.string.edititem_menu_back_question_text),
+                    super::onBackPressed,
+                    null);
+        } else {
+            super.onBackPressed();
+        }
+    }
 }

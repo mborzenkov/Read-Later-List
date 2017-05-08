@@ -21,10 +21,12 @@ public class ReadLaterItemParcelableTest {
     private final String normalLabel = "Заголовок";
     private final String normalDescription = "Описание";
     private final int normalColor = Color.RED;
+    private final long currentTime = System.currentTimeMillis();
 
     @Test
     public void testParcelable() {
-        ReadLaterItem item = new ReadLaterItem(normalLabel, normalDescription, normalColor);
+        ReadLaterItem item = new ReadLaterItem(normalLabel, normalDescription, normalColor,
+                currentTime, currentTime, currentTime);
         ReadLaterItemParcelable itemParcelable = new ReadLaterItemParcelable(item);
         Parcel parcel = Parcel.obtain();
         itemParcelable.writeToParcel(parcel, itemParcelable.describeContents());

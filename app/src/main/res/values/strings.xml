@@ -63,10 +63,12 @@
         <!-- Заголовки -->
         <string name="edititem_title_add">New item</string>
         <string name="edititem_title_edit">Edit item</string>
-        <!-- Поля ввода -->
+        <!-- Поля -->
         <string name="edititem_label_hint">Label</string>
         <string name="edititem_description_hint">Description</string>
         <string name="edititem_color_hint">Color</string>
+        <string name="edititem_date_created">Created:</string>
+        <string name="edititem_date_modified">Modified:</string>
         <!-- Ошибки -->
         <string name="edititem_error_title_empty">Please enter label</string>
         <!-- Меню -->
@@ -74,6 +76,8 @@
         <string name="edititem_menu_delete_question_title">Delete item</string>
         <string name="edititem_menu_delete_question_text">Are you sure to delete item?</string>
         <string name="edititem_menu_save">Save</string>
+        <string name="edititem_menu_back_question_title">Undo changes</string>
+        <string name="edititem_menu_back_question_text">Are you sure to undo changes?</string>
         <!-- Список -->
         <string name="edititem_icon_contentdescription">Color</string>
 
