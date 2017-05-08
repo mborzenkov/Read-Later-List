@@ -137,7 +137,6 @@
             android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_sorting"
-            android:onClick="clickOnSortButton"
             android:text="@string/mainlist_drawer_sort_label"
             style="@style/Button"
             />
@@ -151,7 +150,6 @@
             android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_sortname"
             app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_sorting"
-            android:onClick="clickOnSortButton"
             android:text="@string/mainlist_drawer_sort_created"
             style="@style/Button"
             />
@@ -165,7 +163,6 @@
             android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_sortname"
-            android:onClick="clickOnSortButton"
             android:text="@string/mainlist_drawer_sort_modified"
             style="@style/Button"
             />
@@ -179,7 +176,6 @@
             android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_sortmodified"
             app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_sortname"
-            android:onClick="clickOnSortButton"
             android:text="@string/mainlist_drawer_sort_viewed"
             style="@style/Button"
             />
@@ -205,7 +201,6 @@
             android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_backup"
-            android:onClick="clickOnBackupButton"
             android:text="@string/mainlist_drawer_backup_save"
             style="@style/Button"
             />
@@ -219,7 +214,6 @@
             android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_backupsave"
             app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_backup"
-            android:onClick="clickOnBackupButton"
             android:text="@string/mainlist_drawer_backup_restore"
             style="@style/Button"
             />
@@ -245,7 +239,6 @@
             android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_debug"
-            android:onClick="clickOnDebugButton"
             android:text="@string/mainlist_drawer_fillplaceholders_title"
             style="@style/Button"
             />
@@ -259,7 +252,6 @@
             android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_fillplaceholders"
             app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_debug"
-            android:onClick="clickOnDebugButton"
             android:text="@string/mainlist_drawer_deleteall_title"
             style="@style/Button"
             />

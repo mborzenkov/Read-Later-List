@@ -15,7 +15,6 @@
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
         android:contentDescription="@string/colorpicker_favorites_label"
-        android:onClick="clickOnFavSquare"
         style="@style/MainList.Drawer.FavoriteCircle"
         />
 

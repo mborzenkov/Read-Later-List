@@ -54,7 +54,8 @@ public class ReadLaterDbUtils {
             selectionArgs = Arrays.copyOf(selectionArgs, selectionArgs.length + 1);
             selectionArgs[selectionArgs.length - 1] = searchQuery;
         }
-        Log.i("SELECTION", selection.toString());
+        Log.d("SELECTION", String.format("%s, %s", selection.toString(), Arrays.toString(selectionArgs)));
+        Log.d("ORDERING", sortOrder);
         return new CursorLoader(context, ReadLaterContract.ReadLaterEntry.CONTENT_URI,
                 projection, selection.toString(), selectionArgs, sortOrder);
     }
