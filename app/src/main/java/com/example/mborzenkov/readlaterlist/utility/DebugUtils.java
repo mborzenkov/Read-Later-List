@@ -1,9 +1,7 @@
 package com.example.mborzenkov.readlaterlist.utility;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.graphics.Color;
-import android.support.v7.app.AlertDialog;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.activity.MainListActivity;
@@ -31,15 +29,15 @@ public class DebugUtils {
      */
     public static void showAlertAndAddPlaceholders(final Context context, final MainListActivity activity) {
         ActivityUtils.showAlertDialog(
-                context,
-                context.getString(R.string.mainlist_menu_add_placeholders_question_title),
-                context.getString(R.string.mainlist_menu_add_placeholders_question_text),
-                () -> {
-                    addPlaceholdersToDatabase(context);
-                    activity.getSupportLoaderManager().restartLoader(MainListActivity.ITEM_LOADER_ID, null,
-                            activity);
-                },
-                null);
+            context,
+            context.getString(R.string.mainlist_menu_add_placeholders_question_title),
+            context.getString(R.string.mainlist_menu_add_placeholders_question_text),
+            () -> {
+                addPlaceholdersToDatabase(context);
+                activity.getSupportLoaderManager().restartLoader(MainListActivity.ITEM_LOADER_ID, null,
+                        activity);
+            },
+            null);
     }
 
     /** Показывает предупреждение и выполняет удаление данных при подтверждении.
@@ -49,15 +47,15 @@ public class DebugUtils {
      */
     public static void showAlertAndDeleteItems(final Context context, final MainListActivity activity) {
         ActivityUtils.showAlertDialog(
-                context,
-                context.getString(R.string.mainlist_menu_delete_all_question_title),
-                context.getString(R.string.mainlist_menu_delete_all_question_text),
-                () -> {
-                    ReadLaterDbUtils.deleteAll(context);
-                    activity.getSupportLoaderManager().restartLoader(MainListActivity.ITEM_LOADER_ID, null,
-                            activity);
-                },
-                null);
+            context,
+            context.getString(R.string.mainlist_menu_delete_all_question_title),
+            context.getString(R.string.mainlist_menu_delete_all_question_text),
+            () -> {
+                ReadLaterDbUtils.deleteAll(context);
+                activity.getSupportLoaderManager().restartLoader(MainListActivity.ITEM_LOADER_ID, null,
+                        activity);
+            },
+            null);
     }
 
     /** Заполняет базу данных плейсхолдерами (случайными данными).

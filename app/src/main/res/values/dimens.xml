@@ -6,15 +6,15 @@
     <dimen name="marginvertical_large">32dp</dimen>
     <dimen name="marginhorizontal_small">8dp</dimen>
     <dimen name="marginhorizontal_normal">16dp</dimen>
-    <dimen name="marginhorizontal_large">32dp</dimen>
+    <!--<dimen name="marginhorizontal_large">32dp</dimen>-->
     <dimen name="marginhorizontal_huge">72dp</dimen>
     <dimen name="marginhorizontal_jumbo">88dp</dimen>
-    <dimen name="paddingvertical_small">8dp</dimen>
+    <!--<dimen name="paddingvertical_small">8dp</dimen>-->
     <dimen name="paddingvertical_normal">16dp</dimen>
     <dimen name="paddingvertical_large">32dp</dimen>
 
     <!-- Стандартные размеры элементов -->
-    <dimen name="width_textfield_small">100dp</dimen>
+    <!--<dimen name="width_textfield_small">100dp</dimen>-->
 
     <!-- Общие элементы -->
     <dimen name="height_divider">1px</dimen>
@@ -27,18 +27,17 @@
 
     <!-- Drawable -->
     <dimen name="size_circle_small">30dp</dimen>
-    <dimen name="size_circle_normal">40dp</dimen>
+    <!--<dimen name="size_circle_normal">40dp</dimen>-->
     <dimen name="size_circle_large">60dp</dimen>
     <dimen name="size_circle_huge">80dp</dimen>
     <dimen name="margin_circle_small">5dp</dimen>
-    <dimen name="margin_circle_normal">10dp</dimen>
+    <!--<dimen name="margin_circle_normal">10dp</dimen>-->
     <dimen name="margin_circle_large">15dp</dimen>
     <dimen name="margin_circle_huge">20dp</dimen>
 
     <!-- Текст -->
     <dimen name="size_text_primary">16sp</dimen>
     <dimen name="size_text_secondary">14sp</dimen>
-    <dimen name="margintop_text_prsec">@dimen/marginvertical_small</dimen> <!-- Стандартный отступ между Primary и Secondary -->
 
     <!-- Элементы списков -->
     <dimen name="padding_list_start">8dp</dimen>

@@ -2,7 +2,6 @@ package com.example.mborzenkov.readlaterlist.utility;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
 import android.support.v4.content.CursorLoader;
 import android.util.Log;
@@ -13,7 +12,6 @@ import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -108,6 +106,7 @@ public class ReadLaterDbUtils {
      * @param uid _id элемента для изменения
      * @return True, если изменение было выполнено успешно
      */
+    @SuppressWarnings("UnusedReturnValue")
     public static boolean updateItemViewDate(Context context, int uid) {
         final long currentTime = System.currentTimeMillis();
         ContentValues contentValues = new ContentValues();

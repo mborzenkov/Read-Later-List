@@ -15,13 +15,13 @@ import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)
-@SuppressWarnings("FieldCanBeLocal") // Поля вынесены на уровень класса для улучшенной читаемости
+@SuppressWarnings("FieldCanBeLocal") // Поля вынесены на уровень класса для улучшенной читаемости"
 public class ReadLaterItemParcelableTest {
 
-    private final String normalLabel = "Заголовок";
-    private final String normalDescription = "Описание";
-    private final int normalColor = Color.RED;
-    private final long currentTime = System.currentTimeMillis();
+    private static final String normalLabel = "Заголовок";
+    private static final String normalDescription = "Описание";
+    private static final int normalColor = Color.RED;
+    private static final long currentTime = System.currentTimeMillis();
 
     @Test
     public void testParcelable() {

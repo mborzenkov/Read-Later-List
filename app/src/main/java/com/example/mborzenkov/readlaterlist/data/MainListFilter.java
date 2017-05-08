@@ -79,7 +79,7 @@ public class MainListFilter {
     private Selection selection;
     private Long dateFrom;
     private Long dateTo;
-    private Set<Integer> colorFilter;
+    private final Set<Integer> colorFilter;
 
     /** Создает новый объект с данными по умолчанию. */
     public MainListFilter() {

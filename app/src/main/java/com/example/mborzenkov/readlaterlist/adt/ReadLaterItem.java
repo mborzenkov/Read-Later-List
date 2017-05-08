@@ -153,11 +153,11 @@ public class ReadLaterItem {
         }
         ReadLaterItem thatObject = (ReadLaterItem) obj;
         return ((color == thatObject.color)
-                && label.equals(thatObject.label)
-                && description.equals(thatObject.description)
                 && dateCreated == thatObject.dateCreated
                 && dateModified == thatObject.dateModified
-                && dateViewed == thatObject.dateViewed);
+                && dateViewed == thatObject.dateViewed
+                && label.equals(thatObject.label)
+                && description.equals(thatObject.description));
     }
 
     @Override
@@ -188,7 +188,7 @@ public class ReadLaterItem {
     @Override
     public String toString() {
         SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
-        return String.format("%s\n%s\n(%s)\nC: %s\nM: %s\nV: %s",
+        return String.format("%s%n%s%n(%s)%nC: %s%nM: %s%nV: %s",
                 label,
                 description,
                 String.format(FORMAT_COLOR, Integer.toString(color, 16)),

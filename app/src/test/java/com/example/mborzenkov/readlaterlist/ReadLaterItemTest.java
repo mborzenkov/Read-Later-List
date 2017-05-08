@@ -8,13 +8,13 @@ import android.graphics.Color;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 
-import org.junit.Test;
-
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
+import org.junit.Test;
+
 /** Тестирует ReadLaterItem. */
-@SuppressWarnings("FieldCanBeLocal") // Поля вынесены на уровень класса для улучшенной читаемости
+@SuppressWarnings("FieldCanBeLocal") // Поля вынесены на уровень класса для улучшенной читаемости"
 public class ReadLaterItemTest {
 
     /*
@@ -31,19 +31,19 @@ public class ReadLaterItemTest {
      *
      */
 
-    private final String normalLabel = "Заголовок";
-    private final String singleCharLabel = "Я";
-    private final String normalDescription = "Описание";
-    private final String emptyDescription = "";
-    private final String onlySpaceDescription = " ";
-    private final String multilineDescription = "Описание\nНа несколько строк\nВот так вот";
-    private final int normalColor = Color.RED;
-    private final int zeroColor = 0;
-    private final int negativeColor = -1;
-    private final long longTimeAgo = -100000;
-    private final long zeroTime = 0;
-    private final long currentTime = System.currentTimeMillis();
-    private final long futureTime = currentTime + 10000000;
+    private static final String normalLabel = "Заголовок";
+    private static final String singleCharLabel = "Я";
+    private static final String normalDescription = "Описание";
+    private static final String emptyDescription = "";
+    private static final String onlySpaceDescription = " ";
+    private static final String multilineDescription = "Описание\nНа несколько строк\nВот так вот";
+    private static final int normalColor = Color.RED;
+    private static final int zeroColor = 0;
+    private static final int negativeColor = -1;
+    private static final long longTimeAgo = -100000;
+    private static final long zeroTime = 0;
+    private static final long currentTime = System.currentTimeMillis();
+    private static final long futureTime = currentTime + 10000000;
 
     /* Покрывает label.length: >1
      *           description: непустая
@@ -164,7 +164,7 @@ public class ReadLaterItemTest {
     @Test
     public void testToString() {
         SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSZ", Locale.US);
-        String assertedString = String.format("%s\n%s\n(#%s)\nC: %s\nM: %s\nV: %s",
+        String assertedString = String.format("%s%n%s%n(#%s)%nC: %s%nM: %s%nV: %s",
                 normalLabel,
                 normalDescription,
                 Integer.toString(normalColor, 16),

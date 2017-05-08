@@ -28,7 +28,7 @@
     <string name="title_activity_edit_item">Редактирование записи</string>
     <string name="edititem_menu_save">Сохранить</string>
     <string name="mainlist_icon_contentdescription">Цвет элемента</string>
-    <string name="edititem_icon_contentdescription">Цвет элемента</string>
+    <!--<string name="edititem_icon_contentdescription">Цвет элемента</string>-->
     <string name="mainlist_drawer_backup_restore">Восстановить</string>
     <string name="mainlist_drawer_backup_restore_question_text">База данных будет восстановлена из файла. Все данные будут заменены. Продолжить?</string>
     <string name="mainlist_drawer_backup_restore_question_title">Восстановление базы данных</string>

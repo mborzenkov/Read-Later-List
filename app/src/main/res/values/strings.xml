@@ -79,7 +79,7 @@
         <string name="edititem_menu_back_question_title">Undo changes</string>
         <string name="edititem_menu_back_question_text">Are you sure to undo changes?</string>
         <!-- Список -->
-        <string name="edititem_icon_contentdescription">Color</string>
+        <!--<string name="edititem_icon_contentdescription">Color</string>-->
 
     <!-- ColorPickerActivity -->
     <string name="colorpicker_chosen_label">Choose color</string>

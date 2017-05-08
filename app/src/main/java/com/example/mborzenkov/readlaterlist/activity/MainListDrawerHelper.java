@@ -33,28 +33,28 @@ import java.util.Map;
 class MainListDrawerHelper implements View.OnClickListener {
 
     // Элементы Layout
-    private MainListActivity mActivity;
-    private DrawerLayout mDrawerLayout;
-    private LinearLayout mFavLinearLayout;
-    private Spinner mSavedFiltersSpinner;
-    private Spinner mDateFiltersSpinner;
-    private EditText mDateFromEditText;
-    private EditText mDateToEditText;
-    private Button mSortByLabelButton;
-    private Button mSortByDateCreatedButton;
-    private Button mSortByDateModifiedButton;
-    private Button mSortByDateViewedButton;
+    private final MainListActivity mActivity;
+    private final DrawerLayout mDrawerLayout;
+    private final LinearLayout mFavLinearLayout;
+    private final Spinner mSavedFiltersSpinner;
+    private final Spinner mDateFiltersSpinner;
+    private final EditText mDateFromEditText;
+    private final EditText mDateToEditText;
+    private final Button mSortByLabelButton;
+    private final Button mSortByDateCreatedButton;
+    private final Button mSortByDateModifiedButton;
+    private final Button mSortByDateViewedButton;
 
     /** Адаптер для SavedFilters. */
     private ArrayAdapter<String> mSavedFiltersAdapter = null;
     /** Календарь для выбора. */
-    private Calendar mCalendar = Calendar.getInstance();
+    private final Calendar mCalendar = Calendar.getInstance();
     /** Редактируемое поле даты. */
     private EditText mDateEditor = null;
     /** Оригинальные названия кнопок сортировки. */
-    private Map<MainListFilter.SortType, String> mSortButtonsNames = new HashMap<>();
+    private final Map<MainListFilter.SortType, String> mSortButtonsNames = new HashMap<>();
     /** Добавляемый символ сортировки. */
-    private Map<MainListFilter.SortOrder, String> mSortOrderSymbols = new HashMap<>();
+    private final Map<MainListFilter.SortOrder, String> mSortOrderSymbols = new HashMap<>();
     /** Избранные цвета. */
     private int[] favColors = null;
 
@@ -84,7 +84,7 @@ class MainListDrawerHelper implements View.OnClickListener {
             public void onDrawerClosed(View view) {
                 // При закрытии - устанавливаем фильтр
                 super.onDrawerClosed(view);
-                mActivity.getSupportLoaderManager().restartLoader(mActivity.ITEM_LOADER_ID, null, mActivity);
+                mActivity.getSupportLoaderManager().restartLoader(MainListActivity.ITEM_LOADER_ID, null, mActivity);
             }
 
             @Override
@@ -192,19 +192,19 @@ class MainListDrawerHelper implements View.OnClickListener {
                 // Действие "Сохранить бэкап" открывает окно подтверждения и по положительному ответу
                 // вызывает функцию для сохранения
                 ActivityUtils.showAlertDialog(mActivity,
-                        mActivity.getString(R.string.mainlist_drawer_backup_save_question_title),
-                        mActivity.getString(R.string.mainlist_drawer_backup_save_question_text),
-                        () -> new BackupAsyncTask().execute(true),
-                        null);
+                    mActivity.getString(R.string.mainlist_drawer_backup_save_question_title),
+                    mActivity.getString(R.string.mainlist_drawer_backup_save_question_text),
+                    () -> new BackupAsyncTask().execute(Boolean.TRUE),
+                    null);
                 break;
             case R.id.button_drawermainlist_backuprestore:
                 // Действие "Восстановить из бэкапа" открывает окно подтверждения и по положительному ответу
                 // вызывает функцию для восстановления
                 ActivityUtils.showAlertDialog(mActivity,
-                        mActivity.getString(R.string.mainlist_drawer_backup_restore_question_title),
-                        mActivity.getString(R.string.mainlist_drawer_backup_restore_question_text),
-                        () -> new BackupAsyncTask().execute(false),
-                        null);
+                    mActivity.getString(R.string.mainlist_drawer_backup_restore_question_title),
+                    mActivity.getString(R.string.mainlist_drawer_backup_restore_question_text),
+                    () -> new BackupAsyncTask().execute(Boolean.FALSE),
+                    null);
                 break;
             case R.id.button_drawermainlist_fillplaceholders:
                 // Действие "Заполнить данными" открывает окно подтверждения и по положительному ответу
@@ -223,13 +223,13 @@ class MainListDrawerHelper implements View.OnClickListener {
             default:
                 break;
         }
-        mDrawerLayout.closeDrawer(Gravity.RIGHT);
+        mDrawerLayout.closeDrawer(Gravity.END);
 
     }
 
     /** Открывает этот Drawer. */
     void openDrawer() {
-        mDrawerLayout.openDrawer(Gravity.RIGHT);
+        mDrawerLayout.openDrawer(Gravity.END);
     }
 
     /** Перезагружает адаптер списка сохраненных фильтров.
@@ -252,11 +252,11 @@ class MainListDrawerHelper implements View.OnClickListener {
                         // Показываем окно ввода текста, сохраняем при успешном вводе
                         final EditText editText = new EditText(mActivity);
                         ActivityUtils.showInputTextDialog(mActivity,
-                                editText,
-                                mActivity.getString(R.string.mainlist_drawer_filters_save_question_title),
-                                null,
-                                (String input) -> saveFilter(input),
-                                () -> resetSavedFilterSelection());
+                            editText,
+                            mActivity.getString(R.string.mainlist_drawer_filters_save_question_title),
+                            null,
+                            (String input) -> saveFilter(input),
+                            () -> resetSavedFilterSelection());
 
                     } else if (position == indexSavedDelete) {
                         // Вариант 2: Клик на кнопку "- Удалить"
@@ -267,13 +267,13 @@ class MainListDrawerHelper implements View.OnClickListener {
                             return;
                         }
                         ActivityUtils.showAlertDialog(mActivity,
-                                mActivity.getString(R.string.mainlist_drawer_filters_remove_question_title),
-                                mActivity.getString(R.string.mainlist_drawer_filters_remove_question_text),
-                                () -> removeSavedFilter(),
-                                () -> resetSavedFilterSelection());
+                            mActivity.getString(R.string.mainlist_drawer_filters_remove_question_title),
+                            mActivity.getString(R.string.mainlist_drawer_filters_remove_question_text),
+                            () -> removeSavedFilter(),
+                            () -> resetSavedFilterSelection());
                     } else {
                         // Остальные варианты - выбираем
-                        MainListFilterUtils.clickOnSavedFilter(mActivity, position);
+                        MainListFilterUtils.clickOnSavedFilter(position);
                         updateDrawerWithCurrentFilter();
                     }
                 }
@@ -328,6 +328,7 @@ class MainListDrawerHelper implements View.OnClickListener {
      * @param month месяц
      * @param day день
      */
+    @SuppressWarnings("UnusedParameters") // Используется как лямбда
     private void setDate(DatePicker picker, int year, int month, int day) {
         if (mDateEditor != null) {
             mCalendar.set(Calendar.YEAR, year);
@@ -503,7 +504,7 @@ class MainListDrawerHelper implements View.OnClickListener {
             super.onPostExecute(saveMode);
             // TODO: mActivity.showDataView();
             if (!saveMode) {
-                mActivity.getSupportLoaderManager().restartLoader(mActivity.ITEM_LOADER_ID, null, mActivity);
+                mActivity.getSupportLoaderManager().restartLoader(MainListActivity.ITEM_LOADER_ID, null, mActivity);
             }
         }
     }

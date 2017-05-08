@@ -1,55 +1,31 @@
 package com.example.mborzenkov.readlaterlist.activity;
 
-import android.app.DatePickerDialog;
 import android.app.SearchManager;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.DatePicker;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 
-import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
-import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
-import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
-import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
-import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
-import com.example.mborzenkov.readlaterlist.utility.MainListBackupUtils;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
-
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
 
 /** Главная Activity, представляющая собой список. */
 public class MainListActivity extends AppCompatActivity implements
@@ -85,9 +61,9 @@ public class MainListActivity extends AppCompatActivity implements
     static final int INDEX_COLUMN_LABEL = 1;
     static final int INDEX_COLUMN_DESCRIPTION = 2;
     static final int INDEX_COLUMN_COLOR = 3;
-    static final int INDEX_COLUMN_DATE_CREATED = 4;
+    // static final int INDEX_COLUMN_DATE_CREATED = 4;
     static final int INDEX_COLUMN_DATE_LAST_MODIFIED = 5;
-    static final int INDEX_COLUMN_DATE_LAST_VIEW = 6;
+    // static final int INDEX_COLUMN_DATE_LAST_VIEW = 6;
     /** ID Используемого LoadManager'а. */
     public static final int ITEM_LOADER_ID = 13;
 
@@ -115,13 +91,10 @@ public class MainListActivity extends AppCompatActivity implements
         toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.icons));
         setSupportActionBar(toolbar);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_item_add);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Создание нового элемента
-                Intent newItemIntent = new Intent(MainListActivity.this, EditItemActivity.class);
-                startActivityForResult(newItemIntent, ITEM_ADD_NEW_REQUEST);
-            }
+        fab.setOnClickListener(view -> {
+            // Создание нового элемента
+            Intent newItemIntent = new Intent(MainListActivity.this, EditItemActivity.class);
+            startActivityForResult(newItemIntent, ITEM_ADD_NEW_REQUEST);
         });
 
         // Инициализация объектов layout

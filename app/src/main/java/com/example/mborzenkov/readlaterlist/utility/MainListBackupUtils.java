@@ -84,7 +84,6 @@ public class MainListBackupUtils {
                 inputStream.close();
                 jsonString = stringBuilder.toString().trim();
             }
-            inputStream.close();
         } catch (FileNotFoundException e) {
             Log.e("Read exception", String.format(FORMAT_ERROR, "Файл не найден: ", e.toString()));
         } catch (IOException e) {
@@ -103,6 +102,7 @@ public class MainListBackupUtils {
 
             // restoredData может содержать null при ошибках разбора, нужно их исключить
             if (restoredData.contains(null)) {
+                //noinspection SuspiciousMethodCalls
                 restoredData.removeAll(Collections.singleton(null));
             }
 
