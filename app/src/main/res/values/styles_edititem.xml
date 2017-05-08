@@ -1,0 +1,14 @@
+<resources>
+
+    <style name="EditItem"/>
+    <style name="EditItem.Date" parent="Text.Secondary"/>
+    <style name="EditItem.TextField" parent="Text.Primary">
+        <item name="android:inputType">text</item>
+    </style>
+    <style name="EditItem.AppBarTextField" parent="EditItem.TextField">
+        <item name="android:maxLines">@integer/edititem_headerlines</item>
+        <item name="android:nextFocusDown">@id/et_edit_item_description</item>
+        <item name="android:textColor">@color/icons</item>
+    </style>
+
+</resources>

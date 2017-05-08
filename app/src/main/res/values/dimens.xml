@@ -1,98 +1,53 @@
 <resources>
 
+    <!-- Стандартные отступы между элементами -->
+    <dimen name="marginvertical_small">8dp</dimen>
+    <dimen name="marginvertical_normal">16dp</dimen>
+    <dimen name="marginvertical_large">32dp</dimen>
+    <dimen name="marginhorizontal_small">8dp</dimen>
+    <dimen name="marginhorizontal_normal">16dp</dimen>
+    <dimen name="marginhorizontal_large">32dp</dimen>
+    <dimen name="marginhorizontal_huge">72dp</dimen>
+    <dimen name="marginhorizontal_jumbo">88dp</dimen>
+    <dimen name="paddingvertical_small">8dp</dimen>
+    <dimen name="paddingvertical_normal">16dp</dimen>
+    <dimen name="paddingvertical_large">32dp</dimen>
+
+    <!-- Стандартные размеры элементов -->
+    <dimen name="width_textfield_small">100dp</dimen>
+
+    <!-- Общие элементы -->
     <dimen name="height_divider">1px</dimen>
+    <dimen name="width_drawer">240dp</dimen>
+    <dimen name="size_progressbar">42dp</dimen>
+    <dimen name="size_fab">56dp</dimen>
+    <dimen name="margin_fab">16dp</dimen>
+    <dimen name="height_horizontalscrollview_default">100dp</dimen>
+    <dimen name="height_circlelayout_small">30dp</dimen>
 
-    <!-- MainListActivity -->
-        <dimen name="padding_mainlist_list">8dp</dimen>
+    <!-- Drawable -->
+    <dimen name="size_circle_small">30dp</dimen>
+    <dimen name="size_circle_normal">40dp</dimen>
+    <dimen name="size_circle_large">60dp</dimen>
+    <dimen name="size_circle_huge">80dp</dimen>
+    <dimen name="margin_circle_small">5dp</dimen>
+    <dimen name="margin_circle_normal">10dp</dimen>
+    <dimen name="margin_circle_large">15dp</dimen>
+    <dimen name="margin_circle_huge">20dp</dimen>
 
-        <dimen name="size_mainlist_icon">30dp</dimen>
-        <dimen name="marginleft_mainlist_icon">16dp</dimen>
+    <!-- Текст -->
+    <dimen name="size_text_primary">16sp</dimen>
+    <dimen name="size_text_secondary">14sp</dimen>
+    <dimen name="margintop_text_prsec">@dimen/marginvertical_small</dimen> <!-- Стандартный отступ между Primary и Secondary -->
 
-        <dimen name="height_mainlist_item">88dp</dimen>
-        <dimen name="paddingtop_mainlist_item">16dp</dimen>
+    <!-- Элементы списков -->
+    <dimen name="padding_list_start">8dp</dimen>
+    <dimen name="height_list_item">88dp</dimen>
 
-        <dimen name="marginleft_mainlist_text">72dp</dimen>
-        <dimen name="marginright_mainlist_text">16dp</dimen>
-        <dimen name="marginright_mainlist_primarytext">124dp</dimen>
-
-        <dimen name="textsize_mainlist_primarytext">16sp</dimen>
-
-        <dimen name="textsize_mainlist_secondarytext">14sp</dimen>
-        <dimen name="marginbottom_mainlist_secondarytext">20dp</dimen>
-
-        <dimen name="width_mainlist_date">100dp</dimen>
-
-        <dimen name="size_mainlist_fabadd">56dp</dimen>
-        <dimen name="margin_mainlist_fabadd">16dp</dimen>
-
-        <dimen name="paddingtop_mainlist_empty">32dp</dimen>
-
-        <dimen name="size_mainlist_progressbar">42dp</dimen>
-
-        <!-- Фильтр -->
-        <dimen name="width_mainlist_drawer">240dp</dimen>
-        <dimen name="width_mainlist_drawer_dateinput">100dp</dimen>
-        <dimen name="marginleft_mainlist_drawer">16dp</dimen>
-        <dimen name="marginright_mainlist_drawer">16dp</dimen>
-        <dimen name="margintop_mainlist_drawer_title">8dp</dimen>
-        <dimen name="margintop_mainlist_drawer_text">16dp</dimen>
-        <dimen name="margintop_mainlist_drawer_hint">8dp</dimen>
-        <dimen name="margintop_mainlist_drawer_dateinput">8dp</dimen>
-        <dimen name="margintop_mainlist_drawer_button">8dp</dimen>
-        <dimen name="margintop_mainlist_drawer_spinner">8dp</dimen>
-        <dimen name="marginbottom_mainlist_drawer_text">8dp</dimen>
-
-        <dimen name="height_mainlist_drawer_favorites">30dp</dimen>
-        <dimen name="size_mainlist_drawer_favoritecircle">30dp</dimen>
-        <dimen name="margin_mainlist_drawer_favoritecircle">5dp</dimen>
-
-
-
-    <!-- EditItemActivity -->
-    <dimen name="paddingtop_edititem_item">16dp</dimen>
-    <dimen name="margintop_edititem_item">16dp</dimen>
-
-    <dimen name="margintop_edititem_date">8dp</dimen>
-    <dimen name="marginleft_edititem_date_label">16dp</dimen>
-    <dimen name="marginleft_edititem_date_value">88dp</dimen>
-
-    <dimen name="size_edititem_icon">40dp</dimen>
-    <dimen name="marginleft_edititem_icon">16dp</dimen>
-
-    <dimen name="marginleft_edititem_textinputlayout">72dp</dimen>
-    <dimen name="marginright_edititem_textinputlayout">16dp</dimen>
-
-    <dimen name="textsize_edititem_textfield">16sp</dimen>
-
-    <dimen name="margintopbottom_edititem_appbartextinputlayout">8dp</dimen>
-    <dimen name="marginleftright_edititem_appbartextinputlayout">72dp</dimen>
-
-    <dimen name="size_edititem_fabsave">56dp</dimen>
-    <dimen name="margin_edititem_fabsave">16dp</dimen>
-
-    <!-- ColorPickerActivity -->
-    <dimen name="height_colorpicker_horizontalscrollview_default">100dp</dimen>
-
-    <dimen name="marginTop_colorpicker_linearlayoutfavorites">16dp</dimen>
-    
-    <dimen name="size_colorpicker_coloredcircle">80dp</dimen>
-    <dimen name="margin_colorpicker_coloredcircle">20dp</dimen>
-    <dimen name="margintop_colorpicker_coloredcircle">20dp</dimen>
-
-    <dimen name="margintop_colorpicker_chosencircle">16dp</dimen>
-
-    <dimen name="size_colorpicker_favoritecircle">60dp</dimen>
-    <dimen name="margin_colorpicker_favoritecircle">15dp</dimen>
-
+    <!-- Элементы конкретного layout -->
     <dimen name="size_colorpicker_star">20dp</dimen>
     <dimen name="margin_colorpicker_star">4dp</dimen>
-
-    <dimen name="textsize_colorpicker_all">16sp</dimen>
-
-    <dimen name="margintop_colorpicker_textchosen">8dp</dimen>
-    <dimen name="margintop_colorpicker_textfavorites">8dp</dimen>
-    <dimen name="margin_colorpicker_textvalues">8dp</dimen>
-    <dimen name="margintop_colorpicker_textlabels">32dp</dimen>
-    <dimen name="margin_colorpicker_textlabels">8dp</dimen>
+    <dimen name="marginright_mainlist_primarytext">124dp</dimen>
+    <dimen name="marginbottom_mainlist_secondarytext">20dp</dimen>
 
 </resources>
