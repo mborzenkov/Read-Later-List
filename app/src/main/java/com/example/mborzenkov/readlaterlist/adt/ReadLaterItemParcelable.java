@@ -18,7 +18,7 @@ public final class ReadLaterItemParcelable implements Parcelable {
     //
     // Безопасность представления:
     //      класс не имеет мутаторов и item объявлен final
-    //      при сохранении item во внутреннее поле не выполняется резервного копирования, так как ReadLaterItem -
+    //      при сохранении item во внутреннее поле не выполняется safe-copying, так как ReadLaterItem -
     //              неизменяемый тип данных
     //
     // Потоковая безопасность:
@@ -40,7 +40,11 @@ public final class ReadLaterItemParcelable implements Parcelable {
             String label = source.readString();
             String description = source.readString();
             int color = source.readInt();
-            return new ReadLaterItemParcelable(new ReadLaterItem(label, description, color));
+            long dateCreated = source.readLong();
+            long dateModified = source.readLong();
+            long dateViewed = source.readLong();
+            return new ReadLaterItemParcelable(
+                    new ReadLaterItem(label, description, color, dateCreated, dateModified, dateViewed));
         }
 
         @Override
@@ -59,6 +63,9 @@ public final class ReadLaterItemParcelable implements Parcelable {
         dest.writeString(item.getLabel());
         dest.writeString(item.getDescription());
         dest.writeInt(item.getColor());
+        dest.writeLong(item.getDateCreated());
+        dest.writeLong(item.getDateModified());
+        dest.writeLong(item.getDateViewed());
     }
 
 }

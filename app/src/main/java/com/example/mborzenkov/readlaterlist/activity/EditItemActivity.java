@@ -20,11 +20,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
+
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 /**
  * Activity для редактирования элемента MainListActivity
@@ -37,6 +41,8 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
 
     /** ID для открытия ColorPickerActivity на редактирование цвета. */
     private static final int ITEM_EDIT_COLOR_REQUEST = 11;
+    /** Формат дат. */
+    private static final String FORMAT_DATE = "dd.MM.yy HH:mm";
 
     /** Текущий выбранный цвет в формате sRGB. */
     private int mChosenColor;
@@ -46,12 +52,16 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
     private EditModes mMode = EditModes.NEW;
     /** Признак наличия изменений. */
     private boolean mModified = false;
+    /** Редактируемый элемент. */
+    private @Nullable ReadLaterItem mFromItem = null;
 
     // Объекты layout
     private TextInputEditText mLabelEditText;
     private TextInputLayout mLabelInputLayout;
     private TextInputEditText mDescriptionEditText;
     private ImageButton mColorImageButton;
+    private TextView mDateCreatedTextView;
+    private TextView mDateModifiedTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +83,8 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         mLabelEditText = (TextInputEditText) findViewById(R.id.et_edit_item_label);
         mLabelInputLayout = (TextInputLayout) findViewById(R.id.til_edit_item_label);
         mDescriptionEditText = (TextInputEditText) findViewById(R.id.et_edit_item_description);
+        mDateCreatedTextView = (TextView) findViewById(R.id.tv_edititem_created_value);
+        mDateModifiedTextView = (TextView) findViewById(R.id.tv_edititem_modified_value);
         mColorImageButton = (ImageButton) findViewById(R.id.ib_edit_item_color);
         mColorImageButton.setOnClickListener(this);
 
@@ -80,11 +92,14 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra(ReadLaterItemParcelable.KEY_EXTRA)) {
             // В Intent были переданы данные об объекте, записываем их в соответствующие поля
-            ReadLaterItem itemData =
+            SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
+            mFromItem =
                     ((ReadLaterItemParcelable) intent.getParcelableExtra(ReadLaterItemParcelable.KEY_EXTRA)).getItem();
-            mLabelEditText.setText(itemData.getLabel());
-            mDescriptionEditText.setText(itemData.getDescription());
-            mChosenColor = itemData.getColor();
+            mLabelEditText.setText(mFromItem.getLabel());
+            mDescriptionEditText.setText(mFromItem.getDescription());
+            mDateCreatedTextView.setText(dateFormatter.format(mFromItem.getDateCreated()));
+            mDateModifiedTextView.setText(dateFormatter.format(mFromItem.getDateModified()));
+            mChosenColor = mFromItem.getColor();
             getSupportActionBar().setTitle(getString(R.string.edititem_title_edit));
             fab.setImageResource(R.drawable.ic_edit_24dp);
             mMode = EditModes.EDIT;
@@ -232,8 +247,14 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
     private @Nullable ReadLaterItem packInputData() {
         String label = mLabelEditText.getText().toString();
         String description = mDescriptionEditText.getText().toString();
+        long currentTime = System.currentTimeMillis();
         if (!label.trim().isEmpty()) {
-            return new ReadLaterItem(label, description, mChosenColor);
+            if (mFromItem != null) {
+                return new ReadLaterItem(label, description, mChosenColor,
+                        mFromItem.getDateCreated(), currentTime, currentTime);
+            } else {
+                return new ReadLaterItem(label, description, mChosenColor, currentTime, currentTime, currentTime);
+            }
         } else {
             mLabelInputLayout.setError(getString(R.string.edititem_error_title_empty));
             return null;
