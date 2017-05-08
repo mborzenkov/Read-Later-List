@@ -6,10 +6,10 @@
 
     <solid
         android:color="@android:color/transparent"
-        tools:color="@color/colorpicker_gradient_middle" />
+        tools:color="@color/gradient_middle" />
 
     <stroke
         android:width="2dp"
-        android:color="@color/colorpicker_element_stroke" />
+        android:color="@color/circle_stroke" />
 
 </shape>

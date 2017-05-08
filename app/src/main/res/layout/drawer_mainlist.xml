@@ -3,153 +3,258 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/MainList.Drawer.Layout">
+    android:layout_width="@dimen/width_drawer"
+    android:layout_height="match_parent"
+    android:layout_gravity="end"
+    style="@style/MainList.Drawer.Layout"
+    >
 
     <android.support.constraint.ConstraintLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        >
 
         <TextView
             android:id="@+id/textview_drawermainlist_title"
-            style="@style/MainList.Drawer.Text.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent"
+            android:text="@string/mainlist_drawer_title"
+            />
 
         <TextView
             android:id="@+id/textview_drawermainlist_filter"
-            style="@style/MainList.Drawer.Text.Label"
-            android:text="@string/mainlist_drawer_filters_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_normal"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/spinner_drawermainlist_filter"/>
+            app:layout_constraintTop_toBottomOf="@+id/spinner_drawermainlist_filter"
+            android:text="@string/mainlist_drawer_filters_title"
+            />
 
         <Spinner
             android:id="@+id/spinner_drawermainlist_filter"
-            style="@style/MainList.Drawer.Spinner.Filter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginRight="@dimen/marginhorizontal_normal"
+            android:layout_marginEnd="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_title"
-            app:layout_constraintLeft_toLeftOf="parent"/>
+            app:layout_constraintLeft_toLeftOf="parent"
+            />
 
         <Spinner
             android:id="@+id/spinner_drawermainlist_datefilter"
-            style="@style/MainList.Drawer.Spinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginRight="@dimen/marginhorizontal_normal"
+            android:layout_marginEnd="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_filter"/>
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_filter"
+            />
 
         <EditText
             android:id="@+id/edittext_drawermainlist_datefrom"
-            style="@style/MainList.Drawer.DateInput"
-            android:hint="@string/mainlist_drawer_datefrom_hint"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/spinner_drawermainlist_datefilter"/>
+            app:layout_constraintTop_toBottomOf="@+id/spinner_drawermainlist_datefilter"
+            android:hint="@string/mainlist_drawer_datefrom_hint"
+            style="@style/DateInput"
+            />
 
         <EditText
             android:id="@+id/edittext_drawermainlist_dateto"
-            style="@style/MainList.Drawer.DateInput"
-            android:hint="@string/mainlist_drawer_dateto_hint"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintTop_toBottomOf="@+id/spinner_drawermainlist_datefilter"
-            app:layout_constraintLeft_toRightOf="@+id/edittext_drawermainlist_datefrom"/>
+            app:layout_constraintLeft_toRightOf="@+id/edittext_drawermainlist_datefrom"
+            android:hint="@string/mainlist_drawer_dateto_hint"
+            style="@style/DateInput"
+            />
 
         <TextView
             android:id="@+id/textview_drawermainlist_color"
-            style="@style/MainList.Drawer.Text.Label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_normal"
             android:text="@string/mainlist_drawer_color_title"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/edittext_drawermainlist_dateto"/>
+            app:layout_constraintTop_toBottomOf="@+id/edittext_drawermainlist_dateto"
+            />
 
         <LinearLayout
             android:id="@+id/linearlayout_drawermainlist_favorites"
-            style="@style/ColorPicker.LinearLayoutFavorites"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="@dimen/marginhorizontal_normal"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            tools:minHeight="@dimen/height_mainlist_drawer_favorites"
-            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_color"/>
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_color"
+            tools:minHeight="@dimen/height_circlelayout_small"
+            />
 
         <TextView
             android:id="@+id/textview_drawermainlist_sorting"
-            style="@style/MainList.Drawer.Text.Label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_normal"
             android:text="@string/mainlist_drawer_sort_title"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearlayout_drawermainlist_favorites"/>
+            app:layout_constraintTop_toBottomOf="@+id/linearlayout_drawermainlist_favorites"
+            />
 
         <Button
             android:id="@+id/button_drawermainlist_sortname"
-            style="@style/MainList.Drawer.Button.Sort"
-            android:onClick="clickOnSortButton"
-            android:text="@string/mainlist_drawer_sort_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_sorting"/>
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_sorting"
+            android:text="@string/mainlist_drawer_sort_label"
+            style="@style/Button"
+            />
 
         <Button
             android:id="@+id/button_drawermainlist_sortcreate"
-            style="@style/MainList.Drawer.Button.Sort"
-            android:onClick="clickOnSortButton"
-            android:text="@string/mainlist_drawer_sort_created"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_sortname"
-            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_sorting"/>
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_sorting"
+            android:text="@string/mainlist_drawer_sort_created"
+            style="@style/Button"
+            />
 
         <Button
             android:id="@+id/button_drawermainlist_sortmodified"
-            style="@style/MainList.Drawer.Button.Sort"
-            android:onClick="clickOnSortButton"
-            android:text="@string/mainlist_drawer_sort_modified"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_sortname"/>
+            app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_sortname"
+            android:text="@string/mainlist_drawer_sort_modified"
+            style="@style/Button"
+            />
 
         <Button
             android:id="@+id/button_drawermainlist_sortview"
-            style="@style/MainList.Drawer.Button.Sort"
-            android:onClick="clickOnSortButton"
-            android:text="@string/mainlist_drawer_sort_viewed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_sortmodified"
-            app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_sortname"/>
+            app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_sortname"
+            android:text="@string/mainlist_drawer_sort_viewed"
+            style="@style/Button"
+            />
 
         <TextView
             android:id="@+id/textview_drawermainlist_backup"
-            style="@style/MainList.Drawer.Text.Label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_normal"
             android:text="@string/mainlist_drawer_backup_title"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_sortmodified"/>
+            app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_sortmodified"
+            />
 
         <Button
             android:id="@+id/button_drawermainlist_backupsave"
-            style="@style/MainList.Drawer.Button.Save"
-            android:onClick="clickOnBackupButton"
-            android:text="@string/mainlist_drawer_backup_save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_backup"/>
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_backup"
+            android:text="@string/mainlist_drawer_backup_save"
+            style="@style/Button"
+            />
 
         <Button
             android:id="@+id/button_drawermainlist_backuprestore"
-            style="@style/MainList.Drawer.Button.Restore"
-            android:onClick="clickOnBackupButton"
-            android:text="@string/mainlist_drawer_backup_restore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_backupsave"
-            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_backup"/>
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_backup"
+            android:text="@string/mainlist_drawer_backup_restore"
+            style="@style/Button"
+            />
 
         <TextView
             android:id="@+id/textview_drawermainlist_debug"
-            style="@style/MainList.Drawer.Text.Label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_normal"
             android:text="@string/mainlist_drawer_debug_title"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_backupsave"/>
+            app:layout_constraintTop_toBottomOf="@+id/button_drawermainlist_backupsave"
+            />
 
         <Button
             android:id="@+id/button_drawermainlist_fillplaceholders"
-            style="@style/MainList.Drawer.Button.Fill"
-            android:onClick="clickOnDebugButton"
-            android:text="@string/mainlist_drawer_fillplaceholders_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_debug"/>
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_debug"
+            android:text="@string/mainlist_drawer_fillplaceholders_title"
+            style="@style/Button"
+            />
 
         <Button
             android:id="@+id/button_drawermainlist_deleteall"
-            style="@style/MainList.Drawer.Button.Delete"
-            android:onClick="clickOnDebugButton"
-            android:text="@string/mainlist_drawer_deleteall_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/marginhorizontal_normal"
+            android:layout_marginStart="@dimen/marginhorizontal_normal"
+            android:layout_marginTop="@dimen/marginvertical_small"
             app:layout_constraintLeft_toRightOf="@+id/button_drawermainlist_fillplaceholders"
-            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_debug"/>
+            app:layout_constraintTop_toBottomOf="@+id/textview_drawermainlist_debug"
+            android:text="@string/mainlist_drawer_deleteall_title"
+            style="@style/Button"
+            />
 
     </android.support.constraint.ConstraintLayout>
 

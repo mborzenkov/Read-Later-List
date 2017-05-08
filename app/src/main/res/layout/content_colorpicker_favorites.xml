@@ -4,28 +4,34 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/relaviteLayout_favorites"
-    android:orientation="vertical"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    >
 
     <ImageButton
         android:id="@+id/imageButton_favorite_color"
-        style="@style/ColorPicker.Favorite"
-        android:background="@drawable/colorpicker_circle"
-        android:onClick="clickOnFavSquare"
-        android:clickable="true"
+        android:layout_width="@dimen/size_circle_large"
+        android:layout_height="@dimen/size_circle_large"
+        android:layout_margin="@dimen/margin_circle_large"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:contentDescription="@string/colorpicker_favorites_label"/>
+        android:onClick="clickOnFavSquare"
+        android:contentDescription="@string/colorpicker_favorites_label"
+        style="@style/ColorPicker.ColoredCircle.Favorite"
+        />
 
     <ImageView
         android:id="@+id/imageView_fav_star"
-        style="@style/ColorPicker.Star"
-        app:srcCompat="@android:drawable/btn_star"
+        android:layout_width="@dimen/size_colorpicker_star"
+        android:layout_height="@dimen/size_colorpicker_star"
+        android:layout_margin="@dimen/margin_colorpicker_star"
         android:layout_alignTop="@+id/imageButton_favorite_color"
         android:layout_alignRight="@+id/imageButton_favorite_color"
         android:layout_alignEnd="@+id/imageButton_favorite_color"
-        tools:ignore="ContentDescription"/>
+        app:srcCompat="@android:drawable/btn_star"
+        tools:ignore="ContentDescription"
+        />
 
 
 </RelativeLayout>

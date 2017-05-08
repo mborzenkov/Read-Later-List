@@ -13,9 +13,7 @@ import android.widget.TextView;
 import com.example.mborzenkov.readlaterlist.R;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Locale;
-import java.util.TimeZone;
 
 /** Адаптер для MainListActivity (очень простой).
  *      Этот адаптер имеет смысл переписать на RecyclerView

@@ -32,7 +32,7 @@ public class ReadLaterItemJsonAdapter {
     @SuppressWarnings("unused")
     @ToJson
     public ReadLaterItemJson toJson(@NonNull ReadLaterItem item) {
-        SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
+        final SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
         ReadLaterItemJson json = new ReadLaterItemJson();
         json.title = item.getLabel();
         json.description = item.getDescription();
@@ -66,7 +66,7 @@ public class ReadLaterItemJsonAdapter {
                     dateFormatter.parse(json.edited).getTime(),
                     dateFormatter.parse(json.viewed).getTime());
         } catch (ParseException e) {
-            Log.e("Parse error", String.format("%s %s\n%s %s",
+            Log.e("Parse error", String.format("%s %s%n%s %s",
                     "Ошибка разбора дат из ReadLaterItemJson:",
                     e.toString(),
                     "Объект ReadLaterItemJson:",

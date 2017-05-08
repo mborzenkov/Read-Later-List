@@ -3,7 +3,6 @@ package com.example.mborzenkov.readlaterlist.adt;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 
@@ -86,12 +85,12 @@ public class ReadLaterItemDbAdapter {
 
     /** Объект, содержащий соответствие индексов колонок в курсоре полям объекта ReadLaterItem. */
     private class ReadLaterItemCursorProjection {
-        private int indexLabel;
-        private int indexDescription;
-        private int indexColor;
-        private int indexCreated;
-        private int indexModified;
-        private int indexViewed;
+        private final int indexLabel;
+        private final int indexDescription;
+        private final int indexColor;
+        private final int indexCreated;
+        private final int indexModified;
+        private final int indexViewed;
 
         /** Получает индексы колонок из курсора, соответствующие полям объекта ReadLaterItem.
          *

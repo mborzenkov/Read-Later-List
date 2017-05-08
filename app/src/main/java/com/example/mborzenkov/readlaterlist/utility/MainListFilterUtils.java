@@ -117,10 +117,9 @@ public class MainListFilterUtils {
 
     /** Обрабатывает выбор сохраненного фильтра.
      *
-     * @param context Контекст
      * @param position Позиция
      */
-    public static void clickOnSavedFilter(Context context, int position) {
+    public static void clickOnSavedFilter(int position) {
         if (position == INDEX_SAVED_DEFAULT) {
             sCurrentFilter = new MainListFilter();
             sCurrentFilterName = null;

@@ -2,18 +2,20 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/relaviteLayout_favorites"
-    android:orientation="vertical"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    >
 
     <ImageButton
         android:id="@+id/imageButton_favorite_color"
-        style="@style/MainList.Drawer.Favorite"
-        android:background="@drawable/mainlist_drawer_circle"
-        android:onClick="clickOnFavSquare"
-        android:clickable="true"
+        android:layout_width="@dimen/size_circle_small"
+        android:layout_height="@dimen/size_circle_small"
+        android:layout_margin="@dimen/margin_circle_small"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:contentDescription="@string/colorpicker_favorites_label"/>
+        android:contentDescription="@string/colorpicker_favorites_label"
+        style="@style/MainList.Drawer.FavoriteCircle"
+        />
 
 </RelativeLayout>

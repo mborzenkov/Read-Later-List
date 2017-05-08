@@ -5,17 +5,33 @@
     android:orientation="vertical"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:paddingTop="@dimen/paddingtop_mainlist_empty"
-    android:layout_gravity="center">
+    android:paddingTop="@dimen/paddingvertical_large"
+    android:layout_gravity="center"
+    >
 
     <TextView
         android:id="@+id/tv_item_empty_label"
-        style="@style/MainList.PrimaryText"
-        android:text="@string/mainlist_empty_label" />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/marginhorizontal_huge"
+        android:layout_marginStart="@dimen/marginhorizontal_huge"
+        android:layout_marginRight="@dimen/marginright_mainlist_primarytext"
+        android:layout_marginEnd="@dimen/marginright_mainlist_primarytext"
+        android:text="@string/mainlist_empty_label"
+        style="@style/MainList.Label"
+        />
 
     <TextView
         android:id="@+id/tv_item_empty_desc"
-        style="@style/MainList.SecondaryText"
-        android:text="@string/mainlist_empty_description" />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/marginhorizontal_huge"
+        android:layout_marginStart="@dimen/marginhorizontal_huge"
+        android:layout_marginRight="@dimen/marginhorizontal_normal"
+        android:layout_marginEnd="@dimen/marginhorizontal_normal"
+        android:layout_marginBottom="@dimen/marginbottom_mainlist_secondarytext"
+        android:text="@string/mainlist_empty_description"
+        style="@style/MainList.Description"
+        />
 
 </LinearLayout>

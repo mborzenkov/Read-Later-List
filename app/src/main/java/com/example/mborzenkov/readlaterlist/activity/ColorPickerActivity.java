@@ -130,7 +130,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
      * @return Квадратик Drawable
      */
     private GradientDrawable getSquareDrawable(Context context) {
-        return (GradientDrawable) ContextCompat.getDrawable(context, R.drawable.colorpicker_circle);
+        return (GradientDrawable) ContextCompat.getDrawable(context, R.drawable.circle_stroke);
     }
 
     /** Заставляет телефон вибрировать.
@@ -173,8 +173,8 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         mVibrator = (Vibrator) applicationContext.getSystemService(VIBRATOR_SERVICE);
 
         final int numberOfSquares = getResources().getInteger(R.integer.colorpicker_circles);
-        final int colorGradientStart = ContextCompat.getColor(applicationContext, R.color.colorpicker_gradient_start);
-        final int colorGradientEnd = ContextCompat.getColor(applicationContext, R.color.colorpicker_gradient_end);
+        final int colorGradientStart = ContextCompat.getColor(applicationContext, R.color.gradient_start);
+        final int colorGradientEnd = ContextCompat.getColor(applicationContext, R.color.gradient_end);
         mStepHue = countStep(colorGradientStart, colorGradientEnd, numberOfSquares);
 
         // Скорость перетягивания зависит от дисплея

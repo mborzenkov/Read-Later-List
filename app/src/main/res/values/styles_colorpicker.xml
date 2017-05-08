@@ -1,0 +1,17 @@
+<resources>
+
+    <style name="ColorPicker"/>
+    <style name="ColorPicker.ColoredCircle">
+        <item name="android:background">@drawable/circle_stroke</item>
+    </style>
+    <style name="ColorPicker.ColoredCircle.Picker">
+        <item name="android:longClickable">true</item>
+    </style>
+    <style name="ColorPicker.ColoredCircle.Chosen">
+        <item name="android:clickable">true</item>
+    </style>
+    <style name="ColorPicker.ColoredCircle.Favorite">
+        <item name="android:clickable">true</item>
+    </style>
+
+</resources>

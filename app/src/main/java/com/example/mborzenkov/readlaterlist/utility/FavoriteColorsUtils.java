@@ -50,7 +50,7 @@ public class FavoriteColorsUtils {
 
         for (int i = 0; i < sMaxFavorites; i++) {
             StateListDrawable circle =
-                    (StateListDrawable) ContextCompat.getDrawable(context, R.drawable.mainlist_drawer_circle);
+                    (StateListDrawable) ContextCompat.getDrawable(context, R.drawable.circle_default);
             View favCircle = layoutInflater.inflate(R.layout.drawer_mainlist_favorites, layout, false);
             View circleButton = favCircle.findViewById(R.id.imageButton_favorite_color);
             circleButton.setBackground(circle);

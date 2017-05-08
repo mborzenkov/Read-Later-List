@@ -14,7 +14,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -46,8 +45,10 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
 
     /** Текущий выбранный цвет в формате sRGB. */
     private int mChosenColor;
+
     /** Признаки - создается новый объект или редактируется имеющийся. */
     private enum EditModes { NEW, EDIT }
+
     /** Текущий режим. */
     private EditModes mMode = EditModes.NEW;
     /** Признак наличия изменений. */
@@ -60,8 +61,6 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
     private TextInputLayout mLabelInputLayout;
     private TextInputEditText mDescriptionEditText;
     private ImageButton mColorImageButton;
-    private TextView mDateCreatedTextView;
-    private TextView mDateModifiedTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,8 +82,6 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         mLabelEditText = (TextInputEditText) findViewById(R.id.et_edit_item_label);
         mLabelInputLayout = (TextInputLayout) findViewById(R.id.til_edit_item_label);
         mDescriptionEditText = (TextInputEditText) findViewById(R.id.et_edit_item_description);
-        mDateCreatedTextView = (TextView) findViewById(R.id.tv_edititem_created_value);
-        mDateModifiedTextView = (TextView) findViewById(R.id.tv_edititem_modified_value);
         mColorImageButton = (ImageButton) findViewById(R.id.ib_edit_item_color);
         mColorImageButton.setOnClickListener(this);
 
@@ -92,13 +89,15 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra(ReadLaterItemParcelable.KEY_EXTRA)) {
             // В Intent были переданы данные об объекте, записываем их в соответствующие поля
-            SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
+            final SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
             mFromItem =
                     ((ReadLaterItemParcelable) intent.getParcelableExtra(ReadLaterItemParcelable.KEY_EXTRA)).getItem();
             mLabelEditText.setText(mFromItem.getLabel());
             mDescriptionEditText.setText(mFromItem.getDescription());
-            mDateCreatedTextView.setText(dateFormatter.format(mFromItem.getDateCreated()));
-            mDateModifiedTextView.setText(dateFormatter.format(mFromItem.getDateModified()));
+            ((TextView) findViewById(R.id.tv_edititem_created_value))
+                    .setText(dateFormatter.format(mFromItem.getDateCreated()));
+            ((TextView) findViewById(R.id.tv_edititem_modified_value))
+                    .setText(dateFormatter.format(mFromItem.getDateModified()));
             mChosenColor = mFromItem.getColor();
             getSupportActionBar().setTitle(getString(R.string.edititem_title_edit));
             fab.setImageResource(R.drawable.ic_edit_24dp);
