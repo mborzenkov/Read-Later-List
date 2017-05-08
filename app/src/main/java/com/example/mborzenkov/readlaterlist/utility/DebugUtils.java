@@ -30,25 +30,16 @@ public class DebugUtils {
      * @param activity Активити для обновления данных
      */
     public static void showAlertAndAddPlaceholders(final Context context, final MainListActivity activity) {
-
-        new AlertDialog.Builder(context)
-                .setTitle(context.getString(R.string.mainlist_menu_add_placeholders_question_title))
-                .setMessage(context.getString(R.string.mainlist_menu_add_placeholders_question_text))
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        addPlaceholdersToDatabase(context);
-                        activity.getSupportLoaderManager().restartLoader(MainListActivity.ITEM_LOADER_ID, null,
-                                activity);
-                    }
-                })
-                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        // do nothing
-                    }
-                })
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
-
+        ActivityUtils.showAlertDialog(
+                context,
+                context.getString(R.string.mainlist_menu_add_placeholders_question_title),
+                context.getString(R.string.mainlist_menu_add_placeholders_question_text),
+                () -> {
+                    addPlaceholdersToDatabase(context);
+                    activity.getSupportLoaderManager().restartLoader(MainListActivity.ITEM_LOADER_ID, null,
+                            activity);
+                },
+                null);
     }
 
     /** Показывает предупреждение и выполняет удаление данных при подтверждении.
@@ -57,24 +48,16 @@ public class DebugUtils {
      * @param activity Активити для обновления данных
      */
     public static void showAlertAndDeleteItems(final Context context, final MainListActivity activity) {
-
-        new AlertDialog.Builder(context)
-                .setTitle(context.getString(R.string.mainlist_menu_delete_all_question_title))
-                .setMessage(context.getString(R.string.mainlist_menu_delete_all_question_text))
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        ReadLaterDbUtils.deleteAll(context);
-                        activity.getSupportLoaderManager().restartLoader(MainListActivity.ITEM_LOADER_ID, null,
-                                activity);
-                    }
-                })
-                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        // do nothing
-                    }
-                })
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
+        ActivityUtils.showAlertDialog(
+                context,
+                context.getString(R.string.mainlist_menu_delete_all_question_title),
+                context.getString(R.string.mainlist_menu_delete_all_question_text),
+                () -> {
+                    ReadLaterDbUtils.deleteAll(context);
+                    activity.getSupportLoaderManager().restartLoader(MainListActivity.ITEM_LOADER_ID, null,
+                            activity);
+                },
+                null);
     }
 
     /** Заполняет базу данных плейсхолдерами (случайными данными).
@@ -85,6 +68,7 @@ public class DebugUtils {
      */
     private static void addPlaceholdersToDatabase(Context context) {
 
+        long currentTime = System.currentTimeMillis();
         String[] text = context.getString(R.string.debug_large_text).split("\n");
         int textRows = text.length;
         String label = context.getString(R.string.mainlist_menu_add_placeholders_label);
@@ -102,8 +86,13 @@ public class DebugUtils {
             // конвертируемые в обе стороны без потерь
             float[] colorHsv = new float[3];
             Color.colorToHSV(randomizer.nextInt(), colorHsv);
-            listItems.add(new ReadLaterItem(label + " " + i,
-                    description.toString().trim(), Color.HSVToColor(colorHsv)));
+            listItems.add(new ReadLaterItem(
+                    label + " " + i,
+                    description.toString().trim(),
+                    Color.HSVToColor(colorHsv),
+                    currentTime,
+                    currentTime,
+                    currentTime));
         }
         ReadLaterDbUtils.bulkInsertItems(context, listItems);
 

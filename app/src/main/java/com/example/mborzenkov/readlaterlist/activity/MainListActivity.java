@@ -34,6 +34,7 @@ import android.widget.Spinner;
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
@@ -76,14 +77,18 @@ public class MainListActivity extends AppCompatActivity implements
         ReadLaterContract.ReadLaterEntry.COLUMN_LABEL,
         ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION,
         ReadLaterContract.ReadLaterEntry.COLUMN_COLOR,
-        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW
     };
     /** Индексы для колонок из MAIN_LIST_PROJECTION, для упрощения. */
     private static final int INDEX_COLUMN_ID = 0;
     static final int INDEX_COLUMN_LABEL = 1;
     static final int INDEX_COLUMN_DESCRIPTION = 2;
     static final int INDEX_COLUMN_COLOR = 3;
-    static final int INDEX_COLUMN_DATE_LAST_MODIFIED = 4;
+    static final int INDEX_COLUMN_DATE_CREATED = 4;
+    static final int INDEX_COLUMN_DATE_LAST_MODIFIED = 5;
+    static final int INDEX_COLUMN_DATE_LAST_VIEW = 6;
     /** ID Используемого LoadManager'а. */
     public static final int ITEM_LOADER_ID = 13;
 
@@ -500,8 +505,8 @@ public class MainListActivity extends AppCompatActivity implements
         mDataCursor.moveToPosition(position);
         mEditItemId = mDataCursor.getInt(INDEX_COLUMN_ID);
         Intent editItemIntent = new Intent(MainListActivity.this, EditItemActivity.class);
-        ReadLaterItem data = new ReadLaterItem(mDataCursor.getString(INDEX_COLUMN_LABEL),
-                mDataCursor.getString(INDEX_COLUMN_DESCRIPTION), mDataCursor.getInt(INDEX_COLUMN_COLOR));
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
+        ReadLaterItem data = dbAdapter.itemFromCursor(mDataCursor);
         editItemIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(data));
         startActivityForResult(editItemIntent, ITEM_EDIT_REQUEST);
     }

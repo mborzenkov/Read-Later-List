@@ -2,16 +2,18 @@ package com.example.mborzenkov.readlaterlist.utility;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.support.v4.content.CursorLoader;
 import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
-import com.example.mborzenkov.readlaterlist.data.ReadLaterDbJson;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -57,40 +59,6 @@ public class ReadLaterDbUtils {
                 projection, selection.toString(), selectionArgs, sortOrder);
     }
 
-    /** Возвращает ContentValues на основании ReadLaterItem. При этом все поля с датами заполняются текущим временем.
-     *
-     * @param item ReadLaterItem, на основании которого нужно подготовить ContentValues
-     * @return ContentValues
-     */
-    private static ContentValues getContentValuesForInsert(ReadLaterItem item) {
-        final long currentTime = System.currentTimeMillis();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(ReadLaterEntry.COLUMN_LABEL, item.getLabel());
-        contentValues.put(ReadLaterEntry.COLUMN_DESCRIPTION, item.getDescription());
-        contentValues.put(ReadLaterEntry.COLUMN_COLOR, item.getColor());
-        contentValues.put(ReadLaterEntry.COLUMN_DATE_CREATED, currentTime);
-        contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, currentTime);
-        contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
-        return contentValues;
-    }
-
-    /** Возвращает ContentValues на основании ReadLaterDdJson.
-     * Этот тип данных используется в бэкапах.
-     *
-     * @param itemJson ReadLaterDbJson, на основании которого нужно подготовить ContentValues
-     * @return ContentValues
-     */
-    private static ContentValues getContentValuesForInsertFromJson(ReadLaterDbJson itemJson) {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL, itemJson.getTitle());
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION, itemJson.getDescription());
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_COLOR, itemJson.getColor());
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED, itemJson.getDateCreated());
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, itemJson.getDateModified());
-        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW, itemJson.getDateViewed());
-        return contentValues;
-    }
-
     /** Добавляет новый элемент в базу данных.
      *
      * @param context Контекст
@@ -98,21 +66,10 @@ public class ReadLaterDbUtils {
      * @return True, если добавление было выполнено успешно
      */
     public static boolean insertItem(Context context, ReadLaterItem item) {
-        Uri uri = context.getContentResolver().insert(ReadLaterEntry.CONTENT_URI, getContentValuesForInsert(item));
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
+        ContentValues contentValues = dbAdapter.contentValuesFromItem(item);
+        Uri uri = context.getContentResolver().insert(ReadLaterEntry.CONTENT_URI, contentValues);
         return uri != null;
-    }
-
-    /** Производит массовое добавление данных.
-     *
-     * @param context Контекст
-     * @param dataJson Данные в формате ReadLaterDbJson.
-     */
-    public static void bulkInsertJson(Context context, List<ReadLaterDbJson> dataJson) {
-        ContentValues[] values = new ContentValues[dataJson.size()];
-        for (int i = 0; i < dataJson.size(); i++) {
-            values[i] = getContentValuesForInsertFromJson(dataJson.get(i));
-        }
-        context.getContentResolver().bulkInsert(ReadLaterEntry.CONTENT_URI, values);
     }
 
     /** Производит массовое добавление данных. При этом все даты задаются равными текущему времени.
@@ -121,9 +78,10 @@ public class ReadLaterDbUtils {
      * @param itemList Данные в формате ReadLaterItem.
      */
     public static void bulkInsertItems(Context context, List<ReadLaterItem> itemList) {
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentValues[] values = new ContentValues[itemList.size()];
         for (int i = 0; i < itemList.size(); i++) {
-            values[i] = getContentValuesForInsert(itemList.get(i));
+            values[i] = dbAdapter.contentValuesFromItem(itemList.get(i));
         }
         context.getContentResolver().bulkInsert(ReadLaterEntry.CONTENT_URI, values);
     }
@@ -136,13 +94,8 @@ public class ReadLaterDbUtils {
      * @return True, если изменение было выполнено успешно
      */
     public static boolean updateItem(Context context, ReadLaterItem item, int uid) {
-        final long currentTime = System.currentTimeMillis();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(ReadLaterEntry.COLUMN_LABEL, item.getLabel());
-        contentValues.put(ReadLaterEntry.COLUMN_DESCRIPTION, item.getDescription());
-        contentValues.put(ReadLaterEntry.COLUMN_COLOR, item.getColor());
-        contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, currentTime);
-        contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
+        ContentValues contentValues = dbAdapter.contentValuesFromItem(item);
         int updated = context.getContentResolver()
                 .update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
         return updated > 0;
@@ -182,4 +135,5 @@ public class ReadLaterDbUtils {
         context.getContentResolver()
                 .delete(ReadLaterEntry.CONTENT_URI, null, null);
     }
+
 }
