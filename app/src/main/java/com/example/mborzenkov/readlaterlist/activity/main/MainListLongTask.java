@@ -1,30 +1,15 @@
 package com.example.mborzenkov.readlaterlist.activity.main;
 
-import android.app.SearchManager;
-import android.content.Intent;
-import android.database.Cursor;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.ListView;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
+import android.util.Log;
 import android.widget.ProgressBar;
 
 import com.example.mborzenkov.readlaterlist.R;
-import com.example.mborzenkov.readlaterlist.activity.EditItemActivity;
-import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
-import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
-import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
-import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 
 /** Запускает AsyncTask для выполнения длительного действия.
  * Показывает значок загрузки и устанавливает isActive = true, что должно блокировать все другие действия.
@@ -33,10 +18,17 @@ import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
  */
 class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
 
+    /** ID уведомления. */
+    private static final int NOTIFICATION_ID = 100;
+    /** Длина индикатора уведомлений. */
+    private static final int NOTIFICATION_PROGRESS = 100;
+
+
     /** Признак, есть ли запущенные длительные процессы. */
     private static boolean isActive = false;
     /** Запущенный процесс. */
     private static @Nullable MainListLongTask runningProcess = null;
+
 
     /** Проверяет, выполняется ли сейчас длительное действие.
      *
@@ -44,6 +36,32 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
      */
     static synchronized boolean isActive() {
         return isActive;
+    }
+
+    /** Блокирует интерфейс, не вызывая при этом AsyncTask.
+     * По завершению работ интерфейс обязательно нужно разблокировать с помощью stopAnotherLongTask().
+     *
+     * @return true - если все прошло успешно и можно начинать работу, иначе false
+     */
+    static synchronized boolean startAnotherLongTask() {
+        if (isActive) {
+            return false;
+        }
+        isActive = true;
+        return true;
+    }
+
+    /** Разблокирует интерфейс, не изменяя при этом AsyncTask.
+     * Должен вызываться только если был ранее успешно вызван startAnotherLongTask().
+     *
+     * @return true - если все прошло успешно и можно начинать работу, иначе false
+     */
+    static synchronized boolean stopAnotherLongTask() {
+        if (!isActive) {
+            return false;
+        }
+        isActive = false;
+        return true;
     }
 
     /** Начинает выполнение длительного действия.
@@ -62,7 +80,7 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
         }
         isActive = true;
         runningProcess = new MainListLongTask();
-        runningProcess.setActivity(activity);
+        runningProcess.setupVisualFeedback(activity);
         runningProcess.execute(task, null, null);
         return true;
     }
@@ -73,13 +91,17 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
      */
     static synchronized void swapActivity(@Nullable MainListActivity activity) {
         if (runningProcess != null) {
-            runningProcess.setActivity(activity);
+            runningProcess.setupVisualFeedback(activity);
         }
     }
 
 
     /** Activity, в которой нужно отображать выполнение. */
-    private @Nullable MainListActivity mActitivy = null;
+    private @Nullable MainListActivity mActivity = null;
+    /** Notification Manager для рассылки уведомлений. */
+    private NotificationManager notificationManager = null;
+    /** Notification Builder. */
+    private NotificationCompat.Builder notificationBuilder = null;
 
     /** Создает новый экземпляр класса. */
     private MainListLongTask() { }
@@ -88,23 +110,38 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
      *
      * @param activity новая Activity
      */
-    private void setActivity(@Nullable MainListActivity activity) {
-        mActitivy = activity;
+    private void setupVisualFeedback(@Nullable MainListActivity activity) {
+        mActivity = activity;
+        if (mActivity != null && notificationManager == null) {
+            notificationManager = (NotificationManager) mActivity.getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationBuilder = new NotificationCompat.Builder(mActivity);
+            notificationBuilder.setOngoing(true)
+                    .setContentTitle("Loading")
+                    .setContentText("Long task")
+                    .setSmallIcon(R.mipmap.ic_launcher_round)
+                    .setProgress(0, 0, true);
+        }
     }
 
     @Override
     protected void onPreExecute() {
         // Лок от изменений mActivity на null
         synchronized (MainListLongTask.class) {
-            if (mActitivy != null) {
-                mActitivy.showLoading();
+            if (mActivity != null) {
+                mActivity.showLoading();
+                notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
             }
         }
     }
 
     @Override
     protected void onProgressUpdate(Integer... values) {
-        super.onProgressUpdate(values);
+        synchronized (MainListLongTask.class) {
+            if (mActivity != null) {
+                int progress = values[0];
+
+            }
+        }
     }
 
     @Override
@@ -117,8 +154,11 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
     protected void onPostExecute(Void onFinishTask) {
         synchronized (MainListLongTask.class) {
             isActive = false;
-            if (mActitivy != null) {
-                mActitivy.reloadData();
+            if (mActivity != null) {
+                mActivity.reloadData();
+                notificationBuilder
+                        .setProgress(0, 0, false);
+                notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
             }
         }
         // покажет данные по окончанию
