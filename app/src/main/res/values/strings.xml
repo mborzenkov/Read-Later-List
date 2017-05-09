@@ -77,6 +77,8 @@
         <string name="edititem_color_hint">Color</string>
         <string name="edititem_date_created">Created:</string>
         <string name="edititem_date_modified">Modified:</string>
+        <string name="edititem_imageurl_hint">Image url</string>
+        <string name="edititem_image_contentdescription">Image from url</string>
         <!-- Ошибки -->
         <string name="edititem_error_title_empty">Please enter label</string>
         <!-- Меню -->
