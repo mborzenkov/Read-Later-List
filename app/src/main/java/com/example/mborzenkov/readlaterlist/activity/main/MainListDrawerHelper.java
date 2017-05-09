@@ -207,7 +207,7 @@ class MainListDrawerHelper implements View.OnClickListener {
      */
     private void clickOnActions(View v) {
 
-        if (mActivity.isInLoadingMode()) {
+        if (MainListLongTask.isActive()) {
             // Если выполняется какая-то работа, кнопки не работают, показывается предупреждение.
             ActivityUtils.showAlertDialog(mActivity,
                     mActivity.getString(R.string.mainlist_longloading_title),
@@ -224,8 +224,9 @@ class MainListDrawerHelper implements View.OnClickListener {
                 ActivityUtils.showAlertDialog(mActivity,
                         mActivity.getString(R.string.mainlist_drawer_backup_save_question_title),
                         mActivity.getString(R.string.mainlist_drawer_backup_save_question_text),
-                        () -> mActivity.startLongBackgroundTask(
-                                () -> MainListBackupUtils.saveEverythingAsJsonFile(mActivity)
+                        () -> MainListLongTask.startLongBackgroundTask(
+                                () -> MainListBackupUtils.saveEverythingAsJsonFile(mActivity),
+                                mActivity
                         ),
                         null);
                 break;
@@ -235,8 +236,9 @@ class MainListDrawerHelper implements View.OnClickListener {
                 ActivityUtils.showAlertDialog(mActivity,
                         mActivity.getString(R.string.mainlist_drawer_backup_restore_question_title),
                         mActivity.getString(R.string.mainlist_drawer_backup_restore_question_text),
-                        () -> mActivity.startLongBackgroundTask(
-                                () -> MainListBackupUtils.restoreEverythingFromJsonFile(mActivity)
+                        () -> MainListLongTask.startLongBackgroundTask(
+                                () -> MainListBackupUtils.restoreEverythingFromJsonFile(mActivity),
+                                mActivity
                         ),
                         null);
                 break;
@@ -255,8 +257,9 @@ class MainListDrawerHelper implements View.OnClickListener {
                             (String input) -> {
                                 try {
                                     int number = Integer.parseInt(input);
-                                    mActivity.startLongBackgroundTask(
-                                            () -> DebugUtils.addPlaceholdersToDatabase(mActivity, number)
+                                    MainListLongTask.startLongBackgroundTask(
+                                            () -> DebugUtils.addPlaceholdersToDatabase(mActivity, number),
+                                            mActivity
                                     );
                                 } catch (ClassCastException e) {
                                     Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
@@ -273,8 +276,9 @@ class MainListDrawerHelper implements View.OnClickListener {
                             mActivity,
                             mActivity.getString(R.string.mainlist_menu_delete_all_question_title),
                             mActivity.getString(R.string.mainlist_menu_delete_all_question_text),
-                            () -> mActivity.startLongBackgroundTask(
-                                    () -> ReadLaterDbUtils.deleteAll(mActivity)
+                            () -> MainListLongTask.startLongBackgroundTask(
+                                    () -> ReadLaterDbUtils.deleteAll(mActivity),
+                                    mActivity
                             ),
                             null);
                 }

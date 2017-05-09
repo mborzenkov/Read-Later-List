@@ -57,8 +57,7 @@ public class MainListActivity extends AppCompatActivity implements
     /** ID текущего редактируемого элемента. */
     private int mEditItemId = UID_EMPTY;
 
-    /** Признак долгой загрузки, все действия должны быть заблокированы. */
-    private boolean longLoading = false;
+
 
 
     @Override
@@ -216,7 +215,7 @@ public class MainListActivity extends AppCompatActivity implements
     }
 
     /** Показывает индикатор загрузки, скрывая все лишнее. */
-    private void showLoading() {
+    void showLoading() {
         mItemListView.setVisibility(View.INVISIBLE);
         mEmptyList.setVisibility(View.INVISIBLE);
         mLoadingIndicator.setVisibility(View.VISIBLE);
@@ -235,7 +234,6 @@ public class MainListActivity extends AppCompatActivity implements
     }
 
     // TODO: 1. reloadData убрать
-    // TODO: 2. BlockingActionsLongBackgroundTask заменить на другое
 
     /** Запускает AsyncTask для выполнения быстрого действия.
      * Действие не будет выполнено, если уже выполняется длительное действие (isInLoadingMode == true).
@@ -245,7 +243,7 @@ public class MainListActivity extends AppCompatActivity implements
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            if (!longLoading) {
+            if (!MainListLongTask.isActive()) {
                 showLoading();
             }
         }
@@ -259,67 +257,10 @@ public class MainListActivity extends AppCompatActivity implements
         @Override
         protected void onPostExecute(Void taskResult) {
             super.onPostExecute(taskResult);
-            if (!longLoading) {
+            if (!MainListLongTask.isActive()) {
                 mLoaderManager.reloadData();
                 // Вызывает showDataView по окончанию
             }
-        }
-
-    }
-
-    /** Начинает выполнение длительного действия.
-     * Действие не будет выполнено, если уже выполняется другое длительное действие (isInLoadingMode == true).
-     * Отклоняет другие длительные действия до оконачния выполнения.
-     *
-     * @param task действие, которое нужно выполнить
-     * @return true, если действие запущено и false, если отклонено
-     * @see BlockingActionsLongBackgroundTask
-     */
-    synchronized boolean startLongBackgroundTask(Runnable task) {
-        // Может выполняться только одно действие
-        if (longLoading) {
-            return false;
-        }
-        longLoading = true;
-        new BlockingActionsLongBackgroundTask().execute(task, null, null);
-        return true;
-    }
-
-    /** Проверяет, выполняется ли сейчас длительное действие.
-     *
-     * @return true или false, результат
-     */
-    synchronized boolean isInLoadingMode() {
-        return longLoading;
-    }
-
-    /** Запускает AsyncTask для выполнения длительного действия.
-     * Показывает значок загрузки и устанавливает longLoading = true, что должно блокировать все другие действия.
-     * Показывает notification с прогрессом выполнения.
-     * По окончанию разблокирует интерфейс и обновляет список.
-     */
-    private class BlockingActionsLongBackgroundTask extends AsyncTask<Runnable, Integer, Void> {
-
-        @Override
-        protected void onPreExecute() {
-            showLoading();
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected Void doInBackground(Runnable... backgroundTask) {
-            backgroundTask[0].run();
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void onFinishTask) {
-            longLoading = false;
-            mLoaderManager.reloadData();
         }
 
     }

@@ -113,14 +113,14 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
      */
     void setSearchQuery(String query) {
         mSearchQuery = query;
-        if (!mActivity.isInLoadingMode()) {
+        if (!MainListLongTask.isActive()) {
             reloadData();
         }
     }
 
     /** Обновляет данные. */
     void reloadData() {
-        if (!mActivity.isInLoadingMode()) {
+        if (!MainListLongTask.isActive()) {
             mActivity.getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, this);
         }
     }
