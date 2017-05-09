@@ -91,10 +91,16 @@ public class MainListActivity extends AppCompatActivity implements
         if (!MainListLongTask.isActive()) {
             mLoaderManager.reloadData();
         } else {
+            MainListLongTask.swapActivity(this);
             showLoading();
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        MainListLongTask.swapActivity(null);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -236,9 +242,7 @@ public class MainListActivity extends AppCompatActivity implements
             mEmptyList.setVisibility(View.VISIBLE);
         }
     }
-
-    // TODO: 1. reloadData убрать
-
+    
     /** Запускает AsyncTask для выполнения быстрого действия.
      * Действие не будет выполнено, если уже выполняется длительное действие (isInLoadingMode == true).
      */
