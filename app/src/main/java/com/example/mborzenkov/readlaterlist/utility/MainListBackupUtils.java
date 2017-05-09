@@ -66,6 +66,8 @@ public class MainListBackupUtils {
 
             // Создаем папки, если их еще нет
             if (!backupFolder.exists() && !backupFolder.mkdirs()) {
+                Log.d("Folders creation fail", String.format(FORMAT_ERROR, "Не удалось создать папку",
+                        backupFolder.toString()));
                 return; // Не удалось создать папки
             }
 
@@ -126,6 +128,8 @@ public class MainListBackupUtils {
     private static void writeStringToFile(File folder, String fileName, String content) {
         File backupFile = new File(folder, fileName);
         if (backupFile.exists() && !backupFile.delete()) {
+            Log.d("File remove fail", String.format(FORMAT_ERROR, "Не удалось перезаписать файл",
+                    backupFile.toString()));
             return; // Не удалось удалить существующий файл
         }
 
@@ -192,6 +196,8 @@ public class MainListBackupUtils {
             // Получаем путь к папке
             File backupFolder = getBackupFolder();
             if (!backupFolder.exists()) {
+                Log.d("Folder not exist", String.format(FORMAT_ERROR, "Не удалось найти папку с бэкапами",
+                        backupFolder.toString()));
                 return; // Нет папки? :(
             }
 
