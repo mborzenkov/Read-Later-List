@@ -1,7 +1,6 @@
 package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.app.DatePickerDialog;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -26,6 +25,7 @@ import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
 import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
+import com.example.mborzenkov.readlaterlist.utility.LongTaskNotifications;
 import com.example.mborzenkov.readlaterlist.utility.MainListBackupUtils;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
@@ -256,11 +256,11 @@ class MainListDrawerHelper implements View.OnClickListener {
                             mActivity.getString(R.string.mainlist_menu_add_placeholders_question_text),
                             (input) -> {
                                 try {
+                                    // Смотрим введенное значение
                                     int number = Integer.parseInt(input);
                                     MainListLongTask.startLongBackgroundTask(
                                             () -> DebugUtils.addPlaceholdersToDatabase(mActivity, number),
-                                            mActivity,
-                                            mActivity.getString(R.string.notification_debug_fillplaceholders_title)
+                                            mActivity
                                     );
                                 } catch (ClassCastException e) {
                                     Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
@@ -277,11 +277,19 @@ class MainListDrawerHelper implements View.OnClickListener {
                             mActivity,
                             mActivity.getString(R.string.mainlist_menu_delete_all_question_title),
                             mActivity.getString(R.string.mainlist_menu_delete_all_question_text),
-                            () -> MainListLongTask.startLongBackgroundTask(
-                                    () -> ReadLaterDbUtils.deleteAll(mActivity),
-                                    mActivity,
-                                    mActivity.getString(R.string.notification_debug_deleteall_title)
-                            ),
+                            () -> {
+                                // Запускаем таск, показываем нотификейшены
+                                MainListLongTask.startLongBackgroundTask(
+                                    () -> {
+                                        ReadLaterDbUtils.deleteAll(mActivity);
+                                        LongTaskNotifications.cancelNotification();
+                                    },
+                                    mActivity
+                                );
+                                LongTaskNotifications.setupNotification(mActivity,
+                                        mActivity.getString(R.string.notification_debug_deleteall_title));
+                                LongTaskNotifications.showNotificationWithProgress(0, true); // бесконечный лоадинг
+                            },
                             null);
                 }
                 break;
@@ -298,17 +306,21 @@ class MainListDrawerHelper implements View.OnClickListener {
      */
     private void handleBackupTask(boolean savingMode) {
 
-        String notificationTitle = savingMode ? mActivity.getString(R.string.notification_backup_save_title) :
-                mActivity.getString(R.string.notification_backup_restore_title);
         // Пробуем заблокировать интерфейс
-        if (!MainListLongTask.startAnotherLongTask(mActivity, notificationTitle)) {
+        if (!MainListLongTask.startAnotherLongTask(mActivity)) {
             return; // не удалось, что то уже происходит
         }
+
+        // Показываем индикатор загрузки
         mActivity.runOnUiThread(mActivity::showLoading);
+
+        // Запускаем поток
         HandlerThread handlerThread = new HandlerThread(HANDLER_THREAD_NAME);
         handlerThread.start();
         Looper looper = handlerThread.getLooper();
         Handler handler = new Handler(looper);
+
+        // Выполняем работу
         if (savingMode) {
             handler.post(() -> {
                 MainListBackupUtils.saveEverythingAsJsonFile(mActivity);

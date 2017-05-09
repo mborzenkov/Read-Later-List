@@ -1,11 +1,8 @@
 package com.example.mborzenkov.readlaterlist.activity.main;
 
-import android.app.NotificationManager;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 import android.widget.ProgressBar;
 
@@ -37,13 +34,11 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
      *
      * @return true - если все прошло успешно и можно начинать работу, иначе false
      */
-    static synchronized boolean startAnotherLongTask(Context context, String notificationtitle) {
+    static synchronized boolean startAnotherLongTask(Context context) {
         if (isActive) {
             return false;
         }
         isActive = true;
-        MainListNotifications.setupNotification(context, notificationtitle);
-        MainListNotifications.showNotificationWithProgress(0);
         return true;
     }
 
@@ -57,7 +52,6 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
             return false;
         }
         isActive = false;
-        MainListNotifications.cancelNotification();
         return true;
     }
 
@@ -70,15 +64,15 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
      * @return true, если выполнение началось или false, если было отклонено
      */
     static synchronized boolean startLongBackgroundTask(Runnable task,
-                                                        MainListActivity activity,
-                                                        String notificationTitle) {
+                                                        MainListActivity activity) {
 
         // Может выполняться только одно действие
         if (isActive) {
             return false;
         }
         isActive = true;
-        runningProcess = new MainListLongTask(activity, notificationTitle);
+        runningProcess = new MainListLongTask();
+        runningProcess.setActivity(activity);
         runningProcess.execute(task, null, null);
         return true;
 
@@ -99,10 +93,7 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
     private @Nullable MainListActivity mActivity = null;
 
     /** Создает новый экземпляр класса. */
-    private MainListLongTask(@Nullable MainListActivity activity, String notificationTitle) {
-        mActivity = activity;
-        MainListNotifications.setupNotification(mActivity, notificationTitle);
-    }
+    private MainListLongTask() { }
 
     /** Устанавливает новую Activity у экземпляра.
      *
@@ -118,17 +109,6 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
         synchronized (MainListLongTask.class) {
             if (mActivity != null) {
                 mActivity.showLoading();
-                MainListNotifications.showNotificationWithProgress(0);
-            }
-        }
-    }
-
-    @Override
-    protected void onProgressUpdate(Integer... values) {
-        synchronized (MainListLongTask.class) {
-            if (mActivity != null) {
-                int progress = values[0];
-                MainListNotifications.showNotificationWithProgress(progress);
             }
         }
     }
@@ -145,7 +125,6 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
             isActive = false;
             if (mActivity != null) {
                 mActivity.reloadData();
-                MainListNotifications.cancelNotification();
             }
         }
         // покажет данные по окончанию

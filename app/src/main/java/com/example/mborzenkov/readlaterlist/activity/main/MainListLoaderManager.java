@@ -20,7 +20,7 @@ import java.util.Set;
 class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
 
     /** ID Используемого LoadManager'а. */
-    static final int ITEM_LOADER_ID = 13;
+    private static final int ITEM_LOADER_ID = 13;
 
     /** Используемые колонки базы данных. */
     private static final String[] MAIN_LIST_PROJECTION = {

@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.os.Environment;
 import android.util.Log;
 
+import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemJsonAdapter;
@@ -71,15 +72,30 @@ public class MainListBackupUtils {
                 return; // Не удалось создать папки
             }
 
+            // Показываем нотификейшн
+            LongTaskNotifications.setupNotification(context,
+                    context.getString(R.string.notification_backup_save_title));
+            LongTaskNotifications.showNotificationWithProgress(0, false);
+
+            // Сколько данных в базе пока не известно, поэтому покаем бесконечный лоадер
+            LongTaskNotifications.showNotificationWithProgress(0, true);
+
             // Генерируем строку JSON
             final List<String> jsonStrings = generateJsonStrings(context);
+
+            // Теперь покажем сразу 20%, примерно столько работы сделано
+            LongTaskNotifications.showNotificationWithProgress(20, false);
 
             // Записываем, предварительно очистив все бэкапы
             removeAllBackups();
             for (int i = 0, size = jsonStrings.size(); i < size; i++) {
                 String json = jsonStrings.get(i);
                 writeStringToFile(backupFolder, String.format(FILE_NAME_FORMAT, i), json);
+                LongTaskNotifications.showNotificationWithProgress(20 + (80 / (size - i)), false);
             }
+
+            // Скрываем нотификешн
+            LongTaskNotifications.cancelNotification();
 
         } else {
             Log.e("EX storage exception", String.format(FORMAT_ERROR, "Ошибка доступа к хранилищу на запись, статус: ",
@@ -170,10 +186,7 @@ public class MainListBackupUtils {
         return new File(root + FOLDER_NAME);
     }
 
-    /** Удаляет все файлы бэкапов из папки.
-     *
-     * @param folder папка для удаления
-     */
+    /** Удаляет все файлы бэкапов из папки. */
     private static void removeAllBackups() {
         File[] backupFiles = getBackupFolder().listFiles(FILENAME_FILTER);
         for (File file : backupFiles) {
@@ -188,6 +201,7 @@ public class MainListBackupUtils {
      * @param context Контекст
      */
     public static void restoreEverythingFromJsonFile(Context context) {
+
         // Проверяем доступность хранилища
         String externalStorageState = Environment.getExternalStorageState();
         if (externalStorageState.equals(Environment.MEDIA_MOUNTED)
@@ -201,16 +215,25 @@ public class MainListBackupUtils {
                 return; // Нет папки? :(
             }
 
+            // Показываем нотификешн
+            LongTaskNotifications.
+                    setupNotification(context, context.getString(R.string.notification_backup_restore_title));
+            LongTaskNotifications.showNotificationWithProgress(0, false);
+
             // Получаем список файлов
             File[] backupFiles = backupFolder.listFiles(FILENAME_FILTER);
 
             // Записываем данные в базу
             loadJsonData(context, readBackupFiles(backupFiles));
 
+            // Скрываем нотификешн
+            LongTaskNotifications.cancelNotification();
+
         } else {
             Log.e("EX storage exception", String.format("%s %s", "Ошибка доступа к хранилищу на чтение, статус: ",
                     externalStorageState));
         }
+
     }
 
     /** Читает содержимое всех файлов в список строк.
@@ -222,6 +245,8 @@ public class MainListBackupUtils {
     private static List<String> readBackupFiles(File[] backupFiles) {
 
         final List<String> result = new ArrayList<>();
+        final int totalFiles = backupFiles.length;
+        int currentFile = 0;
 
         // Читаем файлы
         for (File file : backupFiles) {
@@ -262,6 +287,9 @@ public class MainListBackupUtils {
                     }
                 }
             }
+
+            // Все чтение файлов как 50%
+            LongTaskNotifications.showNotificationWithProgress(50 / (totalFiles - currentFile), false);
         }
 
         return result;
@@ -284,6 +312,9 @@ public class MainListBackupUtils {
             JsonAdapter<List<ReadLaterItem>> jsonAdapter =
                     moshi.adapter(Types.newParameterizedType(List.class, ReadLaterItem.class));
 
+            final int totalStrings = jsonStrings.size();
+            int currentString = 0;
+
             for (String json : jsonStrings) {
 
                 List<ReadLaterItem> restoredData = new ArrayList<>();
@@ -303,6 +334,8 @@ public class MainListBackupUtils {
                     ReadLaterDbUtils.bulkInsertItems(context, restoredData);
                 }
 
+                // Все чтение строк как 50% начиная с 50%
+                LongTaskNotifications.showNotificationWithProgress(50 + (50 / (totalStrings - currentString)), false);
             }
         }
     }
