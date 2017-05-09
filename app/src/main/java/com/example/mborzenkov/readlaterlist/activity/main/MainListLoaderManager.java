@@ -97,7 +97,9 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         // По завершению загрузки, подменяем Cursor в адаптере и показываем данные
         mActivity.changeCursorInAdapter(data);
-        mActivity.showDataView();
+        if (!MainListLongTask.isActive()) {
+            mActivity.showDataView();
+        }
     }
 
     @Override
@@ -122,10 +124,8 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
     void reloadData() {
         if (!MainListLongTask.isActive()) {
             if (mActivity.getSupportLoaderManager().getLoader(ITEM_LOADER_ID) != null) {
-                Log.d("LOADER", "RESTARTED");
                 mActivity.getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, this);
             } else {
-                Log.d("LOADER", "NEW");
                 mActivity.getSupportLoaderManager().initLoader(MainListLoaderManager.ITEM_LOADER_ID, null, this);
             }
         }
