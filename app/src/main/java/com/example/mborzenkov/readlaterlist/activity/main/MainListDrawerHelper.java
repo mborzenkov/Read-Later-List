@@ -2,6 +2,9 @@ package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.app.DatePickerDialog;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.text.InputFilter;
@@ -35,6 +38,9 @@ import java.util.Map;
 
 /** Класс помощник для DrawerLayout в MainActivity. */
 class MainListDrawerHelper implements View.OnClickListener {
+
+    /** Имя хэндлер треда для бэкапа. */
+    private final String HANDLER_THREAD_NAME = "BackupHandlerThread";
 
     // Элементы Layout
     private final MainListActivity mActivity;
@@ -224,10 +230,7 @@ class MainListDrawerHelper implements View.OnClickListener {
                 ActivityUtils.showAlertDialog(mActivity,
                         mActivity.getString(R.string.mainlist_drawer_backup_save_question_title),
                         mActivity.getString(R.string.mainlist_drawer_backup_save_question_text),
-                        () -> MainListLongTask.startLongBackgroundTask(
-                                () -> MainListBackupUtils.saveEverythingAsJsonFile(mActivity),
-                                mActivity
-                        ),
+                        () -> handleBackupTask(true),
                         null);
                 break;
             case R.id.button_drawermainlist_backuprestore:
@@ -236,10 +239,7 @@ class MainListDrawerHelper implements View.OnClickListener {
                 ActivityUtils.showAlertDialog(mActivity,
                         mActivity.getString(R.string.mainlist_drawer_backup_restore_question_title),
                         mActivity.getString(R.string.mainlist_drawer_backup_restore_question_text),
-                        () -> MainListLongTask.startLongBackgroundTask(
-                                () -> MainListBackupUtils.restoreEverythingFromJsonFile(mActivity),
-                                mActivity
-                        ),
+                        () -> handleBackupTask(false),
                         null);
                 break;
             case R.id.button_drawermainlist_fillplaceholders:
@@ -287,6 +287,39 @@ class MainListDrawerHelper implements View.OnClickListener {
                 break;
         }
         mDrawerLayout.closeDrawer(Gravity.END);
+
+    }
+
+    /** Выполняет сохранение или восстановление бэкапов в фоновом потоке.
+     *
+     * @param savingMode true - режим сохранения данных, false - режим восстановления
+     */
+    private void handleBackupTask(boolean savingMode) {
+
+        // Пробуем заблокировать интерфейс
+        if (!MainListLongTask.startAnotherLongTask()) {
+            return; // не удалось, что то уже происходит
+        }
+        mActivity.runOnUiThread(mActivity::showLoading);
+        HandlerThread handlerThread = new HandlerThread(HANDLER_THREAD_NAME);
+        handlerThread.start();
+        Looper looper = handlerThread.getLooper();
+        Handler handler = new Handler(looper);
+        if (savingMode) {
+            handler.post(() -> {
+                MainListBackupUtils.saveEverythingAsJsonFile(mActivity);
+                if (MainListLongTask.stopAnotherLongTask()) {
+                    mActivity.runOnUiThread(mActivity::showDataView);
+                }
+            });
+        } else {
+            handler.post(() -> {
+                MainListBackupUtils.restoreEverythingFromJsonFile(mActivity);
+                if (MainListLongTask.stopAnotherLongTask()) {
+                    mActivity.runOnUiThread(mActivity::reloadData);
+                }
+            });
+        }
 
     }
 
