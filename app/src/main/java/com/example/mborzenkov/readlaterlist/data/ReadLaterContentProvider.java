@@ -79,7 +79,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                 throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
-        cursor.setNotificationUri(mContext.getContentResolver(), uri);
+        // cursor.setNotificationUri(mContext.getContentResolver(), uri);
         return cursor;
     }
 

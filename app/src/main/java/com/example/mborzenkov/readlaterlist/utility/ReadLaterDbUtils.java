@@ -2,6 +2,7 @@ package com.example.mborzenkov.readlaterlist.utility;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
@@ -12,11 +13,16 @@ import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntr
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /** Класс для упрощения работы с базой данных.
  * Представляет собой набор static методов
  */
 public class ReadLaterDbUtils {
+
+    /** Запрос на диапзаон. */
+    private static final String QUERY_RANGE = "_ID LIMIT %s OFFSET %s";
+
 
     private ReadLaterDbUtils() {
         throw new UnsupportedOperationException("Класс ReadLaterDbUtils - static util, не может иметь экземпляров");
@@ -98,6 +104,16 @@ public class ReadLaterDbUtils {
     public static void deleteAll(Context context) {
         context.getContentResolver()
                 .delete(ReadLaterEntry.CONTENT_URI, null, null);
+    }
+
+    // TODO: JDoc
+    public static Cursor queryRange(Context context, int from, int count) {
+        return context.getContentResolver().query(
+                ReadLaterContract.ReadLaterEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                String.format(Locale.US, QUERY_RANGE, count, from));
     }
 
 }
