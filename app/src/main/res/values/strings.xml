@@ -12,7 +12,7 @@
         <string name="mainlist_menu_delete_all_question_title">Delete all</string>
         <string name="mainlist_menu_delete_all_question_text">This action will delete everything from db. Are you sure to proceed?</string>
         <string name="mainlist_menu_add_placeholders_question_title">Fill with placeholders</string>
-        <string name="mainlist_menu_add_placeholders_question_text">This action will add placeholders. Proceed?</string>
+        <string name="mainlist_menu_add_placeholders_question_text">Type the number of placeholders you wish to add and press OK.</string>
         <string name="mainlist_menu_add_placeholders_label">Labeeeeel</string>
         <!-- Снекбары -->
         <string name="snackbar_item_added">Item added</string>
@@ -24,7 +24,6 @@
         <string name="searchable_mainlist_hint">Search items</string>
         <string name="mainlist_menu_search">Search</string>
         <!-- Фильтр -->
-        <!-- TODO: Перевод strings -->
         <string name="mainlist_drawer_title">Settings</string>
         <string name="mainlist_drawer_filters_title">Filter by</string>
         <string name="mainlist_drawer_filters_default">Default</string>
@@ -58,6 +57,9 @@
         <string name="mainlist_drawer_backup_save_question_text">This action will make backup of db in file. Proceed?</string>
         <string name="mainlist_drawer_backup_restore_question_title">Restore from file</string>
         <string name="mainlist_drawer_backup_restore_question_text">This action will replace everything in db with data in backup file. Are you sure to proceed?</string>
+        <!-- Предупреждения -->
+        <string name="mainlist_longloading_title">Loading is active</string>
+        <string name="mainlist_longloading_text">Some long action is still running. Please wait until it finished before starting new long action.</string>
 
     <!-- EditItemActivity -->
         <!-- Заголовки -->

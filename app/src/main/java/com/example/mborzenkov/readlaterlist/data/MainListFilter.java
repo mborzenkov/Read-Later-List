@@ -3,7 +3,7 @@ package com.example.mborzenkov.readlaterlist.data;
 import android.content.Context;
 import android.util.Log;
 
-import com.example.mborzenkov.readlaterlist.activity.MainListActivity;
+import com.example.mborzenkov.readlaterlist.activity.main.MainListActivity;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;

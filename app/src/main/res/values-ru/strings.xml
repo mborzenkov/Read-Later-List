@@ -17,7 +17,7 @@
     <string name="mainlist_empty_description">Добавьте что нибудь в список с помощью кнопки в правом нижнем углу.</string>
     <string name="mainlist_empty_label">Список пуст</string>>
     <string name="mainlist_menu_add_placeholders_label">"Заголовок "</string>
-    <string name="mainlist_menu_add_placeholders_question_text">В список будут добавлены случайные данные. Продолжить?</string>
+    <string name="mainlist_menu_add_placeholders_question_text">Укажите, сколько данных нужно добавить в базу, и нажмите ОК.</string>
     <string name="mainlist_menu_add_placeholders_question_title">Заполнение данными</string>
     <string name="mainlist_menu_delete_all_question_text">Список будет полностью очищен без возможности восстановления. Продолжить?</string>
     <string name="mainlist_menu_delete_all_question_title">Удалить все</string>
@@ -65,4 +65,6 @@
     <string name="edititem_menu_back_question_title">Отменить изменения</string>
     <string name="edititem_date_created">Создан:</string>
     <string name="edititem_date_modified">Изменен:</string>
+    <string name="mainlist_longloading_title">Длительное действие уже запущено</string>
+    <string name="mainlist_longloading_text">В данный момент уже выполняется длительное действие. Пожалуйста дождитесь его завершения, прежде чем начать другое.</string>
 </resources>

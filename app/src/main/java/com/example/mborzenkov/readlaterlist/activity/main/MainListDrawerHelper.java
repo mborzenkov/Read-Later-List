@@ -1,9 +1,12 @@
-package com.example.mborzenkov.readlaterlist.activity;
+package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.app.DatePickerDialog;
 import android.os.AsyncTask;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.text.InputFilter;
+import android.text.InputType;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -22,6 +25,7 @@ import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 import com.example.mborzenkov.readlaterlist.utility.MainListBackupUtils;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
+import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -84,7 +88,7 @@ class MainListDrawerHelper implements View.OnClickListener {
             public void onDrawerClosed(View view) {
                 // При закрытии - устанавливаем фильтр
                 super.onDrawerClosed(view);
-                mActivity.getSupportLoaderManager().restartLoader(MainListActivity.ITEM_LOADER_ID, null, mActivity);
+                mActivity.reloadData();
             }
 
             @Override
@@ -182,42 +186,97 @@ class MainListDrawerHelper implements View.OnClickListener {
                     }
                     updateDrawerWithCurrentFilter();
                 }
-                return;
+                break;
             case R.id.imageButton_favorite_color:
                 // Нажатие на круг фильтра по цвету меняет его статус активированности и применяет фильтр
                 v.setActivated(!v.isActivated());
                 toggleColorFilter((int) v.getTag(), v.isActivated());
+                break;
+            default:
+                // Нажатия на кнопки действий обрабатываются другой функцией
+                clickOnActions(v);
                 return;
+        }
+
+    }
+
+    /** Обрабатывает нажатия на кнопки действий.
+     * Управление передается из onClick, если onClick ничего не удалось обработать.
+     *
+     * @param v view, на которую нажали
+     */
+    private void clickOnActions(View v) {
+
+        if (mActivity.isInLoadingMode()) {
+            // Если выполняется какая-то работа, кнопки не работают, показывается предупреждение.
+            ActivityUtils.showAlertDialog(mActivity,
+                    mActivity.getString(R.string.mainlist_longloading_title),
+                    mActivity.getString(R.string.mainlist_longloading_text),
+                    null,
+                    null);
+            return;
+        }
+
+        switch (v.getId()) {
             case R.id.button_drawermainlist_backupsave:
                 // Действие "Сохранить бэкап" открывает окно подтверждения и по положительному ответу
                 // вызывает функцию для сохранения
                 ActivityUtils.showAlertDialog(mActivity,
-                    mActivity.getString(R.string.mainlist_drawer_backup_save_question_title),
-                    mActivity.getString(R.string.mainlist_drawer_backup_save_question_text),
-                    () -> new BackupAsyncTask().execute(Boolean.TRUE),
-                    null);
+                        mActivity.getString(R.string.mainlist_drawer_backup_save_question_title),
+                        mActivity.getString(R.string.mainlist_drawer_backup_save_question_text),
+                        () -> mActivity.startLongBackgroundTask(
+                                () -> MainListBackupUtils.saveEverythingAsJsonFile(mActivity)
+                        ),
+                        null);
                 break;
             case R.id.button_drawermainlist_backuprestore:
                 // Действие "Восстановить из бэкапа" открывает окно подтверждения и по положительному ответу
                 // вызывает функцию для восстановления
                 ActivityUtils.showAlertDialog(mActivity,
-                    mActivity.getString(R.string.mainlist_drawer_backup_restore_question_title),
-                    mActivity.getString(R.string.mainlist_drawer_backup_restore_question_text),
-                    () -> new BackupAsyncTask().execute(Boolean.FALSE),
-                    null);
+                        mActivity.getString(R.string.mainlist_drawer_backup_restore_question_title),
+                        mActivity.getString(R.string.mainlist_drawer_backup_restore_question_text),
+                        () -> mActivity.startLongBackgroundTask(
+                                () -> MainListBackupUtils.restoreEverythingFromJsonFile(mActivity)
+                        ),
+                        null);
                 break;
             case R.id.button_drawermainlist_fillplaceholders:
                 // Действие "Заполнить данными" открывает окно подтверждения и по положительному ответу
                 // вызывает функцию для заполнения
                 if (BuildConfig.DEBUG) {
-                    DebugUtils.showAlertAndAddPlaceholders(mActivity, mActivity);
+                    EditText inputNumber = new EditText(mActivity);
+                    inputNumber.setInputType(InputType.TYPE_CLASS_NUMBER);
+                    inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(5)}); // Не более 99999
+                    ActivityUtils.showInputTextDialog(
+                            mActivity,
+                            inputNumber,
+                            mActivity.getString(R.string.mainlist_menu_add_placeholders_question_title),
+                            mActivity.getString(R.string.mainlist_menu_add_placeholders_question_text),
+                            (String input) -> {
+                                try {
+                                    int number = Integer.parseInt(input);
+                                    mActivity.startLongBackgroundTask(
+                                            () -> DebugUtils.addPlaceholdersToDatabase(mActivity, number)
+                                    );
+                                } catch (ClassCastException e) {
+                                    Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
+                                }
+                            },
+                            null);
                 }
                 break;
             case R.id.button_drawermainlist_deleteall:
                 // Действие "Удалить все" открывает окно подтверждения и по положительному ответу
                 // вызывает функцию для очистки
                 if (BuildConfig.DEBUG) {
-                    DebugUtils.showAlertAndDeleteItems(mActivity, mActivity);
+                    ActivityUtils.showAlertDialog(
+                            mActivity,
+                            mActivity.getString(R.string.mainlist_menu_delete_all_question_title),
+                            mActivity.getString(R.string.mainlist_menu_delete_all_question_text),
+                            () -> mActivity.startLongBackgroundTask(
+                                    () -> ReadLaterDbUtils.deleteAll(mActivity)
+                            ),
+                            null);
                 }
                 break;
             default:
@@ -477,35 +536,6 @@ class MainListDrawerHelper implements View.OnClickListener {
             filter.addColorFilter(color);
         } else {
             filter.removeColorFilter(color);
-        }
-    }
-
-    /** AsyncTask для загрузки данных из бэкапа в многопоточном режиме. */
-    private class BackupAsyncTask extends AsyncTask<Boolean, Void, Boolean> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            // TODO: mActivity.showLoading();
-        }
-
-        @Override
-        protected Boolean doInBackground(Boolean... saving) {
-            boolean saveMode = saving[0];
-            if (saveMode) {
-                MainListBackupUtils.saveEverythingAsJsonFile(mActivity);
-            } else {
-                MainListBackupUtils.restoreEverythingFromJsonFile(mActivity);
-            }
-            return saveMode;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean saveMode) {
-            super.onPostExecute(saveMode);
-            // TODO: mActivity.showDataView();
-            if (!saveMode) {
-                mActivity.getSupportLoaderManager().restartLoader(MainListActivity.ITEM_LOADER_ID, null, mActivity);
-            }
         }
     }
 
