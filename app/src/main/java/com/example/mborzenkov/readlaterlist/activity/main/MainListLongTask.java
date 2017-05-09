@@ -18,12 +18,6 @@ import com.example.mborzenkov.readlaterlist.R;
  */
 class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
 
-    /** ID уведомления. */
-    private static final int NOTIFICATION_ID = 100;
-    /** Длина индикатора уведомлений. */
-    private static final int NOTIFICATION_PROGRESS = 100;
-
-
     /** Признак, есть ли запущенные длительные процессы. */
     private static boolean isActive = false;
     /** Запущенный процесс. */
@@ -73,16 +67,18 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
      * @return true, если выполнение началось или false, если было отклонено
      */
     static synchronized boolean startLongBackgroundTask(Runnable task,
-                                                                           @Nullable MainListActivity activity) {
+                                                        @Nullable MainListActivity activity,
+                                                        String notificationTitle) {
+
         // Может выполняться только одно действие
         if (isActive) {
             return false;
         }
         isActive = true;
-        runningProcess = new MainListLongTask();
-        runningProcess.setupVisualFeedback(activity);
+        runningProcess = new MainListLongTask(activity, notificationTitle);
         runningProcess.execute(task, null, null);
         return true;
+
     }
 
     /** Меняет Activity у запущенного процесса.
@@ -91,36 +87,29 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
      */
     static synchronized void swapActivity(@Nullable MainListActivity activity) {
         if (runningProcess != null) {
-            runningProcess.setupVisualFeedback(activity);
+            runningProcess.setActivity(activity);
         }
     }
 
 
     /** Activity, в которой нужно отображать выполнение. */
     private @Nullable MainListActivity mActivity = null;
-    /** Notification Manager для рассылки уведомлений. */
-    private NotificationManager notificationManager = null;
-    /** Notification Builder. */
-    private NotificationCompat.Builder notificationBuilder = null;
+    /** Заголовок для Notification. */
+    private String mNotificationTitle = "";
 
     /** Создает новый экземпляр класса. */
-    private MainListLongTask() { }
+    private MainListLongTask(MainListActivity activity, String notificationTitle) {
+        mActivity = activity;
+        mNotificationTitle = notificationTitle;
+        MainListNotifications.setupNotification(mActivity, notificationTitle);
+    }
 
     /** Устанавливает новую Activity у экземпляра.
      *
      * @param activity новая Activity
      */
-    private void setupVisualFeedback(@Nullable MainListActivity activity) {
+    private void setActivity(@Nullable MainListActivity activity) {
         mActivity = activity;
-        if (mActivity != null && notificationManager == null) {
-            notificationManager = (NotificationManager) mActivity.getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationBuilder = new NotificationCompat.Builder(mActivity);
-            notificationBuilder.setOngoing(true)
-                    .setContentTitle("Loading")
-                    .setContentText("Long task")
-                    .setSmallIcon(R.mipmap.ic_launcher_round)
-                    .setProgress(0, 0, true);
-        }
     }
 
     @Override
@@ -129,7 +118,7 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
         synchronized (MainListLongTask.class) {
             if (mActivity != null) {
                 mActivity.showLoading();
-                notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+                MainListNotifications.showNotificationWithProgress(0);
             }
         }
     }
@@ -139,7 +128,7 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
         synchronized (MainListLongTask.class) {
             if (mActivity != null) {
                 int progress = values[0];
-
+                MainListNotifications.showNotificationWithProgress(progress);
             }
         }
     }
@@ -156,9 +145,7 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
             isActive = false;
             if (mActivity != null) {
                 mActivity.reloadData();
-                notificationBuilder
-                        .setProgress(0, 0, false);
-                notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+                MainListNotifications.cancelNotification();
             }
         }
         // покажет данные по окончанию
