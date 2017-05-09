@@ -254,7 +254,7 @@ class MainListDrawerHelper implements View.OnClickListener {
                             inputNumber,
                             mActivity.getString(R.string.mainlist_menu_add_placeholders_question_title),
                             mActivity.getString(R.string.mainlist_menu_add_placeholders_question_text),
-                            (String input) -> {
+                            (input) -> {
                                 try {
                                     int number = Integer.parseInt(input);
                                     MainListLongTask.startLongBackgroundTask(
