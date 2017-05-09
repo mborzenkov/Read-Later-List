@@ -14,20 +14,27 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
+import com.squareup.picasso.Picasso;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+
+// TODO: Еще немного и тут тоже понадобится ViewHolder
 
 /**
  * Activity для редактирования элемента MainListActivity
@@ -61,6 +68,10 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
     private TextInputLayout mLabelInputLayout;
     private TextInputEditText mDescriptionEditText;
     private ImageButton mColorImageButton;
+    private TextInputEditText mImageUrlEditText;
+    private TextInputLayout mImageUrlInputLayout;
+    private ImageButton mImageUrlUpdateImageButton;
+    private ImageView mImageFromUrlImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +95,11 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         mDescriptionEditText = (TextInputEditText) findViewById(R.id.et_edit_item_description);
         mColorImageButton = (ImageButton) findViewById(R.id.ib_edit_item_color);
         mColorImageButton.setOnClickListener(this);
+        mImageUrlEditText = (TextInputEditText) findViewById(R.id.et_edititem_imageurl);
+        mImageUrlInputLayout = (TextInputLayout) findViewById(R.id.til_edititem_imageurl);
+        mImageFromUrlImageView = (ImageView) findViewById(R.id.iv_edititem_imagefromurl);
+        mImageUrlUpdateImageButton = (ImageButton) findViewById(R.id.ib_edititem_updateimage);
+        mImageUrlUpdateImageButton.setOnClickListener(this);
 
         // Чтение данных из Intent
         Intent intent = getIntent();
@@ -191,9 +207,26 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
             case R.id.fab_edit_item_save:
                 finishEditing();
                 break;
+            case R.id.ib_edititem_updateimage:
+                reloadImage();
             default:
                 break;
         }
+    }
+
+    /** Выполняет перезагрузку изображения по введенному url. */
+    private void reloadImage() {
+
+        // Проверяем, url ли там вообще
+        String url = mImageUrlEditText.getText().toString();
+        try {
+            new URL(url);
+        } catch (MalformedURLException e) {
+            return; // Это не url
+        }
+
+        Picasso.with(this).load(url).into(mImageFromUrlImageView);
+
     }
 
     /** Выполняет сохранение. */
@@ -244,6 +277,7 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
      *      Например, если не заполнен Label
      */
     private @Nullable ReadLaterItem packInputData() {
+        // TODO: Проверить imageUrl
         String label = mLabelEditText.getText().toString();
         String description = mDescriptionEditText.getText().toString();
         long currentTime = System.currentTimeMillis();
