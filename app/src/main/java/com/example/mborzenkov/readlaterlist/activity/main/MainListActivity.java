@@ -88,7 +88,11 @@ public class MainListActivity extends AppCompatActivity implements
 
         // Начать загрузку данных
         mLoaderManager = new MainListLoaderManager(this);
-        getSupportLoaderManager().initLoader(MainListLoaderManager.ITEM_LOADER_ID, null, mLoaderManager);
+        if (!MainListLongTask.isActive()) {
+            mLoaderManager.reloadData();
+        } else {
+            showLoading();
+        }
     }
 
 

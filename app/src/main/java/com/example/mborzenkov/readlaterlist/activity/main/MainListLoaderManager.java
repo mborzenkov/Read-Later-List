@@ -121,7 +121,13 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
     /** Обновляет данные. */
     void reloadData() {
         if (!MainListLongTask.isActive()) {
-            mActivity.getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, this);
+            if (mActivity.getSupportLoaderManager().getLoader(ITEM_LOADER_ID) != null) {
+                Log.d("LOADER", "RESTARTED");
+                mActivity.getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, this);
+            } else {
+                Log.d("LOADER", "NEW");
+                mActivity.getSupportLoaderManager().initLoader(MainListLoaderManager.ITEM_LOADER_ID, null, this);
+            }
         }
     }
 

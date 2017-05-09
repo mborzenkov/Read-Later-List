@@ -61,11 +61,9 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
             return false;
         }
         isActive = true;
-        if (runningProcess == null) {
-            runningProcess = new MainListLongTask();
-            runningProcess.setActivity(activity);
-            runningProcess.execute(task, null, null);
-        }
+        runningProcess = new MainListLongTask();
+        runningProcess.setActivity(activity);
+        runningProcess.execute(task, null, null);
         return true;
     }
 
