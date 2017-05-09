@@ -2,6 +2,7 @@ package com.example.mborzenkov.readlaterlist.utility;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.v4.content.ContextCompat;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.util.Log;
@@ -33,11 +34,14 @@ public class DebugUtils {
      */
     public static void addPlaceholdersToDatabase(Context context, int number) {
 
-        long currentTime = System.currentTimeMillis();
-        String[] text = context.getString(R.string.debug_large_text).split("\n");
-        int textRows = text.length;
-        String label = context.getString(R.string.mainlist_menu_add_placeholders_label);
-        Random randomizer = new Random();
+        final long currentTime = System.currentTimeMillis();
+        final String[] text = context.getString(R.string.debug_large_text).split("\n");
+        final int[] predefinedColors = context.getResources().getIntArray(R.array.full_gradient);
+        final int textRows = text.length;
+        final int numberOfColors = predefinedColors.length;
+        final String label = context.getString(R.string.mainlist_menu_add_placeholders_label);
+        final Random randomizer = new Random();
+
         // Вставляем number строк
         for (int inserted = 0; inserted < number; ) {
             List<ReadLaterItem> listItems = new ArrayList<>();
@@ -48,16 +52,15 @@ public class DebugUtils {
                 for (int j = 0; j < DESCRIPTION_LINES; j++) {
                     description.append(text[randomizer.nextInt(textRows)]).append('\n');
                 }
-                // Конвертация int в HSV и обратно нужна, чтобы ColorPickerActivity красиво работал
-                // (не каждый int без потерь конвертируется в HSV)
-                // Это допущение используется только в этом тестовом методе, во всех остальных местах используются цвета,
-                // конвертируемые в обе стороны без потерь
-                float[] colorHsv = new float[3];
-                Color.colorToHSV(randomizer.nextInt(), colorHsv);
+
+                // Конвертация Color.colorToHSV и Color.HSVToColor в обоих случаях выдает погрешности.
+                // Каждая новая конвертация может дать новый результат. Поэтому решено использовать предопределенные
+                // цвета.
+
                 listItems.add(new ReadLaterItem(
                         label + " " + inserted,
                         description.toString().trim(),
-                        Color.HSVToColor(colorHsv),
+                        predefinedColors[randomizer.nextInt(numberOfColors)],
                         currentTime,
                         currentTime,
                         currentTime));
