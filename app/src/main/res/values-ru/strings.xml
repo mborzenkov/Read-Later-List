@@ -16,7 +16,7 @@
     <string name="edititem_title_edit">Изменение записи</string>
     <string name="mainlist_empty_description">Добавьте что нибудь в список с помощью кнопки в правом нижнем углу.</string>
     <string name="mainlist_empty_label">Список пуст</string>>
-    <string name="mainlist_menu_add_placeholders_label">"Заголовки всякие "</string>
+    <string name="mainlist_menu_add_placeholders_label">"Заголовок "</string>
     <string name="mainlist_menu_add_placeholders_question_text">В список будут добавлены случайные данные. Продолжить?</string>
     <string name="mainlist_menu_add_placeholders_question_title">Заполнение данными</string>
     <string name="mainlist_menu_delete_all_question_text">Список будет полностью очищен без возможности восстановления. Продолжить?</string>
