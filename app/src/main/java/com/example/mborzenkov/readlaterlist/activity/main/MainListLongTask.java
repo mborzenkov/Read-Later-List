@@ -31,9 +31,12 @@ import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
  * Показывает notification с прогрессом выполнения.
  * По окончанию разблокирует интерфейс и обновляет список.
  */
-class MainListLongTask extends AsyncTask<Runnable, Integer, Void> {
+class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
 
+    /** Признак, есть ли запущенные длительные процессы. */
     private static boolean isActive = false;
+    /** Запущенный процесс. */
+    private static @Nullable MainListLongTask runningProcess = null;
 
     /** Проверяет, выполняется ли сейчас длительное действие.
      *
@@ -48,28 +51,57 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void> {
      * Отклоняет другие длительные действия до оконачния выполнения.
      *
      * @param task действие, которое нужно выполнить
-     * @return true, если действие запущено и false, если отклонено
+     * @param activity ссылка на MainListActivity, где нужно отображать процесс
+     * @return true, если выполнение началось или false, если было отклонено
      */
-    static synchronized boolean startLongBackgroundTask(Runnable task, MainListActivity activity) {
+    static synchronized boolean startLongBackgroundTask(Runnable task,
+                                                                           @Nullable MainListActivity activity) {
         // Может выполняться только одно действие
         if (isActive) {
             return false;
         }
         isActive = true;
-        new MainListLongTask(activity).execute(task, null, null);
+        if (runningProcess == null) {
+            runningProcess = new MainListLongTask();
+            runningProcess.setActivity(activity);
+            runningProcess.execute(task, null, null);
+        }
         return true;
     }
 
-    private MainListActivity mActitivy;
+    /** Меняет Activity у запущенного процесса.
+     *
+     * @param activity новая Activity
+     */
+    static synchronized void swapActivity(@Nullable MainListActivity activity) {
+        if (runningProcess != null) {
+            runningProcess.setActivity(activity);
+        }
+    }
 
-    // Создает новый экземпляр класса
-    private MainListLongTask(MainListActivity activity) {
+
+    /** Activity, в которой нужно отображать выполнение. */
+    private @Nullable MainListActivity mActitivy = null;
+
+    /** Создает новый экземпляр класса. */
+    private MainListLongTask() { }
+
+    /** Устанавливает новую Activity у экземпляра.
+     *
+     * @param activity новая Activity
+     */
+    private void setActivity(@Nullable MainListActivity activity) {
         mActitivy = activity;
     }
 
     @Override
     protected void onPreExecute() {
-        mActitivy.showLoading();
+        // Лок от изменений mActivity на null
+        synchronized (MainListLongTask.class) {
+            if (mActitivy != null) {
+                mActitivy.showLoading();
+            }
+        }
     }
 
     @Override
@@ -87,8 +119,10 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void> {
     protected void onPostExecute(Void onFinishTask) {
         synchronized (MainListLongTask.class) {
             isActive = false;
+            if (mActitivy != null) {
+                mActitivy.reloadData();
+            }
         }
-        mActitivy.reloadData();
         // покажет данные по окончанию
     }
 
