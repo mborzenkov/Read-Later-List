@@ -27,11 +27,11 @@ class MainListNotifications {
         notificationBuilder.setOngoing(true)
                 .setContentTitle(title)
                 .setSmallIcon(R.mipmap.ic_launcher_round)
-                .setProgress(NOTIFICATION_PROGRESS, 0, false);
+                .setProgress(0, 0, true);
     }
 
     static void showNotificationWithProgress(int progress) {
-        notificationBuilder.setProgress(NOTIFICATION_PROGRESS, progress, false);
+        notificationBuilder.setProgress(0, 0, true);
         notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
     }
 

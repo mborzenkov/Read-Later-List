@@ -259,7 +259,8 @@ class MainListDrawerHelper implements View.OnClickListener {
                                     int number = Integer.parseInt(input);
                                     MainListLongTask.startLongBackgroundTask(
                                             () -> DebugUtils.addPlaceholdersToDatabase(mActivity, number),
-                                            mActivity
+                                            mActivity,
+                                            mActivity.getString(R.string.notification_debug_fillplaceholders_title)
                                     );
                                 } catch (ClassCastException e) {
                                     Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
@@ -278,7 +279,8 @@ class MainListDrawerHelper implements View.OnClickListener {
                             mActivity.getString(R.string.mainlist_menu_delete_all_question_text),
                             () -> MainListLongTask.startLongBackgroundTask(
                                     () -> ReadLaterDbUtils.deleteAll(mActivity),
-                                    mActivity
+                                    mActivity,
+                                    mActivity.getString(R.string.notification_debug_deleteall_title)
                             ),
                             null);
                 }
@@ -296,8 +298,10 @@ class MainListDrawerHelper implements View.OnClickListener {
      */
     private void handleBackupTask(boolean savingMode) {
 
+        String notificationTitle = savingMode ? mActivity.getString(R.string.notification_backup_save_title) :
+                mActivity.getString(R.string.notification_backup_restore_title);
         // Пробуем заблокировать интерфейс
-        if (!MainListLongTask.startAnotherLongTask()) {
+        if (!MainListLongTask.startAnotherLongTask(mActivity, notificationTitle)) {
             return; // не удалось, что то уже происходит
         }
         mActivity.runOnUiThread(mActivity::showLoading);

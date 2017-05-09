@@ -37,11 +37,13 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
      *
      * @return true - если все прошло успешно и можно начинать работу, иначе false
      */
-    static synchronized boolean startAnotherLongTask() {
+    static synchronized boolean startAnotherLongTask(Context context, String notificationtitle) {
         if (isActive) {
             return false;
         }
         isActive = true;
+        MainListNotifications.setupNotification(context, notificationtitle);
+        MainListNotifications.showNotificationWithProgress(0);
         return true;
     }
 
@@ -55,6 +57,7 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
             return false;
         }
         isActive = false;
+        MainListNotifications.cancelNotification();
         return true;
     }
 
@@ -67,7 +70,7 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
      * @return true, если выполнение началось или false, если было отклонено
      */
     static synchronized boolean startLongBackgroundTask(Runnable task,
-                                                        @Nullable MainListActivity activity,
+                                                        MainListActivity activity,
                                                         String notificationTitle) {
 
         // Может выполняться только одно действие
@@ -94,13 +97,10 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
 
     /** Activity, в которой нужно отображать выполнение. */
     private @Nullable MainListActivity mActivity = null;
-    /** Заголовок для Notification. */
-    private String mNotificationTitle = "";
 
     /** Создает новый экземпляр класса. */
-    private MainListLongTask(MainListActivity activity, String notificationTitle) {
+    private MainListLongTask(@Nullable MainListActivity activity, String notificationTitle) {
         mActivity = activity;
-        mNotificationTitle = notificationTitle;
         MainListNotifications.setupNotification(mActivity, notificationTitle);
     }
 
