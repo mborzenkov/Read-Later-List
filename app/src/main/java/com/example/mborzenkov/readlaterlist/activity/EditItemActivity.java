@@ -23,10 +23,12 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.net.MalformedURLException;
@@ -115,6 +117,11 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
             ((TextView) findViewById(R.id.tv_edititem_modified_value))
                     .setText(dateFormatter.format(mFromItem.getDateModified()));
             mChosenColor = mFromItem.getColor();
+            String imageUrl = mFromItem.getImageUrl();
+            if (!imageUrl.isEmpty()) {
+                mImageUrlEditText.setText(imageUrl);
+                reloadImage();
+            }
             getSupportActionBar().setTitle(getString(R.string.edititem_title_edit));
             fab.setImageResource(R.drawable.ic_edit_24dp);
             mMode = EditModes.EDIT;
@@ -222,10 +229,21 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         try {
             new URL(url);
         } catch (MalformedURLException e) {
+            mImageUrlInputLayout.setError(getString(R.string.edititem_error_imageurl_malformed));
             return; // Это не url
         }
 
-        Picasso.with(this).load(url).into(mImageFromUrlImageView);
+        Picasso.with(this).load(url).into(mImageFromUrlImageView, new Callback() {
+            @Override
+            public void onSuccess() {
+                mImageUrlInputLayout.setError(null);
+            }
+
+            @Override
+            public void onError() {
+                mImageUrlInputLayout.setError(getString(R.string.edititem_error_imageurl_onload));
+            }
+        });
 
     }
 
@@ -277,18 +295,23 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
      *      Например, если не заполнен Label
      */
     private @Nullable ReadLaterItem packInputData() {
-        // TODO: Проверить imageUrl
         String label = mLabelEditText.getText().toString();
         String description = mDescriptionEditText.getText().toString();
         long currentTime = System.currentTimeMillis();
         String imageUrl = mImageUrlEditText.getText().toString();
+        try {
+            new URL(imageUrl);
+        } catch (MalformedURLException e) {
+            mImageUrlInputLayout.setError(getString(R.string.edititem_error_imageurl_malformed));
+            return null; // Это не url
+        }
         if (!label.trim().isEmpty()) {
             if (mFromItem != null) {
                 return new ReadLaterItem(label, description, mChosenColor,
-                        mFromItem.getDateCreated(), currentTime, currentTime, null);
+                        mFromItem.getDateCreated(), currentTime, currentTime, imageUrl);
             } else {
                 return new ReadLaterItem(label, description, mChosenColor,
-                        currentTime, currentTime, currentTime, null);
+                        currentTime, currentTime, currentTime, imageUrl);
             }
         } else {
             mLabelInputLayout.setError(getString(R.string.edititem_error_title_empty));

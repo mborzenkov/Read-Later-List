@@ -81,6 +81,8 @@
         <string name="edititem_image_contentdescription">Image from url</string>
         <!-- Ошибки -->
         <string name="edititem_error_title_empty">Please enter label</string>
+        <string name="edititem_error_imageurl_malformed">Please type correct URL</string>
+        <string name="edititem_error_imageurl_onload">Error loading image from URL</string>
         <!-- Меню -->
         <string name="edititem_menu_delete">Delete</string>
         <string name="edititem_menu_delete_question_title">Delete item</string>

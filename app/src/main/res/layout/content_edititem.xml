@@ -97,10 +97,8 @@
 
             <ImageButton
                 android:id="@+id/ib_edititem_updateimage"
-                android:layout_width="@dimen/size_edititem_ibreloadimage"
-                android:layout_height="@dimen/size_edititem_ibreloadimage"
-                android:layout_marginLeft="@dimen/marginhorizontal_normal"
-                android:layout_marginStart="@dimen/marginhorizontal_normal"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_marginRight="@dimen/marginhorizontal_normal"
                 android:layout_marginEnd="@dimen/marginhorizontal_normal"
                 android:layout_marginTop="@dimen/marginhorizontal_normal"
@@ -113,7 +111,7 @@
 
             <ImageView
                 android:id="@+id/iv_edititem_imagefromurl"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 tools:minHeight="150dp"
                 android:layout_marginLeft="@dimen/marginvertical_small"
