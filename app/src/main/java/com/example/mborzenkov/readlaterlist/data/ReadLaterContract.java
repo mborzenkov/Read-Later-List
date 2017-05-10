@@ -38,6 +38,8 @@ public class ReadLaterContract {
         public static final String COLUMN_DATE_LAST_MODIFIED = "last_modify";
         /** Имя колонки с датой последнего просмотра. */
         public static final String COLUMN_DATE_LAST_VIEW = "last_view";
+        /** Имя колонки с url картинки. */
+        public static final String COLUMN_IMAGE_URL = "image_url";
 
         /** Создает Uri для доступа к одному элменту по id.
          *

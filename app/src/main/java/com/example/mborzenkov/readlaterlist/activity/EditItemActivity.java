@@ -281,12 +281,14 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         String label = mLabelEditText.getText().toString();
         String description = mDescriptionEditText.getText().toString();
         long currentTime = System.currentTimeMillis();
+        String imageUrl = mImageUrlEditText.getText().toString();
         if (!label.trim().isEmpty()) {
             if (mFromItem != null) {
                 return new ReadLaterItem(label, description, mChosenColor,
-                        mFromItem.getDateCreated(), currentTime, currentTime);
+                        mFromItem.getDateCreated(), currentTime, currentTime, null);
             } else {
-                return new ReadLaterItem(label, description, mChosenColor, currentTime, currentTime, currentTime);
+                return new ReadLaterItem(label, description, mChosenColor,
+                        currentTime, currentTime, currentTime, null);
             }
         } else {
             mLabelInputLayout.setError(getString(R.string.edititem_error_title_empty));

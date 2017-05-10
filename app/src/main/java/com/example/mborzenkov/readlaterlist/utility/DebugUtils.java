@@ -62,7 +62,8 @@ public class DebugUtils {
                         predefinedColors[randomizer.nextInt(numberOfColors)],
                         currentTime,
                         currentTime,
-                        currentTime));
+                        currentTime,
+                        null));
             }
             ReadLaterDbUtils.bulkInsertItems(context, listItems);
 
