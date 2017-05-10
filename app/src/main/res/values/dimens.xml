@@ -48,6 +48,5 @@
     <dimen name="margin_colorpicker_star">4dp</dimen>
     <dimen name="marginright_mainlist_primarytext">124dp</dimen>
     <dimen name="marginbottom_mainlist_secondarytext">20dp</dimen>
-    <dimen name="size_edititem_ibreloadimage">40dp</dimen>
 
 </resources>

@@ -15,8 +15,8 @@ public class ActivityUtils {
     }
 
     // Замена java.util.function.Consumer, совместимая с API 16
-    public interface Consumer<String> {
-        public void accept(String param);
+    public interface Consumer<T> {
+        void accept(String param);
     }
 
     /** Показывает окно AlertDialog с двумя кнопками: подтверждение и отмена.

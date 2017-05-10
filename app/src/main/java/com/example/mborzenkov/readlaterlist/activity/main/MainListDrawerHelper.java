@@ -39,9 +39,6 @@ import java.util.Map;
 /** Класс помощник для DrawerLayout в MainActivity. */
 class MainListDrawerHelper implements View.OnClickListener {
 
-    /** Имя хэндлер треда для бэкапа. */
-    private final String HANDLER_THREAD_NAME = "BackupHandlerThread";
-
     // Элементы Layout
     private final MainListActivity mActivity;
     private final DrawerLayout mDrawerLayout;
@@ -228,19 +225,19 @@ class MainListDrawerHelper implements View.OnClickListener {
                 // Действие "Сохранить бэкап" открывает окно подтверждения и по положительному ответу
                 // вызывает функцию для сохранения
                 ActivityUtils.showAlertDialog(mActivity,
-                        mActivity.getString(R.string.mainlist_drawer_backup_save_question_title),
-                        mActivity.getString(R.string.mainlist_drawer_backup_save_question_text),
-                        () -> handleBackupTask(true),
-                        null);
+                    mActivity.getString(R.string.mainlist_drawer_backup_save_question_title),
+                    mActivity.getString(R.string.mainlist_drawer_backup_save_question_text),
+                    () -> handleBackupTask(true),
+                    null);
                 break;
             case R.id.button_drawermainlist_backuprestore:
                 // Действие "Восстановить из бэкапа" открывает окно подтверждения и по положительному ответу
                 // вызывает функцию для восстановления
                 ActivityUtils.showAlertDialog(mActivity,
-                        mActivity.getString(R.string.mainlist_drawer_backup_restore_question_title),
-                        mActivity.getString(R.string.mainlist_drawer_backup_restore_question_text),
-                        () -> handleBackupTask(false),
-                        null);
+                    mActivity.getString(R.string.mainlist_drawer_backup_restore_question_title),
+                    mActivity.getString(R.string.mainlist_drawer_backup_restore_question_text),
+                    () -> handleBackupTask(false),
+                    null);
                 break;
             case R.id.button_drawermainlist_fillplaceholders:
                 // Действие "Заполнить данными" открывает окно подтверждения и по положительному ответу
@@ -250,23 +247,23 @@ class MainListDrawerHelper implements View.OnClickListener {
                     inputNumber.setInputType(InputType.TYPE_CLASS_NUMBER);
                     inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(5)}); // Не более 99999
                     ActivityUtils.showInputTextDialog(
-                            mActivity,
-                            inputNumber,
-                            mActivity.getString(R.string.mainlist_menu_add_placeholders_question_title),
-                            mActivity.getString(R.string.mainlist_menu_add_placeholders_question_text),
-                            (input) -> {
-                                try {
-                                    // Смотрим введенное значение
-                                    int number = Integer.parseInt(input);
-                                    MainListLongTask.startLongBackgroundTask(
-                                            () -> DebugUtils.addPlaceholdersToDatabase(mActivity, number),
-                                            mActivity
-                                    );
-                                } catch (ClassCastException e) {
-                                    Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
-                                }
-                            },
-                            null);
+                        mActivity,
+                        inputNumber,
+                        mActivity.getString(R.string.mainlist_menu_add_placeholders_question_title),
+                        mActivity.getString(R.string.mainlist_menu_add_placeholders_question_text),
+                        (input) -> {
+                            try {
+                                // Смотрим введенное значение
+                                int number = Integer.parseInt(input);
+                                MainListLongTask.startLongBackgroundTask(
+                                    () -> DebugUtils.addPlaceholdersToDatabase(mActivity, number),
+                                        mActivity
+                                );
+                            } catch (ClassCastException e) {
+                                Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
+                            }
+                        },
+                        null);
                 }
                 break;
             case R.id.button_drawermainlist_deleteall:
@@ -274,23 +271,23 @@ class MainListDrawerHelper implements View.OnClickListener {
                 // вызывает функцию для очистки
                 if (BuildConfig.DEBUG) {
                     ActivityUtils.showAlertDialog(
-                            mActivity,
-                            mActivity.getString(R.string.mainlist_menu_delete_all_question_title),
-                            mActivity.getString(R.string.mainlist_menu_delete_all_question_text),
-                            () -> {
-                                // Запускаем таск, показываем нотификейшены
-                                MainListLongTask.startLongBackgroundTask(
-                                    () -> {
-                                        ReadLaterDbUtils.deleteAll(mActivity);
-                                        LongTaskNotifications.cancelNotification();
-                                    },
-                                    mActivity
-                                );
-                                LongTaskNotifications.setupNotification(mActivity,
-                                        mActivity.getString(R.string.notification_debug_deleteall_title));
-                                LongTaskNotifications.showNotificationWithProgress(0, true); // бесконечный лоадинг
-                            },
-                            null);
+                        mActivity,
+                        mActivity.getString(R.string.mainlist_menu_delete_all_question_title),
+                        mActivity.getString(R.string.mainlist_menu_delete_all_question_text),
+                        () -> {
+                            // Запускаем таск, показываем нотификейшены
+                            MainListLongTask.startLongBackgroundTask(
+                                () -> {
+                                    ReadLaterDbUtils.deleteAll(mActivity);
+                                    LongTaskNotifications.cancelNotification();
+                                },
+                                mActivity
+                            );
+                            LongTaskNotifications.setupNotification(mActivity,
+                                    mActivity.getString(R.string.notification_debug_deleteall_title));
+                            LongTaskNotifications.showNotificationWithProgress(0, true); // бесконечный лоадинг
+                        },
+                        null);
                 }
                 break;
             default:
@@ -315,7 +312,8 @@ class MainListDrawerHelper implements View.OnClickListener {
         mActivity.runOnUiThread(mActivity::showLoading);
 
         // Запускаем поток
-        HandlerThread handlerThread = new HandlerThread(HANDLER_THREAD_NAME);
+        /* Имя хэндлер треда для бэкапа. */
+        HandlerThread handlerThread = new HandlerThread("BackupHandlerThread");
         handlerThread.start();
         Looper looper = handlerThread.getLooper();
         Handler handler = new Handler(looper);

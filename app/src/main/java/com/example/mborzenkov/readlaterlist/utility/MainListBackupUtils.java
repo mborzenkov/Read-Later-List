@@ -9,7 +9,6 @@ import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemJsonAdapter;
-import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import com.squareup.moshi.Types;
@@ -21,14 +20,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 /** Сервисный static util класс для работы с бэкапами базы данных в формате Json. */
 public class MainListBackupUtils {
@@ -216,8 +212,8 @@ public class MainListBackupUtils {
             }
 
             // Показываем нотификешн
-            LongTaskNotifications.
-                    setupNotification(context, context.getString(R.string.notification_backup_restore_title));
+            LongTaskNotifications
+                    .setupNotification(context, context.getString(R.string.notification_backup_restore_title));
             LongTaskNotifications.showNotificationWithProgress(0, false);
 
             // Получаем список файлов
@@ -250,7 +246,6 @@ public class MainListBackupUtils {
 
         // Читаем файлы
         for (File file : backupFiles) {
-            String jsonString = "";
             FileInputStream inStream = null;
             InputStreamReader inReader = null;
             try {

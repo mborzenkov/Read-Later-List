@@ -3,10 +3,6 @@ package com.example.mborzenkov.readlaterlist.activity.main;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.support.annotation.Nullable;
-import android.util.Log;
-import android.widget.ProgressBar;
-
-import com.example.mborzenkov.readlaterlist.R;
 
 /** Запускает AsyncTask для выполнения длительного действия.
  * Показывает значок загрузки и устанавливает isActive = true, что должно блокировать все другие действия.

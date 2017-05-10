@@ -7,7 +7,7 @@ import android.support.v4.app.NotificationCompat;
 
 import com.example.mborzenkov.readlaterlist.R;
 
-// TODO: JDoc
+/** Класс для отправки оповещений о длительных операциях. */
 public class LongTaskNotifications {
 
     /** ID уведомления. */
@@ -20,6 +20,11 @@ public class LongTaskNotifications {
     /** Notification Builder. */
     private static NotificationCompat.Builder notificationBuilder = null;
 
+    /** Подготавливает новое оповещение с заголовком title, но не запускает его.
+     *
+     * @param context контекст
+     * @param title заголовок оповещения
+     */
     public static void setupNotification(Context context, String title) {
         if (notificationManager == null) {
             notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -31,6 +36,11 @@ public class LongTaskNotifications {
                 .setProgress(0, 0, true);
     }
 
+    /** Показывает оповещение с указанным прогрессом.
+     *
+     * @param progress прогресс от 0 до 100
+     * @param infinite признак бесконечного прогресса, если true - будет показан бесконечный прогресс
+     */
     public static void showNotificationWithProgress(int progress, boolean infinite) {
         if (notificationManager != null) {
             if (infinite) {
@@ -42,6 +52,7 @@ public class LongTaskNotifications {
         }
     }
 
+    /** Отменяет запущенное оповещение. */
     public static void cancelNotification() {
         if (notificationManager != null) {
             notificationManager.cancel(NOTIFICATION_ID);

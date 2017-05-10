@@ -4,14 +4,12 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -106,7 +104,13 @@ public class ReadLaterDbUtils {
                 .delete(ReadLaterEntry.CONTENT_URI, null, null);
     }
 
-    // TODO: JDoc
+    /** Выполяняет запрос count количества данных из базы с from позиции.
+     *
+     * @param context контекст
+     * @param from начало, с которого запрашивать данные
+     * @param count колчичество
+     * @return курсор, указывающий на данные
+     */
     public static Cursor queryRange(Context context, int from, int count) {
         return context.getContentResolver().query(
                 ReadLaterContract.ReadLaterEntry.CONTENT_URI,

@@ -67,4 +67,12 @@
     <string name="edititem_date_modified">Изменен:</string>
     <string name="mainlist_longloading_title">Длительное действие уже запущено</string>
     <string name="mainlist_longloading_text">В данный момент уже выполняется длительное действие. Пожалуйста дождитесь его завершения, прежде чем начать другое.</string>
+    <string name="edititem_error_imageurl_malformed">Пожалуйста введите корректный URL</string>
+    <string name="edititem_error_imageurl_onload">Ошибка загрузки изображения</string>
+    <string name="edititem_image_contentdescription">Картинка из URL</string>
+    <string name="edititem_imageurl_hint">URL картинки</string>
+    <string name="notification_backup_restore_title">Восстановление данных</string>
+    <string name="notification_backup_save_title">Сохранение данных</string>
+    <string name="notification_debug_deleteall_title">Очистка списка</string>
+    <string name="notification_debug_fillplaceholders_title">Автозаполнение списка</string>
 </resources>

@@ -6,15 +6,12 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
-import android.view.View;
 
 import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /** Главная Activity, представляющая собой список. */
 class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -24,14 +21,14 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
 
     /** Используемые колонки базы данных. */
     private static final String[] MAIN_LIST_PROJECTION = {
-            ReadLaterContract.ReadLaterEntry._ID,
-            ReadLaterContract.ReadLaterEntry.COLUMN_LABEL,
-            ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION,
-            ReadLaterContract.ReadLaterEntry.COLUMN_COLOR,
-            ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED,
-            ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED,
-            ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW,
-            ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL
+        ReadLaterContract.ReadLaterEntry._ID,
+        ReadLaterContract.ReadLaterEntry.COLUMN_LABEL,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION,
+        ReadLaterContract.ReadLaterEntry.COLUMN_COLOR,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW,
+        ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL
     };
 
     // Индексы для колонок из MAIN_LIST_PROJECTION, для упрощения
@@ -39,13 +36,13 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
     static final int INDEX_COLUMN_LABEL = 1;
     static final int INDEX_COLUMN_DESCRIPTION = 2;
     static final int INDEX_COLUMN_COLOR = 3;
-    static final int INDEX_COLUMN_DATE_CREATED = 4;
+    // static final int INDEX_COLUMN_DATE_CREATED = 4;
     static final int INDEX_COLUMN_DATE_LAST_MODIFIED = 5;
-    static final int INDEX_COLUMN_DATE_LAST_VIEW = 6;
-    static final int INDEX_COLUMN_IMAGE_URL = 7;
+    // static final int INDEX_COLUMN_DATE_LAST_VIEW = 6;
+    // static final int INDEX_COLUMN_IMAGE_URL = 7;
 
     /** Ссылка на MainListActivity. */
-    private MainListActivity mActivity;
+    private final MainListActivity mActivity;
     /** Поисковый запрос. */
     private String mSearchQuery = "";
 

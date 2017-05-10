@@ -14,7 +14,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,8 +22,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-
 import com.example.mborzenkov.readlaterlist.R;
+
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
@@ -72,7 +71,6 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
     private ImageButton mColorImageButton;
     private TextInputEditText mImageUrlEditText;
     private TextInputLayout mImageUrlInputLayout;
-    private ImageButton mImageUrlUpdateImageButton;
     private ImageView mImageFromUrlImageView;
 
     @Override
@@ -100,8 +98,7 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         mImageUrlEditText = (TextInputEditText) findViewById(R.id.et_edititem_imageurl);
         mImageUrlInputLayout = (TextInputLayout) findViewById(R.id.til_edititem_imageurl);
         mImageFromUrlImageView = (ImageView) findViewById(R.id.iv_edititem_imagefromurl);
-        mImageUrlUpdateImageButton = (ImageButton) findViewById(R.id.ib_edititem_updateimage);
-        mImageUrlUpdateImageButton.setOnClickListener(this);
+        ((ImageButton) findViewById(R.id.ib_edititem_updateimage)).setOnClickListener(this);
 
         // Чтение данных из Intent
         Intent intent = getIntent();
@@ -216,6 +213,7 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
                 break;
             case R.id.ib_edititem_updateimage:
                 reloadImage();
+                break;
             default:
                 break;
         }
