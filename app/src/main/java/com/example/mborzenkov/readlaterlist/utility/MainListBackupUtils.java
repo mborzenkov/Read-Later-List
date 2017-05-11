@@ -39,6 +39,9 @@ public class MainListBackupUtils {
     private static final String FORMAT_ERROR = "%s %s";
     /** Максимальное количество объектов в одном файле. */
     private static final int FILE_MAX_SIZE = 10000;
+    /** Отсечка для показывания оповещений. */
+    private static final int NOTIFICATION_FROM_FILES_COUNT = 1;
+
 
     private static final FilenameFilter FILENAME_FILTER = (dir, name) ->
             dir.toString().contains(FOLDER_NAME) && name.matches(FILE_NAME_REGEX);
@@ -68,30 +71,40 @@ public class MainListBackupUtils {
                 return; // Не удалось создать папки
             }
 
-            // Показываем нотификейшн
-            LongTaskNotifications.setupNotification(context,
-                    context.getString(R.string.notification_backup_save_title));
-            LongTaskNotifications.showNotificationWithProgress(0, false);
-
-            // Сколько данных в базе пока не известно, поэтому покаем бесконечный лоадер
-            LongTaskNotifications.showNotificationWithProgress(0, true);
-
             // Генерируем строку JSON
             final List<String> jsonStrings = generateJsonStrings(context);
 
-            // Теперь покажем сразу 20%, примерно столько работы сделано
-            LongTaskNotifications.showNotificationWithProgress(20, false);
+            final int jsonSize = jsonStrings.size();
+            final boolean showNotification;
+
+            // Оцениваем длительность операций и если файлов > 1, показываем процесс в панели уведомлений.
+            if (jsonSize > NOTIFICATION_FROM_FILES_COUNT) {
+
+                showNotification = true;
+
+                // Показываем нотификейшн
+                LongTaskNotifications.setupNotification(context,
+                        context.getString(R.string.notification_backup_save_title));
+                LongTaskNotifications.showNotificationWithProgress(0, false);
+
+            } else {
+                showNotification = false;
+            }
 
             // Записываем, предварительно очистив все бэкапы
             removeAllBackups();
-            for (int i = 0, size = jsonStrings.size(); i < size; i++) {
+            for (int i = 0; i < jsonSize; i++) {
                 String json = jsonStrings.get(i);
                 writeStringToFile(backupFolder, String.format(FILE_NAME_FORMAT, i), json);
-                LongTaskNotifications.showNotificationWithProgress(20 + (80 / (size - i)), false);
+                if (showNotification) {
+                    LongTaskNotifications.showNotificationWithProgress((100 / jsonSize) * (i + 1), false);
+                }
             }
 
-            // Скрываем нотификешн
-            LongTaskNotifications.cancelNotification();
+            if (showNotification) {
+                // Скрываем нотификешн
+                LongTaskNotifications.cancelNotification();
+            }
 
         } else {
             Log.e("EX storage exception", String.format(FORMAT_ERROR, "Ошибка доступа к хранилищу на запись, статус: ",
@@ -211,19 +224,34 @@ public class MainListBackupUtils {
                 return; // Нет папки? :(
             }
 
-            // Показываем нотификешн
-            LongTaskNotifications
-                    .setupNotification(context, context.getString(R.string.notification_backup_restore_title));
-            LongTaskNotifications.showNotificationWithProgress(0, false);
-
             // Получаем список файлов
             File[] backupFiles = backupFolder.listFiles(FILENAME_FILTER);
 
-            // Записываем данные в базу
-            loadJsonData(context, readBackupFiles(backupFiles));
+            // Оцениваем длительность операций и если файлов > 1, показываем процесс в панели уведомлений.
+            final boolean showNotification;
+            if (backupFiles.length > NOTIFICATION_FROM_FILES_COUNT) {
 
-            // Скрываем нотификешн
-            LongTaskNotifications.cancelNotification();
+                showNotification = true;
+
+                // Показываем нотификейшн
+                LongTaskNotifications.setupNotification(context,
+                        context.getString(R.string.notification_backup_restore_title));
+                LongTaskNotifications.showNotificationWithProgress(0, false);
+
+            } else {
+                showNotification = false;
+            }
+
+            // Читаем файлы
+            List<String> backupData = readBackupFiles(backupFiles, showNotification);
+
+            // Записываем данные в базу
+            loadJsonData(context, backupData, showNotification);
+
+            if (showNotification) {
+                LongTaskNotifications.cancelNotification();
+            }
+
 
         } else {
             Log.e("EX storage exception", String.format("%s %s", "Ошибка доступа к хранилищу на чтение, статус: ",
@@ -238,14 +266,15 @@ public class MainListBackupUtils {
      * @param backupFiles список файлов
      * @return список содержимого файлов
      */
-    private static List<String> readBackupFiles(File[] backupFiles) {
+    private static List<String> readBackupFiles(File[] backupFiles, boolean showNotification) {
 
         final List<String> result = new ArrayList<>();
-        final int totalFiles = backupFiles.length;
-        int currentFile = 0;
 
         // Читаем файлы
-        for (File file : backupFiles) {
+        for (int i = 0, totalFiles = backupFiles.length; i < totalFiles; i++) {
+
+            File file = backupFiles[i];
+
             FileInputStream inStream = null;
             InputStreamReader inReader = null;
             try {
@@ -283,8 +312,10 @@ public class MainListBackupUtils {
                 }
             }
 
-            // Все чтение файлов как 50%
-            LongTaskNotifications.showNotificationWithProgress(50 / (totalFiles - currentFile), false);
+            if (showNotification) {
+                // Все чтение файлов как 20%
+                LongTaskNotifications.showNotificationWithProgress(((20 / totalFiles) * (i + 1)), false);
+            }
         }
 
         return result;
@@ -296,7 +327,7 @@ public class MainListBackupUtils {
      * @param context контекст
      * @param jsonStrings строки в формате JSON
      */
-    private static void loadJsonData(Context context, List<String> jsonStrings) {
+    private static void loadJsonData(Context context, List<String> jsonStrings, boolean showNotification) {
 
         if (!jsonStrings.isEmpty()) {
 
@@ -307,10 +338,9 @@ public class MainListBackupUtils {
             JsonAdapter<List<ReadLaterItem>> jsonAdapter =
                     moshi.adapter(Types.newParameterizedType(List.class, ReadLaterItem.class));
 
-            final int totalStrings = jsonStrings.size();
-            int currentString = 0;
+            for (int i = 0, totalStrings = jsonStrings.size(); i < totalStrings; i++) {
 
-            for (String json : jsonStrings) {
+                String json = jsonStrings.get(i);
 
                 List<ReadLaterItem> restoredData = new ArrayList<>();
                 try {
@@ -329,8 +359,10 @@ public class MainListBackupUtils {
                     ReadLaterDbUtils.bulkInsertItems(context, restoredData);
                 }
 
-                // Все чтение строк как 50% начиная с 50%
-                LongTaskNotifications.showNotificationWithProgress(50 + (50 / (totalStrings - currentString)), false);
+                if (showNotification) {
+                    // Все чтение строк как 80% начиная с 20%
+                    LongTaskNotifications.showNotificationWithProgress(20 + ((80 / totalStrings) * (i + 1)), false);
+                }
             }
         }
     }

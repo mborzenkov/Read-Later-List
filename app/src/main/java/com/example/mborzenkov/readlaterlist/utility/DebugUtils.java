@@ -14,7 +14,7 @@ public class DebugUtils {
     /** Количество строк в description для автоматического создания. */
     private static final int DESCRIPTION_LINES = 3;
     /** Добавляется за раз. */
-    private static final int BULK_INSERT_MAX = 1000; // Для более плавного индикатора, но быстрее конечно больше
+    private static final int BULK_INSERT_MAX = 5000;
 
     private DebugUtils() {
         throw new UnsupportedOperationException("Класс DebugUtils - static util, не может иметь экземпляров");
@@ -29,9 +29,18 @@ public class DebugUtils {
      */
     public static void addPlaceholdersToDatabase(Context context, int number) {
 
-        LongTaskNotifications.setupNotification(context,
-                context.getString(R.string.notification_debug_fillplaceholders_title));
-        LongTaskNotifications.showNotificationWithProgress(0, false);
+        // Оцениваем длительность операций и если вставок будет > 1, показываем процесс в панели уведомлений.
+        final boolean showNotification;
+        if (number > BULK_INSERT_MAX) {
+
+            showNotification = true;
+            LongTaskNotifications.setupNotification(context,
+                    context.getString(R.string.notification_debug_fillplaceholders_title));
+            LongTaskNotifications.showNotificationWithProgress(0, false);
+
+        } else {
+            showNotification = false;
+        }
 
         final long currentTime = System.currentTimeMillis();
         final String[] text = context.getString(R.string.debug_large_text).split("\n");
@@ -67,12 +76,16 @@ public class DebugUtils {
             }
             ReadLaterDbUtils.bulkInsertItems(context, listItems);
 
-            // Обновляем нотификешн
-            int stepsLeft = ((number - inserted) / BULK_INSERT_MAX) + 1; // всегда > 0, так как number >= inserted
-            LongTaskNotifications.showNotificationWithProgress(100 / stepsLeft, false);
+            if (showNotification) {
+                // Обновляем нотификешн
+                LongTaskNotifications.showNotificationWithProgress((100 * inserted) / number, false);
+            }
         }
 
-        LongTaskNotifications.cancelNotification();
+        if (showNotification) {
+            // Сворачиваемся
+            LongTaskNotifications.cancelNotification();
+        }
     }
 
 }

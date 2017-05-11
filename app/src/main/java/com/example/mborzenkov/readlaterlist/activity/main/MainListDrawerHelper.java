@@ -283,9 +283,7 @@ class MainListDrawerHelper implements View.OnClickListener {
                                 },
                                 mActivity
                             );
-                            LongTaskNotifications.setupNotification(mActivity,
-                                    mActivity.getString(R.string.notification_debug_deleteall_title));
-                            LongTaskNotifications.showNotificationWithProgress(0, true); // бесконечный лоадинг
+                            // Это быстро, обойдемся без нотификейшенов
                         },
                         null);
                 }
