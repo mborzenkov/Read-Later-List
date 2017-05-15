@@ -29,19 +29,6 @@ public class DebugUtils {
      */
     public static void addPlaceholdersToDatabase(Context context, int number) {
 
-        // Оцениваем длительность операций и если вставок будет > 1, показываем процесс в панели уведомлений.
-        final boolean showNotification;
-        if (number > BULK_INSERT_MAX) {
-
-            showNotification = true;
-            LongTaskNotifications.setupNotification(context,
-                    context.getString(R.string.notification_debug_fillplaceholders_title));
-            LongTaskNotifications.showNotificationWithProgress(0, false);
-
-        } else {
-            showNotification = false;
-        }
-
         final long currentTime = System.currentTimeMillis();
         final String[] text = context.getString(R.string.debug_large_text).split("\n");
         final int[] predefinedColors = context.getResources().getIntArray(R.array.full_gradient);
@@ -75,17 +62,8 @@ public class DebugUtils {
                         null));
             }
             ReadLaterDbUtils.bulkInsertItems(context, listItems);
-
-            if (showNotification) {
-                // Обновляем нотификешн
-                LongTaskNotifications.showNotificationWithProgress((100 * inserted) / number, false);
-            }
         }
 
-        if (showNotification) {
-            // Сворачиваемся
-            LongTaskNotifications.cancelNotification();
-        }
     }
 
 }

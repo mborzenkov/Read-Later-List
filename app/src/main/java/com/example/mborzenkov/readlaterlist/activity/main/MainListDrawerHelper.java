@@ -245,7 +245,7 @@ class MainListDrawerHelper implements View.OnClickListener {
                 if (BuildConfig.DEBUG) {
                     EditText inputNumber = new EditText(mActivity);
                     inputNumber.setInputType(InputType.TYPE_CLASS_NUMBER);
-                    inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(5)}); // Не более 99999
+                    inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(1)}); // Не более 9
                     ActivityUtils.showInputTextDialog(
                         mActivity,
                         inputNumber,
