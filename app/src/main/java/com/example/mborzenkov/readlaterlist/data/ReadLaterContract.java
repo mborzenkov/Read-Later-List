@@ -26,6 +26,10 @@ public class ReadLaterContract {
         public static final String TABLE_NAME = "items";
         /** Имя таблицы FTS. */
         public static final String TABLE_NAME_FTS = "items_fts";
+        // /** Имя колонки с id пользователя. */
+        // public static final String COLUMN_USER_ID = "user_id";
+        /** Имя колонки с внешним id заметки. */
+        public static final String COLUMN_REMOTE_ID = "remote_id";
         /** Имя колонки с заголовком элемента. */
         public static final String COLUMN_LABEL = "label";
         /** Имя колонки с описанием элемента. */
