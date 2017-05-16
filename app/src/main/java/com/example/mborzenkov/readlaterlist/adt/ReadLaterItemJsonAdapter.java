@@ -24,6 +24,7 @@ public class ReadLaterItemJsonAdapter {
     private static final String FORMAT_COLOR = "#%S";
     /** Формат toString объекта ReadLaterItemJson. */
     private static final String FORMAT_JSON_TOSTRING = "{%n"
+            + "  \"id\": \"%s\",%n"
             + "  \"title\": \"%s\",%n"
             + "  \"description\": \"%s\",%n"
             + "  \"color\": \"%s\",%n"
@@ -47,13 +48,14 @@ public class ReadLaterItemJsonAdapter {
     public ReadLaterItemJson toJson(@NonNull ReadLaterItem item) {
         final SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
         ReadLaterItemJson json = new ReadLaterItemJson();
-        json.title = item.getLabel();
-        json.description = item.getDescription();
-        json.color = String.format(FORMAT_COLOR, Integer.toHexString(item.getColor()));
-        json.created = dateFormatter.format(item.getDateCreated());
-        json.edited = dateFormatter.format(item.getDateModified());
-        json.viewed = dateFormatter.format(item.getDateViewed());
-        json.imageUrl = item.getImageUrl();
+        json.id             = item.getRemoteId() == null ? null : String.valueOf(item.getRemoteId());
+        json.title          = item.getLabel();
+        json.description    = item.getDescription();
+        json.color          = String.format(FORMAT_COLOR, Integer.toHexString(item.getColor()));
+        json.created        = dateFormatter.format(item.getDateCreated());
+        json.edited         = dateFormatter.format(item.getDateModified());
+        json.viewed         = dateFormatter.format(item.getDateViewed());
+        json.imageUrl       = item.getImageUrl();
         return json;
     }
 
@@ -77,6 +79,9 @@ public class ReadLaterItemJsonAdapter {
                     .dateCreated(dateFormatter.parse(json.created).getTime())
                     .dateModified(dateFormatter.parse(json.edited).getTime())
                     .dateViewed(dateFormatter.parse(json.viewed).getTime());
+            if (json.id != null) {
+                resultBuilder.remoteId(Integer.valueOf(json.id));
+            }
             if (json.description != null) {
                 resultBuilder.description(json.description);
             }
@@ -113,6 +118,7 @@ public class ReadLaterItemJsonAdapter {
     }
 
     private static class ReadLaterItemJson {
+        private String id;
         private String title;
         private String description;
         private String color;
@@ -127,7 +133,7 @@ public class ReadLaterItemJsonAdapter {
         @Override
         public String toString() {
             return String.format(Locale.US, FORMAT_JSON_TOSTRING,
-                    title, description, color, created, edited, viewed, imageUrl);
+                    id, title, description, color, created, edited, viewed, imageUrl);
         }
     }
 

@@ -82,6 +82,7 @@ public class ReadLaterItemDbAdapter {
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, item.getDateModified());
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW, item.getDateViewed());
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL, item.getImageUrl());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_REMOTE_ID, item.getRemoteId());
         return contentValues;
     }
 

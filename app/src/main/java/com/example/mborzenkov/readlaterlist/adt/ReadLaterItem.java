@@ -22,8 +22,7 @@ public class ReadLaterItem {
     /** Формат цвета. */
     private static final String FORMAT_COLOR = "#%s";
     /** Цвет по умолчанию. */
-    public static final int DEFAULT_COLOR = 16761095;
-
+    private static final int DEFAULT_COLOR = 16761095;
 
     // -- Builder
     /** Создает новый объект ReadLaterItem.
@@ -42,6 +41,7 @@ public class ReadLaterItem {
         private long dateModified;
         private long dateViewed;
         private @Nullable URL imageUrl  = null;
+        private Integer remoteId        = null;
 
         /** Начинает создание элемента.
          *  Заполняет все необязательные параметры значениями по умолчанию.
@@ -149,15 +149,20 @@ public class ReadLaterItem {
             return this;
         }
 
-//        /** Устанавливает uid у элемента.
-//         *
-//         * @param uid Идентификатор элемента, число >= 0
-//         * @throws IllegalArgumentException если id < 0
-//         */
-//        public Builder remoteId(int uid) {
-//            this.uid = uid;
-//            return this;
-//        }
+        /** Устанавливает идентификатор у элемента.
+         *  Значение по умолчанию: null.
+         *
+         * @param remoteId Идентификатор элемента, число > 0 или null
+         *                 null означает, что remoteId не задан
+         * @throws IllegalArgumentException если remoteId <= 0
+         */
+        public Builder remoteId(@Nullable Integer remoteId) {
+            if (remoteId != null && remoteId <= 0) {
+                throw new IllegalArgumentException("remoteId <= 0");
+            }
+            this.remoteId = remoteId;
+            return this;
+        }
 
         /** Создает новый объект ReadLaterItem.
          *
@@ -185,6 +190,8 @@ public class ReadLaterItem {
     private final long dateViewed;
     /** URL картинки. */
     private final @Nullable URL imageUrl;
+    /** Внешний идентификатор элемента. */
+    private final @Nullable Integer remoteId;
 
     // Инвариант:
     //      label - непустая строка без переносов, заголовок элемента
@@ -194,6 +201,7 @@ public class ReadLaterItem {
     //      edited - дата изменения в формате timestamp
     //      viewed - дата просмотра в формате timestamp
     //      imageUrl - ссылка, может быть null
+    //      remoteId - внешний идентификатор: >0, если установлен или 0 в противном случае
     //
     // Абстрактная функция:
     //      представляет элемент списка ReadLater, обладающий заголовком, описанием, цветом, датой создания, изменения,
@@ -213,6 +221,9 @@ public class ReadLaterItem {
             if (label.contains("\n")) {
                 throw new AssertionError("Заголовок ReadLaterItem оказался многострочным.");
             }
+            if (remoteId != null && remoteId < 0) {
+                throw new AssertionError("Идентификатор ReadLaterItem оказался отрицательным.");
+            }
         }
     }
 
@@ -224,6 +235,7 @@ public class ReadLaterItem {
         dateModified    = builder.dateModified;
         dateViewed      = builder.dateViewed;
         imageUrl        = builder.imageUrl;
+        remoteId        = builder.remoteId;
         checkRep();
     }
 
@@ -285,6 +297,14 @@ public class ReadLaterItem {
         } else {
             return "";
         }
+    }
+
+    /** Возвращает внешний идентификатор элемента.
+     *
+     * @return Внешний идентификатор > 0, если был установлен, иначе 0
+     */
+    public @Nullable Integer getRemoteId() {
+        return remoteId;
     }
 
     /** Два объекта ReadLaterItem равны, если у них одинаковые заголовок, описание, цвет и даты создания, изменения
