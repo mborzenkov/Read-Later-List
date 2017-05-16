@@ -20,6 +20,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import retrofit2.Call;
 import retrofit2.Response;
@@ -28,6 +31,8 @@ import retrofit2.converter.moshi.MoshiConverterFactory;
 
 
 /** Тестирует подключение к Cloud API. */
+@RunWith(RobolectricTestRunner.class)
+@Config(constants = BuildConfig.class)
 @SuppressWarnings("FieldCanBeLocal") // Поля вынесены на уровень класса для улучшенной читаемости"
 public class CloudApiTest {
 
@@ -36,10 +41,11 @@ public class CloudApiTest {
 
     private static final long currentTime = System.currentTimeMillis();
     private static final String normalImageUrl = "http://i.imgur.com/aYioFT9.jpg";
-    private static final ReadLaterItem item1 = new ReadLaterItem("Заголовок 1", "Descrip 232", Color.RED,
-                                                           currentTime, currentTime, currentTime, normalImageUrl);
-    private static final ReadLaterItem item2 = new ReadLaterItem("Заголовок 2", "Desc 22", Color.BLUE,
-                                                            currentTime, currentTime + 10, currentTime, normalImageUrl);
+    private static final ReadLaterItem item1 = new ReadLaterItem.Builder("Заголовок 1")
+            .description("Descrip 232")
+            .build();
+    private static final ReadLaterItem item2 = new ReadLaterItem.Builder("Заголовок 2")
+            .build();
 
     @Test
     public void testApiYufimtsev() throws IOException {

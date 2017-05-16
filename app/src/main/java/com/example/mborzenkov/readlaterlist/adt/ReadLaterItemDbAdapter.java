@@ -37,14 +37,14 @@ public class ReadLaterItemDbAdapter {
      * @see ReadLaterItemCursorProjection
      */
     private ReadLaterItem itemFromCursor(Cursor cursor, @NonNull ReadLaterItemCursorProjection projection) {
-        return new ReadLaterItem(
-                cursor.getString(projection.indexLabel),
-                cursor.getString(projection.indexDescription),
-                cursor.getInt(projection.indexColor),
-                cursor.getLong(projection.indexCreated),
-                cursor.getLong(projection.indexModified),
-                cursor.getLong(projection.indexViewed),
-                cursor.getString(projection.indexImageUrl));
+        return new ReadLaterItem.Builder(cursor.getString(projection.indexLabel))
+                .description(cursor.getString(projection.indexDescription))
+                .color(cursor.getInt(projection.indexColor))
+                .dateCreated(cursor.getLong(projection.indexCreated))
+                .dateModified(cursor.getLong(projection.indexModified))
+                .dateViewed(cursor.getLong(projection.indexViewed))
+                .imageUrl(cursor.getString(projection.indexImageUrl))
+                .build();
     }
 
     /** Преобразует Cursor в список ReadLaterItem.

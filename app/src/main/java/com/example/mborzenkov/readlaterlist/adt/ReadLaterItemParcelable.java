@@ -45,7 +45,14 @@ public final class ReadLaterItemParcelable implements Parcelable {
             long dateViewed = source.readLong();
             String imageUrl = source.readString();
             return new ReadLaterItemParcelable(
-                    new ReadLaterItem(label, description, color, dateCreated, dateModified, dateViewed, imageUrl));
+                    new ReadLaterItem.Builder(label)
+                            .description(description)
+                            .color(color)
+                            .dateCreated(dateCreated)
+                            .dateModified(dateModified)
+                            .dateViewed(dateViewed)
+                            .imageUrl(imageUrl)
+                            .build());
         }
 
         @Override

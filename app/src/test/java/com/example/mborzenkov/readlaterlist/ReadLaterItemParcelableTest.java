@@ -26,8 +26,12 @@ public class ReadLaterItemParcelableTest {
 
     @Test
     public void testParcelable() {
-        ReadLaterItem item = new ReadLaterItem(normalLabel, normalDescription, normalColor,
-                currentTime, currentTime, currentTime, normalImageUrl);
+        ReadLaterItem item = new ReadLaterItem.Builder(normalLabel)
+                .description(normalDescription)
+                .color(normalColor)
+                .allDates(currentTime)
+                .imageUrl(normalImageUrl)
+                .build();
         ReadLaterItemParcelable itemParcelable = new ReadLaterItemParcelable(item);
         Parcel parcel = Parcel.obtain();
         itemParcelable.writeToParcel(parcel, itemParcelable.describeContents());
@@ -39,21 +43,12 @@ public class ReadLaterItemParcelableTest {
 
     @Test
     public void testParcelableEmptyUrl() {
-        ReadLaterItem item = new ReadLaterItem(normalLabel, normalDescription, normalColor,
-                currentTime, currentTime, currentTime, "");
-        ReadLaterItemParcelable itemParcelable = new ReadLaterItemParcelable(item);
-        Parcel parcel = Parcel.obtain();
-        itemParcelable.writeToParcel(parcel, itemParcelable.describeContents());
-        parcel.setDataPosition(0);
-
-        ReadLaterItem itemFromParcel = ReadLaterItemParcelable.CREATOR.createFromParcel(parcel).getItem();
-        assertEquals(item, itemFromParcel);
-    }
-
-    @Test
-    public void testParcelableNullUrl() {
-        ReadLaterItem item = new ReadLaterItem(normalLabel, normalDescription, normalColor,
-                currentTime, currentTime, currentTime, null);
+        ReadLaterItem item = new ReadLaterItem.Builder(normalLabel)
+                .description(normalDescription)
+                .color(normalColor)
+                .allDates(currentTime)
+                .imageUrl("")
+                .build();
         ReadLaterItemParcelable itemParcelable = new ReadLaterItemParcelable(item);
         Parcel parcel = Parcel.obtain();
         itemParcelable.writeToParcel(parcel, itemParcelable.describeContents());

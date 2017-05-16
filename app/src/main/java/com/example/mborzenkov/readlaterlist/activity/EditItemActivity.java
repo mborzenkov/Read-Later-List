@@ -295,7 +295,6 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
     private @Nullable ReadLaterItem packInputData() {
         String label = mLabelEditText.getText().toString();
         String description = mDescriptionEditText.getText().toString();
-        long currentTime = System.currentTimeMillis();
         String imageUrl = mImageUrlEditText.getText().toString();
         try {
             new URL(imageUrl);
@@ -304,13 +303,18 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
             return null; // Это не url
         }
         if (!label.trim().isEmpty()) {
+
+            ReadLaterItem.Builder resultBuilder = new ReadLaterItem.Builder(label)
+                    .description(description)
+                    .color(mChosenColor)
+                    .imageUrl(imageUrl);
+
             if (mFromItem != null) {
-                return new ReadLaterItem(label, description, mChosenColor,
-                        mFromItem.getDateCreated(), currentTime, currentTime, imageUrl);
-            } else {
-                return new ReadLaterItem(label, description, mChosenColor,
-                        currentTime, currentTime, currentTime, imageUrl);
+                resultBuilder.dateCreated(mFromItem.getDateCreated());
             }
+
+            return resultBuilder.build();
+
         } else {
             mLabelInputLayout.setError(getString(R.string.edititem_error_title_empty));
             return null;

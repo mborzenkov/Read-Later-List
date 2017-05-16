@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -20,11 +21,160 @@ public class ReadLaterItem {
     private static final String FORMAT_DATE = "yyyy-MM-dd'T'hh:mm:ss.SSSZ";
     /** Формат цвета. */
     private static final String FORMAT_COLOR = "#%s";
+    /** Цвет по умолчанию. */
+    public static final int DEFAULT_COLOR = 16761095;
 
+
+    // -- Builder
+    /** Создает новый объект ReadLaterItem.
+     *  Пример использования:
+     *      new ReadLaterItem.Builder("Заголовок однострочный непустой").description("descr").color(Color.RED).build();
+     */
+    public static class Builder {
+
+        // Обязательные параметры
+        private final String label;
+
+        // Необязательные параметры
+        private String description      = "";
+        private int color               = DEFAULT_COLOR;
+        private long dateCreated;
+        private long dateModified;
+        private long dateViewed;
+        private @Nullable URL imageUrl  = null;
+
+        /** Начинает создание элемента.
+         *  Заполняет все необязательные параметры значениями по умолчанию.
+         *
+         * @param label Заголовок элемента, непустой и однострочный
+         *              (содержит буквы, цифры или символы, не содержит переносов строки)
+         *
+         * @throws IllegalArgumentException если label пустой или многострочный
+         * @throws NullPointerException если label == null
+         */
+        public Builder(@NonNull String label) {
+            if (label.trim().isEmpty()) {
+                throw new IllegalArgumentException("label == \"\"");
+            } else if (label.contains("\n")) {
+                throw new IllegalArgumentException("label.contains(\"\\n\")");
+            }
+            this.label = label;
+            long currentTime = System.currentTimeMillis();
+            this.dateCreated = currentTime;
+            this.dateModified = currentTime;
+            this.dateViewed = currentTime;
+        }
+
+        /** Устанавливает описание у элемента.
+         *  Значение по умолчанию: пустая строка.
+         *
+         * @param description Описание элемента, может быть пустое или многострочное, но не null
+         * @throws NullPointerException если label == null
+         */
+        public Builder description(@NonNull String description) {
+            this.description = description.trim();
+            return this;
+        }
+
+        /** Устанавливает цвет у элемента.
+         *  Значение по умолчанию: DEFAULT_COLOR.
+         *
+         * @param color Цвет в sRGB
+         */
+        public Builder color(int color) {
+            this.color = color;
+            return this;
+        }
+
+        /** Устанавливает дату создания у элемента.
+         *  Значение по умолчанию: timestamp на момент вызова конструктора ReadLaterItem.Builder().
+         *
+         * @param dateCreated Дата создания в формате timestamp (миллисекунд с 1 Января 1970 00:00:00 GMT)
+         */
+        public Builder dateCreated(long dateCreated) {
+            this.dateCreated = dateCreated;
+            return this;
+        }
+
+        /** Устанавливает дату изменения у элемента.
+         *  Значение по умолчанию: timestamp на момент вызова конструктора ReadLaterItem.Builder().
+         *
+         * @param dateModified Дата изменения в формате timestamp
+         */
+        public Builder dateModified(long dateModified) {
+            this.dateModified = dateModified;
+            return this;
+        }
+
+        /** Устанавливает дату просмотра у элемента.
+         *  Значение по умолчанию: timestamp на момент вызова конструктора ReadLaterItem.Builder().
+         *
+         * @param dateViewed Дата просмотра в формате timestamp
+         */
+        public Builder dateViewed(long dateViewed) {
+            this.dateViewed = dateViewed;
+            return this;
+        }
+
+        /** Устанавливает все даты у элемента (создания, редактирования, просмотра) сразу.
+         *  Значение по умолчанию: timestamp на момент вызова конструктора ReadLaterItem.Builder().
+         *
+         * @param date Дата в формате timestamp
+         */
+        public Builder allDates(long date) {
+            this.dateCreated = date;
+            this.dateModified = date;
+            this.dateViewed = date;
+            return this;
+        }
+
+        /** Устанавливает ссылку на картинку у элемента.
+         *  Значение по умолчанию: "".
+         *
+         * @param imageUrl Ссылка на картинку, должна быть корректно сформированным url, наличие картинки не проверяется
+         *                 Может быть пустой строкой, тогда применяется значение по умолчанию.
+         * @throws IllegalArgumentException если imageUrl не пустая строка и не является Url
+         * @throws NullPointerException если imageUrl == null
+         */
+        public Builder imageUrl(@NonNull String imageUrl) {
+            if (!imageUrl.trim().isEmpty()) {
+                try {
+                    this.imageUrl = new URL(imageUrl);
+                } catch (MalformedURLException e) {
+                    throw new IllegalArgumentException("imageUrl != URL: " + imageUrl);
+                }
+            } else {
+                this.imageUrl = null;
+            }
+            return this;
+        }
+
+//        /** Устанавливает uid у элемента.
+//         *
+//         * @param uid Идентификатор элемента, число >= 0
+//         * @throws IllegalArgumentException если id < 0
+//         */
+//        public Builder remoteId(int uid) {
+//            this.uid = uid;
+//            return this;
+//        }
+
+        /** Создает новый объект ReadLaterItem.
+         *
+         * @return Объект ReadLaterItem, созданный на основании Builder.
+         */
+        public ReadLaterItem build() {
+            return new ReadLaterItem(this);
+        }
+
+    }
+
+
+    // -- Объект ReadLaterItem
     /** Заголовок. */
-    private final String label;
+    private final @NonNull String label;
     /** Описание. */
-    private final String description;
+    private final @NonNull String description;
     /** Цвет. */
     private final int color;
     /** Дата создания. */
@@ -35,7 +185,6 @@ public class ReadLaterItem {
     private final long dateViewed;
     /** URL картинки. */
     private final @Nullable URL imageUrl;
-
 
     // Инвариант:
     //      label - непустая строка без переносов, заголовок элемента
@@ -59,65 +208,30 @@ public class ReadLaterItem {
     private void checkRep() {
         if (BuildConfig.DEBUG) {
             if (label.trim().isEmpty()) {
-                throw new AssertionError();
+                throw new AssertionError("Заголовок ReadLaterItem оказался пустым.");
+            }
+            if (label.contains("\n")) {
+                throw new AssertionError("Заголовок ReadLaterItem оказался многострочным.");
             }
         }
     }
 
-    /** Создает новый элемент для помещения в список ReadLater.
-     *
-     * @param label Заголовок элемента, непустой и однострочный
-     *              (содержит буквы, цифры или символы, не содержит переносов строки)
-     * @param description Описание элемента
-     * @param color Цвет в sRGB
-     * @param dateCreated Дата создания в формате timestamp (миллисекунд с 1 Января 1970 00:00:00 GMT)
-     * @param dateModified Дата изменения в формате timestamp
-     * @param dateViewed Дата просмотра в формате timestamp
-     * @param imageUrl Ссылка на картинку, должна быть корректно сформированным url, наличие картинки не проверяется
-     *                 может быть пустой строкой или null
-     *
-     *
-     * @throws IllegalArgumentException если переданы неподходящие параметры
-     */
-    public ReadLaterItem(@NonNull String label,
-                         @NonNull String description,
-                         int color,
-                         long dateCreated,
-                         long dateModified,
-                         long dateViewed,
-                         @Nullable String imageUrl) {
-
-        if (label.trim().isEmpty()) {
-            throw new IllegalArgumentException("Заголовок ReadLaterItem не может быть пустым");
-        } else if (label.contains("\n")) {
-            throw new IllegalArgumentException("Заголовок должен быть однострочным");
-        } else {
-            if (imageUrl != null && !imageUrl.trim().isEmpty()) {
-                try {
-                    this.imageUrl = new URL(imageUrl);
-                } catch (MalformedURLException e) {
-                    throw new IllegalArgumentException("imageUrl не является URL: " + imageUrl);
-                }
-            } else {
-                this.imageUrl = null;
-            }
-        }
-
-        this.label = label;
-        this.description = description;
-        this.color = color;
-        this.dateCreated = dateCreated;
-        this.dateModified = dateModified;
-        this.dateViewed = dateViewed;
+    private ReadLaterItem(Builder builder) {
+        label           = builder.label;
+        description     = builder.description;
+        color           = builder.color;
+        dateCreated     = builder.dateCreated;
+        dateModified    = builder.dateModified;
+        dateViewed      = builder.dateViewed;
+        imageUrl        = builder.imageUrl;
         checkRep();
-
     }
 
     /** Возвращает заголовок элемента.
      *
      * @return Заголовок элемента
      */
-    public String getLabel() {
+    public @NonNull String getLabel() {
         return label;
     }
 
@@ -125,7 +239,7 @@ public class ReadLaterItem {
      *
      * @return Описание элемента
      */
-    public String getDescription() {
+    public @NonNull String getDescription() {
         return description;
     }
 
@@ -165,7 +279,7 @@ public class ReadLaterItem {
      *
      * @return строка imageUrl, может быть пустой
      */
-    public String getImageUrl() {
+    public @NonNull String getImageUrl() {
         if (imageUrl != null) {
             return imageUrl.toString();
         } else {

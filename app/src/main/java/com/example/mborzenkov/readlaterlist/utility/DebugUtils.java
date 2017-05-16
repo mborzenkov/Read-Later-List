@@ -29,7 +29,6 @@ public class DebugUtils {
      */
     public static void addPlaceholdersToDatabase(Context context, int number) {
 
-        final long currentTime = System.currentTimeMillis();
         final String[] text = context.getString(R.string.debug_large_text).split("\n");
         final int[] predefinedColors = context.getResources().getIntArray(R.array.full_gradient);
         final int textRows = text.length;
@@ -52,14 +51,10 @@ public class DebugUtils {
                 // Каждая новая конвертация может дать новый результат. Поэтому решено использовать предопределенные
                 // цвета.
 
-                listItems.add(new ReadLaterItem(
-                        label + " " + inserted,
-                        description.toString().trim(),
-                        predefinedColors[randomizer.nextInt(numberOfColors)],
-                        currentTime,
-                        currentTime,
-                        currentTime,
-                        null));
+                listItems.add(new ReadLaterItem.Builder(label + " " + inserted)
+                        .description(description.toString())
+                        .color(predefinedColors[randomizer.nextInt(numberOfColors)])
+                        .build());
             }
             ReadLaterDbUtils.bulkInsertItems(context, listItems);
         }

@@ -6,8 +6,11 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.squareup.moshi.FromJson;
+import com.squareup.moshi.JsonQualifier;
 import com.squareup.moshi.ToJson;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -19,6 +22,16 @@ public class ReadLaterItemJsonAdapter {
     private static final String FORMAT_DATE = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     /** Формат цвета в JSON. */
     private static final String FORMAT_COLOR = "#%S";
+    /** Формат toString объекта ReadLaterItemJson. */
+    private static final String FORMAT_JSON_TOSTRING = "{%n"
+            + "  \"title\": \"%s\",%n"
+            + "  \"description\": \"%s\",%n"
+            + "  \"color\": \"%s\",%n"
+            + "  \"created\": \"%s\",%n"
+            + "  \"edited\": \"%s\",%n"
+            + "  \"viewed\": \"%s\",%n"
+            + "  \"imageUrl\": \"%s\"%n"
+            + "}";
 
     /** Конструктор по умолчанию. */
     public ReadLaterItemJsonAdapter() { }
@@ -59,25 +72,41 @@ public class ReadLaterItemJsonAdapter {
         SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
         ReadLaterItem result = null;
         try {
-            result = new ReadLaterItem(
-                    json.title,
-                    json.description,
-                    (int) Long.parseLong(json.color.substring(1), 16),
-                    dateFormatter.parse(json.created).getTime(),
-                    dateFormatter.parse(json.edited).getTime(),
-                    dateFormatter.parse(json.viewed).getTime(),
-                    json.imageUrl);
+            ReadLaterItem.Builder resultBuilder = new ReadLaterItem.Builder(json.title)
+                    .color((int) Long.parseLong(json.color.substring(1), 16))
+                    .dateCreated(dateFormatter.parse(json.created).getTime())
+                    .dateModified(dateFormatter.parse(json.edited).getTime())
+                    .dateViewed(dateFormatter.parse(json.viewed).getTime());
+            if (json.description != null) {
+                resultBuilder.description(json.description);
+            }
+            if (json.imageUrl != null) {
+                resultBuilder.imageUrl(json.imageUrl);
+            }
+            result = resultBuilder.build();
         } catch (ParseException e) {
-            Log.e("Parse error", String.format("%s %s%n%s %s",
-                    "Ошибка разбора дат из ReadLaterItemJson:",
+            Log.e("FROM_JSON", String.format("%s %s%n%s %s",
+                    "dateFormatter.parse error:",
                     e.toString(),
-                    "Объект ReadLaterItemJson:",
+                    "ReadLaterItemJson: ",
                     json.toString()));
         } catch (NumberFormatException e) {
-            Log.e("Parse error", String.format("%s %s%n%s %s",
-                    "Ошибка конвертации color в int из ReadLaterItemJson: ",
+            Log.e("FROM_JSON", String.format("%s %s%n%s %s",
+                    "color -> Integer error: ",
                     e.toString(),
-                    "Объект ReadLaterItemJson:",
+                    "ReadLaterItemJson: ",
+                    json.toString()));
+        } catch (NullPointerException e) {
+            Log.e("FROM_JSON", String.format("%s %s%n%s %s",
+                    "NULL in JSON error: ",
+                    e.toString(),
+                    "ReadLaterItemJson: ",
+                    json.toString()));
+        } catch (IllegalArgumentException e) {
+            Log.e("FROM_JSON", String.format("%s %s%n%s %s",
+                    "JSON parse error: ",
+                    e.toString(),
+                    "ReadLaterItemJson: ",
                     json.toString()));
         }
         return result;
@@ -97,7 +126,7 @@ public class ReadLaterItemJsonAdapter {
 
         @Override
         public String toString() {
-            return String.format("title:%s, description:%s, color:%s, created:%s, edited:%s, viewed:%s, imageUrl: %s",
+            return String.format(Locale.US, FORMAT_JSON_TOSTRING,
                     title, description, color, created, edited, viewed, imageUrl);
         }
     }
