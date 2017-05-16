@@ -152,13 +152,13 @@ public class ReadLaterItem {
         /** Устанавливает идентификатор у элемента.
          *  Значение по умолчанию: null.
          *
-         * @param remoteId Идентификатор элемента, число > 0 или null
+         * @param remoteId Идентификатор элемента, число >= 0 или null
          *                 null означает, что remoteId не задан
-         * @throws IllegalArgumentException если remoteId <= 0
+         * @throws IllegalArgumentException если remoteId < 0
          */
         public Builder remoteId(@Nullable Integer remoteId) {
-            if (remoteId != null && remoteId <= 0) {
-                throw new IllegalArgumentException("remoteId <= 0");
+            if (remoteId != null && remoteId < 0) {
+                throw new IllegalArgumentException("remoteId < 0");
             }
             this.remoteId = remoteId;
             return this;
@@ -307,8 +307,8 @@ public class ReadLaterItem {
         return remoteId;
     }
 
-    /** Два объекта ReadLaterItem равны, если у них одинаковые заголовок, описание, цвет и даты создания, изменения
-     * и просмотра.
+    /** Два объекта ReadLaterItem равны, если у них одинаковые заголовок, описание, цвет и даты создания, изменения,
+     * просмотра, ссылка на картинку и внешний идентификатор.
      *
      * @param obj Объект для сравнения
      * @return True, если равны; False в противном случае

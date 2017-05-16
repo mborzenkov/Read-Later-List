@@ -23,6 +23,25 @@ import retrofit2.http.Path;
 /** Класс описывает API для облачного сохранения списка ReadLaterList. */
 public interface CloudApiYufimtsev {
 
+    /* Документация API
+     *
+     * Доступ осуществляется по адресу https://notesbackend-yufimtsev.rhcloud.com/
+     *
+     * В API присутствуют следующие методы:
+     *      GET /info — возвращает все хедеры запроса
+     *      GET /user/%user_id%/notes — возвращает все заметки пользователя %user_id%
+     *      GET /user/%user_id%/note/%note_id% — возвращает соответствующую заметку
+     *      POST /user/%user_id%/notes — создаёт новую заметку (в body запросе должен присутствовать JSON с создаваемой
+     *          заметкой) и возвращает её ID
+     *      POST /user/%user_id%/note/%note_id% — редактирует заметку (в body запросе должен присутствовать полный JSON
+     *          с данными заметки)
+     *      DELETE /user/%user_id%/note/%note_id% — удаляет заметку
+     *
+     * В успешном ответе всегда присутствует поле "status".
+     *      Если он указан как "ok", то запрос выполнен удачно.
+     *      Если запрос подразумевал возврат данных, они будут находиться в поле "data".
+     */
+
     // -- Константы
     /** Адрес для подключения. */
     HttpUrl BASE_URL = new HttpUrl.Builder().scheme("https").host("notesbackend-yufimtsev.rhcloud.com").build();
@@ -46,6 +65,8 @@ public interface CloudApiYufimtsev {
     public @interface RequestStatus { }
 
     // -- Ответы сервера
+    /** Ответ сервера 200 OK. */
+    int RESPONSE_CODE_SUCCESS = 200;
     /** Стандартный ответ сервера. */
     class DefaultResponse {
         /** Статус выполнения запроса, всегда присутствует и равен STATUS_SUCCESS или STATUS_ERROR. */
@@ -127,38 +148,5 @@ public interface CloudApiYufimtsev {
     @DELETE(PATH_NOTE)
     Call<DefaultResponse> deleteItem(@Path(PARAM_USER_ID) @IntRange(from=0) int userId,
                        @Path(PARAM_ITEM_ID) @IntRange(from=0) int itemId);
-
-
-
-
-
-
-
-
-    // TODO: Будет возвращать ID, возможно следует предусмотреть свой JSON тут тоже
-
-    /*
-    Доступ осуществляется по адресу https://notesbackend-yufimtsev.rhcloud.com/
-
-    В API присутствуют следующие методы:
-
-    * GET /info — возвращает все хедеры запроса
-
-    * GET /user/%user_id%/notes — возвращает все заметки пользователя %user_id%
-
-    * GET /user/%user_id%/note/%note_id% — возвращает соответствующую заметку
-
-    * POST /user/%user_id%/notes — создаёт новую заметку (в body запросе должен присутствовать JSON с создаваемой заметкой) и возвращает её ID
-
-    * POST /user/%user_id%/note/%note_id% — редактирует заметку (в body запросе должен присутствовать полный JSON с данными заметки)
-
-    * DELETE /user/%user_id%/note/%note_id% — удаляет заметку
-
-
-
-    В успешном ответе всегда присутствует поле "status".
-
-    Если он указан как "ok", то запрос выполнен удачно. Если запрос подразумевал возврат данных, они будут находиться в поле "data".
-     */
 
 }
