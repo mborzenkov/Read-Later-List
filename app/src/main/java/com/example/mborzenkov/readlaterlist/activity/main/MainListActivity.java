@@ -127,6 +127,9 @@ public class MainListActivity extends AppCompatActivity implements
             case R.id.mainlist_settings:
                 mDrawerHelper.openDrawer();
                 return true;
+            case R.id.mainlist_action_refresh:
+                toggleRefresh();
+                return true;
             default:
                 break;
         }

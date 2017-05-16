@@ -75,4 +75,5 @@
     <string name="notification_backup_save_title">Сохранение данных</string>
     <string name="notification_debug_deleteall_title">Очистка списка</string>
     <string name="notification_debug_fillplaceholders_title">Автозаполнение списка</string>
+    <string name="mainlist_menu_refresh">Обновить</string>
 </resources>
