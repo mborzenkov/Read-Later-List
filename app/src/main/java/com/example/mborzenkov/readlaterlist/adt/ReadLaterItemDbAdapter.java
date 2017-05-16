@@ -44,6 +44,7 @@ public class ReadLaterItemDbAdapter {
                 .dateModified(cursor.getLong(projection.indexModified))
                 .dateViewed(cursor.getLong(projection.indexViewed))
                 .imageUrl(cursor.getString(projection.indexImageUrl))
+                .remoteId(cursor.getInt(projection.indexRemoteId))
                 .build();
     }
 
@@ -95,6 +96,7 @@ public class ReadLaterItemDbAdapter {
         private final int indexModified;
         private final int indexViewed;
         private final int indexImageUrl;
+        private final int indexRemoteId;
 
         /** Получает индексы колонок из курсора, соответствующие полям объекта ReadLaterItem.
          *
@@ -111,6 +113,7 @@ public class ReadLaterItemDbAdapter {
             this.indexModified = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED);
             this.indexViewed = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW);
             this.indexImageUrl = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL);
+            this.indexRemoteId = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_REMOTE_ID);
         }
     }
 
