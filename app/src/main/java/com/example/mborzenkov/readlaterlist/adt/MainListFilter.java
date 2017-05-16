@@ -1,9 +1,10 @@
-package com.example.mborzenkov.readlaterlist.data;
+package com.example.mborzenkov.readlaterlist.adt;
 
 import android.content.Context;
 import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.activity.main.MainListActivity;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;

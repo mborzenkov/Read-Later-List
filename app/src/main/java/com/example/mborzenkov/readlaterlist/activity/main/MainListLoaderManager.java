@@ -7,7 +7,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
 
-import com.example.mborzenkov.readlaterlist.data.MainListFilter;
+import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 

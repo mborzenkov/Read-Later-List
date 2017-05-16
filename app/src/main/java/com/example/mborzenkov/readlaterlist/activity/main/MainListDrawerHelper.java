@@ -21,7 +21,7 @@ import android.widget.Spinner;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
-import com.example.mborzenkov.readlaterlist.data.MainListFilter;
+import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
 import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
