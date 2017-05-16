@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
@@ -24,6 +25,7 @@ import com.example.mborzenkov.readlaterlist.activity.EditItemActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
+import com.example.mborzenkov.readlaterlist.networking.CloudSyncUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 
 /** Главная Activity, представляющая собой список. */
@@ -49,6 +51,7 @@ public class MainListActivity extends AppCompatActivity implements
     private MainListLoaderManager mLoaderManager;
 
     // Элементы layout
+    private SwipeRefreshLayout mSwipeRefreshLayout;
     private ListView mItemListView;
     private ProgressBar mLoadingIndicator;
     private LinearLayout mEmptyList;
@@ -76,6 +79,8 @@ public class MainListActivity extends AppCompatActivity implements
         });
 
         // Инициализация объектов layout
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swiperefresh_mainlist);
+        mSwipeRefreshLayout.setOnRefreshListener(this::toggleRefresh);
         mMainListAdapter = new MainListAdapter(this, this);
         mItemListView = (ListView) findViewById(R.id.listview_main_list);
         mItemListView.setAdapter(mMainListAdapter);
@@ -223,11 +228,18 @@ public class MainListActivity extends AppCompatActivity implements
 
     }
 
+    private void toggleRefresh() {
+        mSwipeRefreshLayout.setRefreshing(true);
+        CloudSyncUtils.startFullSync();
+        mSwipeRefreshLayout.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 3000);
+    }
+
     /** Показывает индикатор загрузки, скрывая все лишнее. */
     void showLoading() {
         mItemListView.setVisibility(View.INVISIBLE);
         mEmptyList.setVisibility(View.INVISIBLE);
         mLoadingIndicator.setVisibility(View.VISIBLE);
+        mSwipeRefreshLayout.setEnabled(false);
     }
 
     /** Показывает онбординг, если список пуст или список, если он не пуст. */
@@ -236,9 +248,11 @@ public class MainListActivity extends AppCompatActivity implements
         if (mMainListAdapter.getCursor().getCount() > 0) {
             mEmptyList.setVisibility(View.INVISIBLE);
             mItemListView.setVisibility(View.VISIBLE);
+            mSwipeRefreshLayout.setEnabled(true);
         } else {
             mItemListView.setVisibility(View.INVISIBLE);
             mEmptyList.setVisibility(View.VISIBLE);
+            mSwipeRefreshLayout.setEnabled(false);
         }
     }
     

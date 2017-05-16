@@ -296,11 +296,13 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         String label = mLabelEditText.getText().toString();
         String description = mDescriptionEditText.getText().toString();
         String imageUrl = mImageUrlEditText.getText().toString();
-        try {
-            new URL(imageUrl);
-        } catch (MalformedURLException e) {
-            mImageUrlInputLayout.setError(getString(R.string.edititem_error_imageurl_malformed));
-            return null; // Это не url
+        if (!imageUrl.isEmpty()) {
+            try {
+                new URL(imageUrl);
+            } catch (MalformedURLException e) {
+                mImageUrlInputLayout.setError(getString(R.string.edititem_error_imageurl_malformed));
+                return null; // Это не url
+            }
         }
         if (!label.trim().isEmpty()) {
 
