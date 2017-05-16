@@ -73,6 +73,12 @@ public class ReadLaterItemJsonAdapter {
                     e.toString(),
                     "Объект ReadLaterItemJson:",
                     json.toString()));
+        } catch (NumberFormatException e) {
+            Log.e("Parse error", String.format("%s %s%n%s %s",
+                    "Ошибка конвертации color в int из ReadLaterItemJson: ",
+                    e.toString(),
+                    "Объект ReadLaterItemJson:",
+                    json.toString()));
         }
         return result;
     }
