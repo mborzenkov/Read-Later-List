@@ -1,8 +1,11 @@
 package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -25,13 +28,16 @@ import com.example.mborzenkov.readlaterlist.activity.EditItemActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
-import com.example.mborzenkov.readlaterlist.networking.CloudSyncUtils;
+import com.example.mborzenkov.readlaterlist.networking.CloudSyncTask;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
+
+import java.util.List;
 
 /** Главная Activity, представляющая собой список. */
 public class MainListActivity extends AppCompatActivity implements
         MainListAdapter.ItemListAdapterOnClickHandler,
-        SearchView.OnQueryTextListener {
+        SearchView.OnQueryTextListener,
+        CloudSyncTask.SyncCallback {
 
     // Константы
     /** Формат даты для вывода на формах редактирования дат. */
@@ -49,6 +55,7 @@ public class MainListActivity extends AppCompatActivity implements
     private MainListAdapter mMainListAdapter;
     private MainListDrawerHelper mDrawerHelper;
     private MainListLoaderManager mLoaderManager;
+    private MainListSyncFragment mSyncFragment;
 
     // Элементы layout
     private SwipeRefreshLayout mSwipeRefreshLayout;
@@ -58,8 +65,6 @@ public class MainListActivity extends AppCompatActivity implements
 
     /** ID текущего редактируемого элемента. */
     private int mEditItemId = UID_EMPTY;
-
-
 
 
     @Override
@@ -80,7 +85,7 @@ public class MainListActivity extends AppCompatActivity implements
 
         // Инициализация объектов layout
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swiperefresh_mainlist);
-        mSwipeRefreshLayout.setOnRefreshListener(this::toggleRefresh);
+        mSwipeRefreshLayout.setOnRefreshListener(this::toggleSync);
         mMainListAdapter = new MainListAdapter(this, this);
         mItemListView = (ListView) findViewById(R.id.listview_main_list);
         mItemListView.setAdapter(mMainListAdapter);
@@ -98,6 +103,8 @@ public class MainListActivity extends AppCompatActivity implements
             MainListLongTask.swapActivity(this);
             showLoading();
         }
+
+        mSyncFragment = MainListSyncFragment.getInstance(getSupportFragmentManager());
     }
 
     @Override
@@ -128,7 +135,7 @@ public class MainListActivity extends AppCompatActivity implements
                 mDrawerHelper.openDrawer();
                 return true;
             case R.id.mainlist_action_refresh:
-                toggleRefresh();
+                toggleSync();
                 return true;
             default:
                 break;
@@ -231,10 +238,48 @@ public class MainListActivity extends AppCompatActivity implements
 
     }
 
-    private void toggleRefresh() {
+    private void toggleSync() {
         mSwipeRefreshLayout.setRefreshing(true);
-        CloudSyncUtils.startFullSync();
+        mSyncFragment.startFullSync();
         mSwipeRefreshLayout.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 3000);
+    }
+
+    @Override
+    public long getLastSync() {
+        // Читаем дату последней синхронизации
+        SharedPreferences sharedPreferences = getSharedPreferences(LAST_SYNC_KEY, Context.MODE_PRIVATE);
+        return sharedPreferences.getLong(LAST_SYNC_KEY, 0);
+    }
+
+    @Override
+    public boolean isNetworkConnected() {
+        return ((ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE))
+                .getActiveNetworkInfo()
+                .isConnected();
+    }
+
+    @Override
+    public void handleConflicts(List<ReadLaterItem[]> conflicts) {
+        if (conflicts != null) {
+            // TODO: Разобрать данные
+        }
+    }
+
+    @Override
+    public void onSyncFinished() {
+        if (mSyncFragment != null) {
+            mSyncFragment.stopSync();
+        }
+        mLoaderManager.reloadData();
+    }
+
+    @Override
+    public void onSyncFinished(long syncStartTime) {
+        SharedPreferences.Editor sharedPreferencesEditor =
+                getSharedPreferences(LAST_SYNC_KEY, Context.MODE_PRIVATE).edit();
+        sharedPreferencesEditor.putLong(LAST_SYNC_KEY, syncStartTime);
+        sharedPreferencesEditor.apply();
+        onSyncFinished();
     }
 
     /** Показывает индикатор загрузки, скрывая все лишнее. */

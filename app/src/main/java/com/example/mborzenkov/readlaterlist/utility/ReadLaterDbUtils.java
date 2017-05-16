@@ -4,13 +4,18 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.support.annotation.Nullable;
+import android.util.Log;
 
+import com.example.mborzenkov.readlaterlist.activity.main.MainListActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -21,10 +26,57 @@ public class ReadLaterDbUtils {
 
     /** Запрос на диапзаон. */
     private static final String QUERY_RANGE = "_ID LIMIT %s OFFSET %s";
+    /** Запрос на отдельную заметку по remoteId. */
+    private static final String QUERY_REMOTE_ID = String.format("%s = ? AND %s = ?",
+            ReadLaterEntry.COLUMN_USER_ID, ReadLaterEntry.COLUMN_REMOTE_ID);
+    /** Запрос на заметки пользователя. */
+    private static final String QUERY_USER_ID = String.format("%s = ?", ReadLaterEntry.COLUMN_USER_ID);
 
 
     private ReadLaterDbUtils() {
         throw new UnsupportedOperationException("Класс ReadLaterDbUtils - static util, не может иметь экземпляров");
+    }
+
+    public static @Nullable ReadLaterItem getItemByRemoteId(Context context, int userId, int remoteId) {
+        ReadLaterItem result = null;
+        Cursor queryCursor = context.getContentResolver().query(
+                ReadLaterEntry.CONTENT_URI,
+                null,
+                QUERY_REMOTE_ID,
+                new String[] { String.valueOf(userId), String.valueOf(remoteId) },
+                null);
+        if (queryCursor != null) {
+            if (queryCursor.getCount() > 0) {
+                queryCursor.moveToPosition(0);
+                ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
+                result = dbAdapter.itemFromCursor(queryCursor);
+            }
+            queryCursor.close();
+        }
+        return result;
+    }
+
+    public static List<ReadLaterItem> getAllItems(Context context, int userId) {
+        List<ReadLaterItem> result = new ArrayList<>();
+        StringBuilder selectionBuilder = new StringBuilder(QUERY_USER_ID);
+        List<String> selectionArgs = new ArrayList<>();
+        selectionArgs.add(String.valueOf(userId));
+
+        Cursor queryCursor = context.getContentResolver().query(
+                ReadLaterEntry.CONTENT_URI,
+                null,
+                selectionBuilder.toString(),
+                selectionArgs.toArray(new String[selectionArgs.size()]),
+                null);
+
+        if (queryCursor != null) {
+            if (queryCursor.getCount() > 0) {
+                ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
+                result = dbAdapter.allItemsFromCursor(queryCursor);
+            }
+            queryCursor.close();
+        }
+        return result;
     }
 
     /** Добавляет новый элемент в базу данных.
@@ -119,8 +171,8 @@ public class ReadLaterDbUtils {
         return context.getContentResolver().query(
                 ReadLaterContract.ReadLaterEntry.CONTENT_URI,
                 null,
-                null,
-                null,
+                QUERY_USER_ID,
+                new String[] { String.valueOf(UserInfo.getCurentUser().getUserId()) },
                 String.format(Locale.US, QUERY_RANGE, count, from));
     }
 
