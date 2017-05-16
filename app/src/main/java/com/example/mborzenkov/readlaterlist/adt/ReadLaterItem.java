@@ -326,9 +326,14 @@ public class ReadLaterItem {
                 && label.equals(thatObject.label)
                 && description.equals(thatObject.description);
         if (imageUrl != null) {
-            return equality && imageUrl.equals(thatObject.imageUrl);
+            equality = equality && imageUrl.equals(thatObject.imageUrl);
         } else {
-            return equality && (thatObject.imageUrl == null);
+            equality = equality && (thatObject.imageUrl == null);
+        }
+        if (remoteId != null) {
+            return equality && remoteId.equals(thatObject.remoteId);
+        } else {
+            return equality && (thatObject.remoteId == null);
         }
     }
 
@@ -344,16 +349,19 @@ public class ReadLaterItem {
         if (imageUrl != null) {
             result = 31 * result + imageUrl.hashCode();
         }
+        if (remoteId != null) {
+            result = 31 * result + remoteId.hashCode();
+        }
         return result;
     }
 
     /** Возвращает строковое представление ReadLaterItem.
      *
-     * @return Строковое представление состоит из:
-     *              label\ndescription\n(#color)\nC: dateCreated\nM: dateModified\nV: dateViewed\nimage: , где
+     * @return Строковое представление состоит из всех полей объекта, где:
      *                  color - цвет в HEX,
      *                  даты формата yyyy-MM-dd'T'hh:mm:ss.SSSZ,
      *                  \nimage: нет, если imageUrl == null
+     *                  \nremoteId: нет, если remoteId == null
      *
      *              Например:
      *              Примерный заголовок!
@@ -364,21 +372,25 @@ public class ReadLaterItem {
      *              M: 2017-05-08T15:28:01.232+0400
      *              V: 2017-05-08T15:28:01.232+0400
      *              image: https://s-media-cache-ak0.pinimg.com/736x/92/9d/3d/929d3d9f76f406b5ac6020323d2d32dc.jpg
+     *              remoteId: 1010
      */
     @Override
     public String toString() {
         SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
-        String result = String.format("%s%n%s%n(%s)%nC: %s%nM: %s%nV: %s",
+        StringBuilder result = new StringBuilder(String.format("%s%n%s%n(%s)%nC: %s%nM: %s%nV: %s",
                 label,
                 description,
                 String.format(FORMAT_COLOR, Integer.toString(color, 16)),
                 dateFormatter.format(dateCreated),
                 dateFormatter.format(dateModified),
-                dateFormatter.format(dateViewed));
+                dateFormatter.format(dateViewed)));
         if (imageUrl != null) {
-            result = String.format("%s%nimage: %s", result, imageUrl.toString());
+            result.append(String.format("%nimage: %s", imageUrl.toString()));
         }
-        return result;
+        if (remoteId != null) {
+            result.append(String.format("%nremoteId: %s", remoteId.toString()));
+        }
+        return result.toString();
     }
 
 }

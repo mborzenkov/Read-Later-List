@@ -30,14 +30,16 @@ public class ReadLaterItemTest {
      *      dateModified: <0, 0, >0>сейчас, >сейчас
      *      dateViewed: <0, 0, >0>сейчас, >сейчас
      *      imageUrl: "", !картинка, картинка, недоступная ссылка, короткая ссылка, ftp
+     *      remoteId: >0, null
      *
      * Builder
-     *      description, color, dateCreated, dateModified, dateViewed, imageUrl: не заданы
+     *      description, color, dateCreated, dateModified, dateViewed, imageUrl, remoteId: не заданы
      *      Builder.allDates
      *
      * Throws
      *      label: пустой, многострочный
      *      imageUrl: неправильно сформированная ссылка
+     *      remoteId: <0
      *
      */
 
@@ -57,6 +59,8 @@ public class ReadLaterItemTest {
     private static final String unreachableUrl = "http://a.ru";
     private static final String ftpUrl = "ftp://somebody.once.told.me.ru";
     private static final String malformedUrl = "htt://www.google.ru/";
+    private static final Integer normalRemoteId = 1010;
+    private static final Integer illegalRemoteId = -1;
 
     /* Покрывает label.length: >1
      *           description: непустая
@@ -66,6 +70,7 @@ public class ReadLaterItemTest {
      *           dateModified: >0>сейчас
      *           dateViewed: >0>сейчас
      *           imageUrl: картинка
+     *           remoteId: >0
      */
     @Test
     public void normalItemTest() {
@@ -76,6 +81,7 @@ public class ReadLaterItemTest {
                 .dateModified(currentTime)
                 .dateViewed(currentTime)
                 .imageUrl(normalImageUrl)
+                .remoteId(normalRemoteId)
                 .build();
         assertEquals(normalLabel, item.getLabel());
         assertEquals(normalDescription, item.getDescription());
@@ -84,9 +90,10 @@ public class ReadLaterItemTest {
         assertEquals(currentTime, item.getDateModified());
         assertEquals(currentTime, item.getDateViewed());
         assertEquals(normalImageUrl, item.getImageUrl());
+        assertEquals(normalRemoteId, item.getRemoteId());
     }
 
-    /* Покрывает description, color, dateCreated, dateModified, dateViewed, imageUrl: не заданы
+    /* Покрывает description, color, dateCreated, dateModified, dateViewed, imageUrl, remoteId: не заданы
      */
     @Test
     public void shortBuilderTest() {
@@ -169,6 +176,9 @@ public class ReadLaterItemTest {
         assertEquals(singleCharLabel, item.getLabel());
     }
 
+    /* Покрывает equals
+     *           remoteId: null
+     */
     @Test
     public void testEquals() {
         ReadLaterItem item1 = new ReadLaterItem.Builder(normalLabel)
@@ -178,6 +188,7 @@ public class ReadLaterItemTest {
                 .dateModified(currentTime)
                 .dateViewed(futureTime)
                 .imageUrl(normalImageUrl)
+                .remoteId(normalRemoteId)
                 .build();
 
         ReadLaterItem item2 = new ReadLaterItem.Builder(normalLabel)
@@ -187,6 +198,7 @@ public class ReadLaterItemTest {
                 .dateModified(currentTime)
                 .dateViewed(futureTime)
                 .imageUrl(normalImageUrl)
+                .remoteId(normalRemoteId)
                 .build();
         assertEquals(item1, item2);
         assertEquals(item1.hashCode(), item2.hashCode());
@@ -245,11 +257,18 @@ public class ReadLaterItemTest {
                 .imageUrl(ftpUrl)
                 .build();
         assertFalse(item1.equals(item2));
+
+        item1 = new ReadLaterItem.Builder(normalLabel).remoteId(null).build();
+        item2 = new ReadLaterItem.Builder(normalLabel).build();
+        assertEquals(item1, item2);
+        assertEquals(item1.hashCode(), item2.hashCode());
     }
 
     @Test
     public void testToString() {
         SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSZ", Locale.US);
+
+        // +url -remoteId
         String assertedString = String.format("%s%n%s%n(#%s)%nC: %s%nM: %s%nV: %s%nimage: %s",
                 normalLabel,
                 normalDescription,
@@ -269,7 +288,7 @@ public class ReadLaterItemTest {
                 .build();
         assertEquals(assertedString, item.toString());
 
-        // без url
+        // -url -remoteId
         assertedString = String.format("%s%n%s%n(#%s)%nC: %s%nM: %s%nV: %s",
                 normalLabel,
                 normalDescription,
@@ -283,6 +302,46 @@ public class ReadLaterItemTest {
                 .dateCreated(zero)
                 .dateModified(currentTime)
                 .dateViewed(currentTime)
+                .build();
+        assertEquals(assertedString, item.toString());
+
+        // +url +remoteId
+        assertedString = String.format("%s%n%s%n(#%s)%nC: %s%nM: %s%nV: %s%nimage: %s%nremoteId: %s",
+                normalLabel,
+                normalDescription,
+                Integer.toString(normalColor, 16),
+                dateFormatter.format(zero),
+                dateFormatter.format(currentTime),
+                dateFormatter.format(currentTime),
+                normalImageUrl,
+                normalRemoteId);
+        item = new ReadLaterItem.Builder(normalLabel)
+                .description(normalDescription)
+                .color(normalColor)
+                .dateCreated(zero)
+                .dateModified(currentTime)
+                .dateViewed(currentTime)
+                .imageUrl(normalImageUrl)
+                .remoteId(normalRemoteId)
+                .build();
+        assertEquals(assertedString, item.toString());
+
+        // -url +remoteId
+        assertedString = String.format("%s%n%s%n(#%s)%nC: %s%nM: %s%nV: %s%nremoteId: %s",
+                normalLabel,
+                normalDescription,
+                Integer.toString(normalColor, 16),
+                dateFormatter.format(zero),
+                dateFormatter.format(currentTime),
+                dateFormatter.format(currentTime),
+                normalRemoteId);
+        item = new ReadLaterItem.Builder(normalLabel)
+                .description(normalDescription)
+                .color(normalColor)
+                .dateCreated(zero)
+                .dateModified(currentTime)
+                .dateViewed(currentTime)
+                .remoteId(normalRemoteId)
                 .build();
         assertEquals(assertedString, item.toString());
     }
@@ -374,6 +433,14 @@ public class ReadLaterItemTest {
     public void testImageUrlMalformed() {
         ReadLaterItem item = new ReadLaterItem.Builder(normalLabel)
                 .imageUrl(malformedUrl)
+                .build();
+    }
+
+    /* Покрывает remoteId: <0 */
+    @Test(expected = IllegalArgumentException.class)
+    public void testRemoteIdIllegal() {
+        ReadLaterItem item = new ReadLaterItem.Builder(normalLabel)
+                .remoteId(illegalRemoteId)
                 .build();
     }
 
