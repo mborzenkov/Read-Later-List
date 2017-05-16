@@ -7,6 +7,7 @@ import android.net.Uri;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
+import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
@@ -35,6 +36,7 @@ public class ReadLaterDbUtils {
     public static boolean insertItem(Context context, ReadLaterItem item) {
         ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentValues contentValues = dbAdapter.contentValuesFromItem(item);
+        contentValues.put(ReadLaterEntry.COLUMN_USER_ID, UserInfo.getCurentUser().getUserId());
         Uri uri = context.getContentResolver().insert(ReadLaterEntry.CONTENT_URI, contentValues);
         return uri != null;
     }
@@ -45,10 +47,12 @@ public class ReadLaterDbUtils {
      * @param itemList Данные в формате ReadLaterItem.
      */
     public static void bulkInsertItems(Context context, List<ReadLaterItem> itemList) {
+        final int currentUser = UserInfo.getCurentUser().getUserId();
         ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentValues[] values = new ContentValues[itemList.size()];
         for (int i = 0; i < itemList.size(); i++) {
             values[i] = dbAdapter.contentValuesFromItem(itemList.get(i));
+            values[i].put(ReadLaterEntry.COLUMN_USER_ID, currentUser);
         }
         context.getContentResolver().bulkInsert(ReadLaterEntry.CONTENT_URI, values);
     }
