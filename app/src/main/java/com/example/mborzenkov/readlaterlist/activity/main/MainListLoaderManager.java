@@ -33,7 +33,8 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
         ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED,
         ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED,
         ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW,
-        ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL
+        ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL,
+        ReadLaterContract.ReadLaterEntry.COLUMN_REMOTE_ID
     };
 
     // Индексы для колонок из MAIN_LIST_PROJECTION, для упрощения
@@ -45,6 +46,7 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
     static final int INDEX_COLUMN_DATE_LAST_MODIFIED = 5;
     // static final int INDEX_COLUMN_DATE_LAST_VIEW = 6;
     // static final int INDEX_COLUMN_IMAGE_URL = 7;
+    // static final int INDEX_COLUMN_REMOTE_ID = 8;
 
     /** Ссылка на MainListActivity. */
     private final MainListActivity mActivity;
