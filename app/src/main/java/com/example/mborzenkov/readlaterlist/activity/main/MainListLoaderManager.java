@@ -8,16 +8,21 @@ import android.support.v4.content.Loader;
 import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
+import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /** Главная Activity, представляющая собой список. */
 class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
 
     /** ID Используемого LoadManager'а. */
     private static final int ITEM_LOADER_ID = 13;
+    /** Запрос на заметки пользователя. */
+    private static final String QUERY_USER_ID = String.format("%s = ?", ReadLaterContract.ReadLaterEntry.COLUMN_USER_ID);
 
     /** Используемые колонки базы данных. */
     private static final String[] MAIN_LIST_PROJECTION = {
@@ -58,13 +63,17 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
     private CursorLoader getNewCursorLoader() {
 
         MainListFilter filter = MainListFilterUtils.getCurrentFilter();
-        StringBuilder selection = new StringBuilder();
-        String[] selectionArgs = new String[0];
+        StringBuilder selection = new StringBuilder(QUERY_USER_ID);
+        List<String> selectionArgs = new ArrayList<>();
+        selectionArgs.add(String.valueOf(UserInfo.getCurentUser().getUserId()));
         String sortOrder = "";
         if (filter != null) {
             sortOrder = filter.getSqlSortOrder();
-            selection.append(filter.getSqlSelection(mActivity));
-            selectionArgs = filter.getSqlSelectionArgs(mActivity);
+            String filterSelection = filter.getSqlSelection(mActivity);
+            if (!filterSelection.isEmpty()) {
+                selection.append(" AND ").append(filterSelection);
+                selectionArgs.addAll(Arrays.asList(filter.getSqlSelectionArgs(mActivity)));
+            }
         }
         if (!mSearchQuery.isEmpty()) {
             if (!selection.toString().trim().isEmpty()) {
@@ -72,14 +81,13 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
             }
             selection.append(String.format("_id IN (SELECT docid FROM %s WHERE %s MATCH ?)",
                     ReadLaterContract.ReadLaterEntry.TABLE_NAME_FTS, ReadLaterContract.ReadLaterEntry.TABLE_NAME_FTS));
-            selectionArgs = Arrays.copyOf(selectionArgs, selectionArgs.length + 1);
-            selectionArgs[selectionArgs.length - 1] = mSearchQuery;
+            selectionArgs.add(mSearchQuery);
         }
-        Log.d("SELECTION", String.format("%s, %s", selection.toString(), Arrays.toString(selectionArgs)));
+        Log.d("SELECTION", String.format("%s, %s", selection.toString(), Arrays.toString(selectionArgs.toArray())));
         Log.d("ORDERING", sortOrder);
-        return new CursorLoader(mActivity, ReadLaterContract.ReadLaterEntry.CONTENT_URI,
-                MAIN_LIST_PROJECTION, selection.toString(), selectionArgs, sortOrder);
-    }
+        return new CursorLoader(mActivity, ReadLaterContract.ReadLaterEntry.CONTENT_URI, MAIN_LIST_PROJECTION,
+                selection.toString(), selectionArgs.toArray(new String[selectionArgs.size()]), sortOrder);
+}
 
     @Override
     public Loader<Cursor> onCreateLoader(int loaderId, final Bundle args) {
