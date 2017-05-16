@@ -18,7 +18,7 @@ public class ReadLaterItemJsonAdapter {
     /** Формат дат в JSON. */
     private static final String FORMAT_DATE = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     /** Формат цвета в JSON. */
-    private static final String FORMAT_COLOR = "#%s";
+    private static final String FORMAT_COLOR = "#%S";
 
     /** Конструктор по умолчанию. */
     public ReadLaterItemJsonAdapter() { }
@@ -36,7 +36,7 @@ public class ReadLaterItemJsonAdapter {
         ReadLaterItemJson json = new ReadLaterItemJson();
         json.title = item.getLabel();
         json.description = item.getDescription();
-        json.color = String.format(FORMAT_COLOR, Integer.toString(item.getColor(), 16));
+        json.color = String.format(FORMAT_COLOR, Integer.toHexString(item.getColor()));
         json.created = dateFormatter.format(item.getDateCreated());
         json.edited = dateFormatter.format(item.getDateModified());
         json.viewed = dateFormatter.format(item.getDateViewed());
@@ -62,7 +62,7 @@ public class ReadLaterItemJsonAdapter {
             result = new ReadLaterItem(
                     json.title,
                     json.description,
-                    Integer.valueOf(json.color.substring(1), 16),
+                    (int) Long.parseLong(json.color.substring(1), 16),
                     dateFormatter.parse(json.created).getTime(),
                     dateFormatter.parse(json.edited).getTime(),
                     dateFormatter.parse(json.viewed).getTime(),
@@ -85,6 +85,7 @@ public class ReadLaterItemJsonAdapter {
         private String edited;
         private String viewed;
         private String imageUrl;
+        // private String extra; // Зарезервировано API
 
         private ReadLaterItemJson() { }
 
