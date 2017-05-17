@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -263,9 +264,9 @@ public class MainListActivity extends AppCompatActivity implements
 
     @Override
     public boolean isNetworkConnected() {
-        return ((ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE))
-                .getActiveNetworkInfo()
-                .isConnected();
+        NetworkInfo networkInfo = ((ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE))
+                .getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnected();
     }
 
     @Override
