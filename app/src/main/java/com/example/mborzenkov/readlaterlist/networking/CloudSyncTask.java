@@ -25,8 +25,14 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.moshi.MoshiConverterFactory;
 
+/** AsyncTask для выполнения фоновой синхронизации.
+ *  Необходимо избегать вызова операций на основном потоке, если методы вызываются без AsyncTask.
+ *
+ *  @throws android.os.NetworkOnMainThreadException если вызвана операция на основном потоке
+ */
 public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResult> {
 
+    // Тэги и тексты ошибок
     private static final String TAG_ERROR_NETWORK   = "Network Error";
     private static final String TAG_ERROR_CLOUD     = "CloudApi Error";
     private static final String TAG_SYNC            = "SYNC";
@@ -37,20 +43,53 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
     private static final String ERROR_NULL_RESPONSE = "No response error %s, user: %s, remoteId: %s";
     private static final String ERORR_FAIL_RESPONSE = "Fail response %s /w error: %s, user: %s, remoteId: %s";
 
+    /** Колбек для оповещений о результатах синхронизации. */
     public interface SyncCallback {
 
+        /** Ключ для доступа к данным о синхронизации в SharedPreferences. */
         String SYNC_KEY = "com.example.mborzenkov.mainlist.sync";
         /** Ключ для даты последней синхронизации в SharedPreferences. */
         String LAST_SYNC_KEY = "lastsync";
 
+        /** Проверяет, доступно ли подключение к интернету.
+         *
+         * @return true - если доступно, иначе false
+         */
         boolean isNetworkConnected();
+
+        /** Возвращает дату последней синхронизации из SharedPreferences.
+         *
+         * @return дата последней синхронизации в формате timestamp или 0, если синхронизаций еще не было
+         */
         long getLastSync();
+
+        /** Возвращает контекст приложения.
+         *
+         * @return контекст приложения
+         */
         Context getApplicationContext();
+
+        /** Вызывается, если синхронизация завершилась с ошибкой. */
         void onSyncFailed();
+
+        /** Вызывается, если синхронизация завершилась успешно, без конфликтов.
+         *
+         * @param syncStartTime дата начала синхронизации для обновления даты последней синхронизации
+         */
         void onSyncSuccess(long syncStartTime);
+
+        /** Выдыватеся, если синхронизация завершилась успешно, но с конфликтами.
+         *
+         * @param conflicts список конфликтов, каждый элемент состоит из 2 объектов ReadLaterItem
+         * @param syncStartTime дата начала синхронизации для обновления даты последней синхронизации
+         */
         void onSyncWithConflicts(List<ReadLaterItem[]> conflicts, long syncStartTime);
     }
 
+    /** Подготавливает API для синхронизации.
+     *
+     * @return API для синхронизации
+     */
     public static CloudApiYufimtsev prepareApi() {
         // Подготавливаем Retrofit к получению данных и Moshi к обработке данных
         Moshi moshi = new Moshi.Builder().add(new ReadLaterItemJsonAdapter()).build();
@@ -70,6 +109,13 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
         return retrofitBuilder.build().create(CloudApiYufimtsev.class);
     }
 
+    /** Получает все записи с сервера.
+     *  Делает записи в Log.e в случае ошибок.
+     *
+     * @param cloudApi API, полученный из prepareApi
+     * @param userId идентификатор пользователя, UserInfo.getCurrentUser().getId()
+     * @return все записи на сервере в формате списка из элементов ReadLaterItem, null в случае ошибок
+     */
     private static @Nullable List<ReadLaterItem> getAllItemsOnServer(@NonNull CloudApiYufimtsev cloudApi, int userId) {
         final String methodName = "getAll";
         final String remoteId = "all";
@@ -93,6 +139,14 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
         return response.data;
     }
 
+    /** Добавляет заметку на сервер.
+     *  Делает записи в Log.e в случае ошибок.
+     *
+     * @param cloudApi API, полученный из prepareApi
+     * @param userId идентификатор пользователя, UserInfo.getCurrentUser().getId()
+     * @param item заметка в формате ReadLaterItem
+     * @return внешний идентификатор заметки на сервере, null в случае ошибок
+     */
     private static @Nullable Integer insertItemOnServer(@NonNull CloudApiYufimtsev cloudApi,
                                                         int userId,
                                                         @NonNull ReadLaterItem item) {
@@ -118,6 +172,15 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
         return response.data;
     }
 
+    /** Обновляет заметку на сервере.
+     *  Делает записи в Log.e в случае ошибок.
+     *
+     * @param cloudApi API, полученный из prepareApi
+     * @param userId идентификатор пользователя, UserInfo.getCurrentUser().getId()
+     * @param remoteId внешний идентификатор заметки
+     * @param item заметка в формате ReadLaterItem
+     * @return true - если обновление прошло успешно, false иначе
+     */
     public static boolean updateItemOnServer(@NonNull CloudApiYufimtsev cloudApi,
                                               int userId,
                                               int remoteId,
@@ -143,6 +206,13 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
         return true;
     }
 
+    /** Удаляет заметку с сервера.
+     *  Делает записи в Log.e в случае ошибок.
+     * @param cloudApi API, полученный из prepareApi
+     * @param userId идентификатор пользователя, UserInfo.getCurrentUser().getId()
+     * @param remoteId внешний идентификатор заметки
+     * @return true - если обновление прошло успешно, false иначе
+     */
     private static boolean deleteItemOnServer(@NonNull CloudApiYufimtsev cloudApi, int userId, int remoteId) {
         final String methodName = "delete";
         CloudApiYufimtsev.DefaultResponse response = null;
@@ -165,24 +235,37 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
         return true;
     }
 
+    /** Callback для оповещений о результатах синхронизации. */
     private @Nullable SyncCallback mSyncCallback;
+    /** Дата последней синхронизации. */
     private long lastSync = 0;
+    /** Дата начала синхронизации. */
     private long syncStartTime = 0;
 
     public CloudSyncTask(@Nullable SyncCallback callback) {
-        mSyncCallback   = callback;
+        mSyncCallback = callback;
     }
 
+    /** Объект для передачи данных из doInBackground в onPostExecute. */
     class SyncResult {
 
+        /** Признак успешности синхронизации. */
         private final boolean isSuccessful;
+        /** Список конфликтов, каждый элемент состоит из 2 объектов ReadLaterItem.
+         *  Может быть null, если isSuccessful == false.
+         */
         private final @Nullable List<ReadLaterItem[]> conflicts;
 
+        /** Создает новый объект SyncResult с ошибкой. */
         private SyncResult() {
             this.isSuccessful = false;
             this.conflicts = null;
         }
 
+        /** Создает новый объект SyncResult с успешным принаком и списком конфликтов.
+         *
+         * @param conflicts список конфликтов, каждый элемент состоит из 2 объектов ReadLaterItem.
+         */
         private SyncResult(List<ReadLaterItem[]> conflicts) {
             this.isSuccessful = true;
             this.conflicts = conflicts;
@@ -191,6 +274,7 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
 
     @Override
     protected void onPreExecute() {
+        // Проверяем, есть ли SyncCallback и есть ли подлкючение к сети
         if (mSyncCallback != null) {
             lastSync = mSyncCallback.getLastSync();
             if (!mSyncCallback.isNetworkConnected()) {
@@ -198,6 +282,8 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
                 mSyncCallback.onSyncFailed();
                 cancel(true);
             }
+        } else {
+            cancel(true);
         }
         syncStartTime = System.currentTimeMillis();
     }
