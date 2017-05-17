@@ -30,7 +30,7 @@ public class ReadLaterItemTest {
      *      dateModified: <0, 0, >0>сейчас, >сейчас
      *      dateViewed: <0, 0, >0>сейчас, >сейчас
      *      imageUrl: "", !картинка, картинка, недоступная ссылка, короткая ссылка, ftp
-     *      remoteId: >0, null
+     *      remoteId: >0, 0
      *
      * Builder
      *      description, color, dateCreated, dateModified, dateViewed, imageUrl, remoteId: не заданы
@@ -59,8 +59,8 @@ public class ReadLaterItemTest {
     private static final String unreachableUrl = "http://a.ru";
     private static final String ftpUrl = "ftp://somebody.once.told.me.ru";
     private static final String malformedUrl = "htt://www.google.ru/";
-    private static final Integer normalRemoteId = 1010;
-    private static final Integer illegalRemoteId = -1;
+    private static final int normalRemoteId = 1010;
+    private static final int illegalRemoteId = -1;
 
     /* Покрывает label.length: >1
      *           description: непустая
@@ -258,7 +258,7 @@ public class ReadLaterItemTest {
                 .build();
         assertFalse(item1.equals(item2));
 
-        item1 = new ReadLaterItem.Builder(normalLabel).remoteId(null).build();
+        item1 = new ReadLaterItem.Builder(normalLabel).remoteId(0).build();
         item2 = new ReadLaterItem.Builder(normalLabel).build();
         assertEquals(item1, item2);
         assertEquals(item1.hashCode(), item2.hashCode());

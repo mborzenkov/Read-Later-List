@@ -48,7 +48,7 @@ public class ReadLaterItemJsonAdapter {
     public ReadLaterItemJson toJson(@NonNull ReadLaterItem item) {
         final SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
         ReadLaterItemJson json = new ReadLaterItemJson();
-        json.id             = item.getRemoteId() == null ? null : String.valueOf(item.getRemoteId());
+        json.id             = String.valueOf(item.getRemoteId());
         json.title          = item.getLabel();
         json.description    = item.getDescription();
         json.color          = String.format(FORMAT_COLOR, Integer.toHexString(item.getColor()));

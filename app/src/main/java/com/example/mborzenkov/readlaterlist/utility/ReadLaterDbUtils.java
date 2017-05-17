@@ -7,15 +7,12 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.example.mborzenkov.readlaterlist.activity.main.MainListActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -26,9 +23,6 @@ public class ReadLaterDbUtils {
 
     /** Запрос на диапзаон. */
     private static final String QUERY_RANGE = "_ID LIMIT %s OFFSET %s";
-    /** Запрос на отдельную заметку по remoteId. */
-    private static final String QUERY_REMOTE_ID = String.format("%s = ? AND %s = ?",
-            ReadLaterEntry.COLUMN_USER_ID, ReadLaterEntry.COLUMN_REMOTE_ID);
     /** Запрос на заметки пользователя. */
     private static final String QUERY_USER_ID = String.format("%s = ?", ReadLaterEntry.COLUMN_USER_ID);
 
@@ -40,10 +34,10 @@ public class ReadLaterDbUtils {
     public static @Nullable ReadLaterItem getItemByRemoteId(Context context, int userId, int remoteId) {
         ReadLaterItem result = null;
         Cursor queryCursor = context.getContentResolver().query(
-                ReadLaterEntry.CONTENT_URI,
+                ReadLaterEntry.buildUriForRemoteId(remoteId),
                 null,
-                QUERY_REMOTE_ID,
-                new String[] { String.valueOf(userId), String.valueOf(remoteId) },
+                QUERY_USER_ID,
+                new String[] { String.valueOf(userId) },
                 null);
         if (queryCursor != null) {
             if (queryCursor.getCount() > 0) {
@@ -56,27 +50,32 @@ public class ReadLaterDbUtils {
         return result;
     }
 
-    public static List<ReadLaterItem> getAllItems(Context context, int userId) {
-        List<ReadLaterItem> result = new ArrayList<>();
-        StringBuilder selectionBuilder = new StringBuilder(QUERY_USER_ID);
-        List<String> selectionArgs = new ArrayList<>();
-        selectionArgs.add(String.valueOf(userId));
-
+    public static int getItemLocalIdByRemoteId(Context context, int userId, int remoteId) {
         Cursor queryCursor = context.getContentResolver().query(
-                ReadLaterEntry.CONTENT_URI,
+                ReadLaterEntry.buildUriForRemoteId(remoteId),
                 null,
-                selectionBuilder.toString(),
-                selectionArgs.toArray(new String[selectionArgs.size()]),
+                QUERY_USER_ID,
+                new String[] { String.valueOf(userId) },
                 null);
 
-        if (queryCursor != null) {
-            if (queryCursor.getCount() > 0) {
-                ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
-                result = dbAdapter.allItemsFromCursor(queryCursor);
-            }
-            queryCursor.close();
+        if (queryCursor == null || queryCursor.getCount() == 0) {
+            return -1;
         }
-        return result;
+
+        queryCursor.moveToPosition(0);
+        int localId = queryCursor.getInt(queryCursor.getColumnIndexOrThrow(ReadLaterEntry._ID));
+        queryCursor.close();
+
+        return localId;
+    }
+
+    public static Cursor queryAllItems(Context context, int userId) {
+        return context.getContentResolver().query(
+                ReadLaterEntry.CONTENT_URI,
+                null,
+                QUERY_USER_ID,
+                new String[] { String.valueOf(userId) },
+                null);
     }
 
     /** Добавляет новый элемент в базу данных.
@@ -109,6 +108,14 @@ public class ReadLaterDbUtils {
         context.getContentResolver().bulkInsert(ReadLaterEntry.CONTENT_URI, values);
     }
 
+    public static boolean updateItemByRemoteId(Context context, int userId, ReadLaterItem item, int remoteId) {
+        int localId = getItemLocalIdByRemoteId(context, userId, remoteId);
+        if (localId < 0) {
+            return false;
+        }
+        return updateItem(context, item, localId);
+    }
+
     /** Обновляет элемент в базе данных с uid.
      *
      * @param context Контекст
@@ -139,6 +146,15 @@ public class ReadLaterDbUtils {
                 .update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
         return updated > 0;
     }
+
+    public static boolean updateItemRemoteId(Context context, int uid, int remoteId) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(ReadLaterEntry.COLUMN_REMOTE_ID, remoteId);
+        int updated = context.getContentResolver()
+                .update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
+        return updated > 0;
+    }
+
 
     /** Производит удаление объекта из базы.
      *

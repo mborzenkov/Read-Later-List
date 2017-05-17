@@ -41,7 +41,7 @@ public class ReadLaterItem {
         private long dateModified;
         private long dateViewed;
         private @Nullable URL imageUrl  = null;
-        private Integer remoteId        = null;
+        private int remoteId            = 0;
 
         /** Начинает создание элемента.
          *  Заполняет все необязательные параметры значениями по умолчанию.
@@ -150,14 +150,14 @@ public class ReadLaterItem {
         }
 
         /** Устанавливает идентификатор у элемента.
-         *  Значение по умолчанию: null.
+         *  Значение по умолчанию: 0.
          *
-         * @param remoteId Идентификатор элемента, число >= 0 или null
-         *                 null означает, что remoteId не задан
+         * @param remoteId Идентификатор элемента, число >= 0
+         *                 0 означает, что remoteId не задан
          * @throws IllegalArgumentException если remoteId < 0
          */
-        public Builder remoteId(@Nullable Integer remoteId) {
-            if (remoteId != null && remoteId < 0) {
+        public Builder remoteId(int remoteId) {
+            if (remoteId < 0) {
                 throw new IllegalArgumentException("remoteId < 0");
             }
             this.remoteId = remoteId;
@@ -191,7 +191,7 @@ public class ReadLaterItem {
     /** URL картинки. */
     private final @Nullable URL imageUrl;
     /** Внешний идентификатор элемента. */
-    private final @Nullable Integer remoteId;
+    private final int remoteId;
 
     // Инвариант:
     //      label - непустая строка без переносов, заголовок элемента
@@ -221,7 +221,7 @@ public class ReadLaterItem {
             if (label.contains("\n")) {
                 throw new AssertionError("Заголовок ReadLaterItem оказался многострочным.");
             }
-            if (remoteId != null && remoteId < 0) {
+            if (remoteId < 0) {
                 throw new AssertionError("Идентификатор ReadLaterItem оказался отрицательным.");
             }
         }
@@ -303,7 +303,7 @@ public class ReadLaterItem {
      *
      * @return Внешний идентификатор > 0, если был установлен, иначе 0
      */
-    public @Nullable Integer getRemoteId() {
+    public int getRemoteId() {
         return remoteId;
     }
 
@@ -323,6 +323,7 @@ public class ReadLaterItem {
                 && dateCreated == thatObject.dateCreated
                 && dateModified == thatObject.dateModified
                 && dateViewed == thatObject.dateViewed
+                && remoteId == thatObject.remoteId
                 && label.equals(thatObject.label)
                 && description.equals(thatObject.description);
         if (imageUrl != null) {
@@ -330,11 +331,7 @@ public class ReadLaterItem {
         } else {
             equality = equality && (thatObject.imageUrl == null);
         }
-        if (remoteId != null) {
-            return equality && remoteId.equals(thatObject.remoteId);
-        } else {
-            return equality && (thatObject.remoteId == null);
-        }
+        return equality;
     }
 
     @Override
@@ -349,10 +346,7 @@ public class ReadLaterItem {
         if (imageUrl != null) {
             result = 31 * result + imageUrl.hashCode();
         }
-        if (remoteId != null) {
-            result = 31 * result + remoteId.hashCode();
-        }
-        return result;
+        return 31 * result + remoteId;
     }
 
     /** Возвращает строковое представление ReadLaterItem.
@@ -361,7 +355,7 @@ public class ReadLaterItem {
      *                  color - цвет в HEX,
      *                  даты формата yyyy-MM-dd'T'hh:mm:ss.SSSZ,
      *                  \nimage: нет, если imageUrl == null
-     *                  \nremoteId: нет, если remoteId == null
+     *                  \nremoteId: нет, если remoteId == 0
      *
      *              Например:
      *              Примерный заголовок!
@@ -387,8 +381,8 @@ public class ReadLaterItem {
         if (imageUrl != null) {
             result.append(String.format("%nimage: %s", imageUrl.toString()));
         }
-        if (remoteId != null) {
-            result.append(String.format("%nremoteId: %s", remoteId.toString()));
+        if (remoteId != 0) {
+            result.append(String.format("%nremoteId: %s", String.valueOf(remoteId)));
         }
         return result.toString();
     }

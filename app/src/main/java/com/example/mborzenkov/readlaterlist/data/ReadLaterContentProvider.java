@@ -14,6 +14,10 @@ import android.util.Log;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /** Контент провайдер для работы с базой данных. */
 public class ReadLaterContentProvider extends ContentProvider {
 
@@ -21,6 +25,11 @@ public class ReadLaterContentProvider extends ContentProvider {
     private static final int CODE_READLATER_ITEMS = 100;
     /** Код запроса отдельного элемента. */
     private static final int CODE_READLATER_ITEMS_WITH_ID = 101;
+    /** Код запроса отдельного элемента по remoteId. */
+    private static final int CODE_READLATER_ITEMS_WITH_REMOTE_ID = 102;
+
+    /** Запрос для отдельного элемента по remoteId. */
+    private static final String QUERY_REMOTE_ID = ReadLaterEntry.COLUMN_REMOTE_ID + "=?";
 
     /** Матчер для сравнения запрашиваемых uri. */
     private static final UriMatcher sUriMatcher = buildUriMatcher();
@@ -40,7 +49,10 @@ public class ReadLaterContentProvider extends ContentProvider {
         // Uri для доступа ко всем данным
         matcher.addURI(authority, ReadLaterContract.PATH_ITEMS, CODE_READLATER_ITEMS);
         // Uri для доступа к отдельному элементу
-        matcher.addURI(authority, ReadLaterContract.PATH_ITEMS + "/#", CODE_READLATER_ITEMS_WITH_ID);
+        matcher.addURI(authority, ReadLaterContract.PATH_ITEMS + "/#",
+                CODE_READLATER_ITEMS_WITH_ID);
+        matcher.addURI(authority, ReadLaterContract.PATH_ITEMS + "/" + ReadLaterContract.PATH_NOTE + "/#",
+                CODE_READLATER_ITEMS_WITH_REMOTE_ID);
 
         return matcher;
     }
@@ -71,6 +83,23 @@ public class ReadLaterContentProvider extends ContentProvider {
                         projection,
                         selection,
                         selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            case CODE_READLATER_ITEMS_WITH_REMOTE_ID:
+                StringBuilder newSelection = new StringBuilder(QUERY_REMOTE_ID);
+                List<String> newSelectionArgs = new ArrayList<>();
+                newSelectionArgs.add(uri.getPathSegments().get(2));
+                if (!selection.isEmpty()) {
+                    newSelection.append(" AND ").append(selection);
+                    newSelectionArgs.addAll(Arrays.asList(selectionArgs));
+                }
+                cursor = mReadLaterDbHelper.getReadableDatabase().query(
+                        ReadLaterEntry.TABLE_NAME,
+                        projection,
+                        newSelection.toString(),
+                        newSelectionArgs.toArray(new String[newSelectionArgs.size()]),
                         null,
                         null,
                         sortOrder);

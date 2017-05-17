@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -313,6 +314,7 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
 
             if (mFromItem != null) {
                 resultBuilder.dateCreated(mFromItem.getDateCreated());
+                resultBuilder.remoteId(mFromItem.getRemoteId());
             }
 
             return resultBuilder.build();

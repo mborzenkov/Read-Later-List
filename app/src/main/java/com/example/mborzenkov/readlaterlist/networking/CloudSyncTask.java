@@ -1,47 +1,31 @@
 package com.example.mborzenkov.readlaterlist.networking;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.graphics.Color;
+import android.database.Cursor;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemJsonAdapter;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 import com.squareup.moshi.Moshi;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
-import retrofit2.Call;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.moshi.MoshiConverterFactory;
 
 public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResult> {
-
-    // Автосинхронизация
-    // TODO: Добавить синхронизацию при открытии приложения
-    // TODO: Бродкаст ресивер на подключение к интернету, вызвает полную синхронизацию
-    // TODO: Добавить вызов синхронизации каждые N минут (позднее и позднее)
-    // TODO: Документация этого класса
-
-    // Выполнение синхронизации
-    // TODO: Выполнить все запланированные операции Insert, Update, Delete
-    // TODO: Собрать и передать conflict
-
-    // Разбор конфликтов
-    // TODO: Принять и разобрать конфликты в MainActivity
-    // TODO: Создать layout для разбора конфликтов
-    // TODO: Открыть фрагмент для выбора изменений и сохранять их по ходу дела
 
     // Пользователи
     // TODO: layout регистрации
@@ -50,11 +34,33 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
     // TODO: Сохранение и восстановление последнего выбранного Shared Preferences
     // TODO: cancel sync при смене пользователя
 
+    // Автосинхронизация
+    // TODO: Добавить синхронизацию при открытии приложения (после выбора пользователя)
+    // TODO: Бродкаст ресивер на подключение к интернету, вызвает полную синхронизацию
+    // TODO: Добавить вызов синхронизации каждые N минут (позднее и позднее)
+
+    // Разбор конфликтов
+    // TODO: Принять и разобрать конфликты в MainActivity
+    // TODO: Создать layout для разбора конфликтов
+    // TODO: Открыть фрагмент для выбора изменений и сохранять их по ходу дела
+    // Если при синхронизации становится известно, что произошёл конфликт изменений (например, на сервере и локально
+    // у одной и той же заметки поменяли описание), нужно предложить пользователю выбрать, какой из вариантов сохранить.
+
     // Завершение
     // TODO: Документация CloudSyncTask
     // TODO: Документация MainListSyncFragment
     // TODO: Коммент про context - SyncCallback в SyncFragment
+    // TODO: Документация ReadLaterDbUtils
     // TODO: Документация UserInfo
+    // TODO: Инспекторы
+
+    private static final String TAG_ERROR_CLOUD = "CloudApi Error";
+    private static final String TAG_SYNC = "SYNC";
+
+    private static final String ERROR_IO            = "IO error %s: %s, user: %s, remoteId: %s";
+    private static final String ERROR_NULLPOINTER   = "Null response error %s: %s, user: %s, remoteId: %s";
+    private static final String ERROR_NULL_RESPONSE = "No response error %s, user: %s, remoteId: %s";
+    private static final String ERORR_FAIL_RESPONSE = "Fail response %s /w error: %s, user: %s, remoteId: %s";
 
     public interface SyncCallback {
         /** Ключ для даты последней синхронизации в SharedPreferences. */
@@ -105,7 +111,7 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
     }
 
     @Override
-    protected SyncResult doInBackground(Void... params) {
+    protected @Nullable SyncResult doInBackground(Void... params) {
 
         // Синхронизация по следующей схеме:
         // Server \ Local       есть, изменен       есть, без изм.      нет
@@ -138,8 +144,8 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
             for (ReadLaterItem itemServer : itemsOnServer) {
                 // Проверяем на null, получаем remoteId, у заметок с сервера он должен быть всегда
                 if (itemServer != null) {
-                    final Integer remoteId = itemServer.getRemoteId();
-                    if (remoteId != null) {
+                    final int remoteId = itemServer.getRemoteId();
+                    if (remoteId != 0) {
 
                         allServerIds.add(remoteId);
                         // Делим заметки на измененные и не измененные
@@ -148,36 +154,35 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
                             ReadLaterItem itemLocal = ReadLaterDbUtils.getItemByRemoteId(appContext, userId, remoteId);
                             if (itemLocal == null) {
                                 // Server: есть, изменен; Local: нет
-                                // TODO: Insert Local
-                                // ReadLaterDbUtils.insertItem(appContext, serverItem);
-                                Log.d("SYNC", "Inserting Local: " + remoteId);
+                                Log.d(TAG_SYNC, "Inserting Local: " + remoteId);
+                                ReadLaterDbUtils.insertItem(appContext, itemServer);
                             } else if (itemLocal.getDateModified() <= lastSync) {
                                 // Server: есть, изменен; Local: есть, без изм.
-                                // TODO: Update Local
-                                Log.d("SYNC", "Updating Local: " + remoteId);
+                                Log.d(TAG_SYNC, "Updating Local: " + remoteId);
+                                ReadLaterDbUtils.updateItemByRemoteId(appContext, userId, itemServer, remoteId);
                             } else {
                                 // Server: есть, изменен; Local: есть, изменен
-                                if (!itemServer.equals(itemLocal)) {
-                                    conflicts.add(new ReadLaterItem[]{itemServer, itemLocal});
-                                } else {
-                                    // TODO: Update Local
-                                }
-                                Log.d("SYNC", "Conflict: " + remoteId);
+                                Log.d(TAG_SYNC, "Conflict: " + remoteId);
+                                conflicts.add(new ReadLaterItem[]{itemServer, itemLocal});
                             }
                         } else {
                             // Делим локальные заметки на измененные, без изменений и нет
                             ReadLaterItem itemLocal = ReadLaterDbUtils.getItemByRemoteId(appContext, userId, remoteId);
                             if (itemLocal == null) {
                                 // Server: есть, без изм.; Local: нет
-                                // TODO: Delete Server
-                                Log.d("SYNC", "Deleting Server: " + remoteId);
+                                Log.d(TAG_SYNC, "Deleting Server: " + remoteId);
+                                if (!deleteItemOnServer(cloudApi, userId, remoteId)) {
+                                    return new SyncResult();
+                                }
                             } else if (itemLocal.getDateModified() <= lastSync)  {
                                 // Server: есть, без изм.; Local: есть, без изм.
                                 continue;
                             } else {
                                 // Server: есть, без изм.; Local: есть, изменен
-                                // TODO: Update Server
-                                Log.d("SYNC", "Updating Server: " + remoteId);
+                                Log.d(TAG_SYNC, "Updating Server: " + remoteId);
+                                if (!updateItemOnServer(cloudApi, userId, remoteId, itemLocal)) {
+                                    return new SyncResult();
+                                }
                             }
                         }
 
@@ -188,45 +193,55 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
 
         {
             // Получили список всех заметок локальных
-            List<ReadLaterItem> itemsLocal = ReadLaterDbUtils.getAllItems(appContext, userId);
-            if (itemsLocal == null) {
+            Cursor itemsLocalCursor = ReadLaterDbUtils.queryAllItems(appContext, userId);
+            if (itemsLocalCursor == null) {
                 return new SyncResult();
             }
-            // Обрабатываем все, что есть локально, но нет на сервере
-            for (ReadLaterItem localItem : itemsLocal) {
+            ReadLaterItemDbAdapter itemDbAdapter = new ReadLaterItemDbAdapter();
+            for (int i = 0, totalItems = itemsLocalCursor.getCount(); i < totalItems; i++) {
+                // Обрабатываем все, что есть локально, но нет на сервере
+                itemsLocalCursor.moveToPosition(i);
+                ReadLaterItem itemLocal = itemDbAdapter.itemFromCursor(itemsLocalCursor);
                 // Проверяем на null, получаем remoteId
-                if (localItem != null) {
-                    final Integer remoteId = localItem.getRemoteId();
+                if (itemLocal != null) {
+                    final Integer remoteId = itemLocal.getRemoteId();
 
                     // Отсекаем то, что уже проверяли
-                    if (allServerIds.contains(localItem.getRemoteId())) {
+                    if (allServerIds.contains(remoteId)) {
                         continue;
                     }
 
+                    final int uid = itemsLocalCursor.getInt(
+                            itemsLocalCursor.getColumnIndex(ReadLaterContract.ReadLaterEntry._ID));
+
                     // Делим заметки на измененные и не измененные
-                    if (localItem.getDateModified() > lastSync) {
+                    if (itemLocal.getDateModified() > lastSync) {
                         // Server: нет; Local: есть, изменен
-                        // TODO: Insert Server
-                        Log.d("SYNC", "Inserting Server: " + remoteId);
+                        Log.d(TAG_SYNC, "Inserting Server: " + remoteId);
+                        Integer newRemoteId = insertItemOnServer(cloudApi, userId, itemLocal);
+                        if (newRemoteId == null) {
+                            return new SyncResult();
+                        }
+                        Log.d(TAG_SYNC, "Updating local remoteId: " + newRemoteId);
+                        ReadLaterDbUtils.updateItemRemoteId(appContext, uid, newRemoteId);
                     } else {
                         // Server: нет; Local: есть, без изм.
-                        // TODO: Delete Local
-                        Log.d("SYNC", "Deleting Local: " + remoteId);
-                        // Тут почти наверняка есть remoteId, удаляем по нему
+                        if (remoteId != 0) {
+                            // Тут всегда есть remoteId (потому что раз без изм., то синхронизация уже была),
+                            //      но лучше лишний раз проверить
+                            ReadLaterDbUtils.deleteItem(appContext, uid);
+                            Log.d(TAG_SYNC, "Deleting Local: " + remoteId);
+                        }
                     }
                 }
             }
         }
 
-        if (conflicts == null) {
-            return new SyncResult();
-        }
-        // TODO: SyncResult(conflicts)
-        return new SyncResult();
+        return new SyncResult(conflicts);
     }
 
     @Override
-    protected void onPostExecute(SyncResult syncResult) {
+    protected void onPostExecute(@Nullable SyncResult syncResult) {
         if (mSyncCallback != null) {
             if (syncResult == null || !syncResult.isSuccessful) {
                 mSyncCallback.onSyncFinished();
@@ -258,23 +273,99 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
         return retrofitBuilder.build().create(CloudApiYufimtsev.class);
     }
 
-    private List<ReadLaterItem> getAllItemsOnServer(CloudApiYufimtsev cloudApi, int userId) {
-        List<ReadLaterItem> result = null;
+    private @Nullable List<ReadLaterItem> getAllItemsOnServer(@NonNull CloudApiYufimtsev cloudApi, int userId) {
+        final String methodName = "getAll";
+        final String remoteId = "all";
+        CloudApiYufimtsev.AllItemsResponse response = null;
         try {
-            result = cloudApi.getAllItems(userId).execute().body().data;
+            response = cloudApi.getAllItems(userId).execute().body();
         } catch (IOException e) {
-            // TODO: Log.e
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
             return null;
         } catch (NullPointerException e) {
-            // TODO: Log.e
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
             return null;
         }
-        return result;
+        if (response == null) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
+            return null;
+        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
+            return null;
+        }
+        return response.data;
     }
 
-    // TODO: Обработка конфликтов изменений
-    // Если при синхронизации становится известно, что произошёл конфликт изменений (например, на сервере и локально
-    // у одной и той же заметки поменяли описание), нужно предложить пользователю выбрать, какой из вариантов сохранить.
-    // TODO: layout сравнения и выбор
+    private @Nullable Integer insertItemOnServer(@NonNull CloudApiYufimtsev cloudApi,
+                                                 int userId,
+                                                 @NonNull ReadLaterItem item) {
+        final String methodName = "insert";
+        final String remoteId = "no";
+        CloudApiYufimtsev.NewItemResponse response = null;
+        try {
+            response = cloudApi.createItem(userId, item).execute().body();
+        } catch (IOException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
+            return null;
+        } catch (NullPointerException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
+            return null;
+        }
+        if (response == null) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
+            return null;
+        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
+            return null;
+        }
+        return response.data;
+    }
+
+    private boolean updateItemOnServer(@NonNull CloudApiYufimtsev cloudApi,
+                                       int userId,
+                                       int remoteId,
+                                       @NonNull ReadLaterItem item) {
+        final String methodName = "update";
+        CloudApiYufimtsev.DefaultResponse response = null;
+        try {
+            response = cloudApi.updateItem(userId, remoteId, item).execute().body();
+        } catch (IOException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
+            return false;
+        } catch (NullPointerException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
+            return false;
+        }
+        if (response == null) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
+            return false;
+        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
+            return false;
+        }
+        return true;
+    }
+
+    private boolean deleteItemOnServer(@NonNull CloudApiYufimtsev cloudApi, int userId, int remoteId) {
+        final String methodName = "delete";
+        CloudApiYufimtsev.DefaultResponse response = null;
+        try {
+            response = cloudApi.deleteItem(userId, remoteId).execute().body();
+        } catch (IOException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
+            return false;
+        } catch (NullPointerException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
+            return false;
+        }
+        if (response == null) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
+            return false;
+        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
+            return false;
+        }
+        return true;
+    }
 
 }

@@ -13,6 +13,8 @@ public class ReadLaterContract {
     private static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
     /** Путь к списку элементов ReadLater. */
     public static final String PATH_ITEMS = "items";
+    /** Путь к элементу по remoteId. */
+    public static final String PATH_NOTE = "note";
 
     /** Описание таблиц. */
     public static final class ReadLaterEntry implements BaseColumns {
@@ -53,6 +55,18 @@ public class ReadLaterContract {
         public static Uri buildUriForOneItem(int id) {
             return CONTENT_URI.buildUpon()
                     .appendPath(String.valueOf(id))
+                    .build();
+        }
+
+        /** Создает Uri для доступа к одному элменту по его remoteId.
+         *
+         * @param remoteId Внешний идентификатор элемента
+         * @return Uri для доступа
+         */
+        public static Uri buildUriForRemoteId(int remoteId) {
+            return CONTENT_URI.buildUpon()
+                    .appendPath(PATH_NOTE)
+                    .appendPath(String.valueOf(remoteId))
                     .build();
         }
     }
