@@ -78,4 +78,7 @@
     <string name="mainlist_menu_refresh">Обновить</string>
     <string name="mainlist_user_change">(изменить)</string>
     <string name="mainlist_user_title">Логин:</string>
+    <string name="mainlist_conflict_button_next">Далее</string>
+    <string name="mainlist_conflict_button_save">Сохранить</string>
+    <string name="mainlist_conflict_title">Выберите версию для сохранения</string>
 </resources>

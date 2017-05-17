@@ -38,7 +38,8 @@ import java.util.List;
 public class MainListActivity extends AppCompatActivity implements
         MainListAdapter.ItemListAdapterOnClickHandler,
         SearchView.OnQueryTextListener,
-        CloudSyncTask.SyncCallback {
+        CloudSyncTask.SyncCallback,
+        MainListConflictFragment.ConflictsCallback {
 
     // Константы
     /** Формат даты для вывода на формах редактирования дат. */
@@ -66,6 +67,8 @@ public class MainListActivity extends AppCompatActivity implements
 
     /** ID текущего редактируемого элемента. */
     private int mEditItemId = UID_EMPTY;
+    /** Дата последней синхронизации. */
+    private long mLastSync;
 
 
     @Override
@@ -261,27 +264,49 @@ public class MainListActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void handleConflicts(List<ReadLaterItem[]> conflicts) {
-        if (conflicts != null) {
-            // TODO: Разобрать данные
+    public void onSyncWithConflicts(List<ReadLaterItem[]> conflicts, long syncStartTime) {
+        mLastSync = syncStartTime;
+        if (conflicts != null && !conflicts.isEmpty()) {
+            MainListConflictFragment conflictFragment =
+                    MainListConflictFragment.getInstance(conflicts);
+            conflictFragment.show(getSupportFragmentManager(), "dsds");
+        } else {
+            updateLastSyncDate(mLastSync);
+            finishSync();
         }
     }
 
     @Override
-    public void onSyncFinished() {
+    public void onConflictsMerged() {
+        updateLastSyncDate(mLastSync);
+        finishSync();
+    }
+
+    @Override
+    public void onSyncFailed() {
+        finishSync();
+    }
+
+    @Override
+    public void onSyncSuccess(long syncStartTime) {
+        mLastSync = syncStartTime;
+        updateLastSyncDate(mLastSync);
+        finishSync();
+    }
+
+    private void updateLastSyncDate(long lastSyncDate) {
+        SharedPreferences.Editor sharedPreferencesEditor =
+                getSharedPreferences(SYNC_KEY, Context.MODE_PRIVATE).edit();
+        sharedPreferencesEditor.putLong(LAST_SYNC_KEY, lastSyncDate);
+        sharedPreferencesEditor.apply();
+        mLastSync = lastSyncDate;
+    }
+
+    private void finishSync() {
         if (mSyncFragment != null) {
             mSyncFragment.stopSync();
         }
         mLoaderManager.reloadData();
-    }
-
-    @Override
-    public void onSyncFinished(long syncStartTime) {
-        SharedPreferences.Editor sharedPreferencesEditor =
-                getSharedPreferences(SYNC_KEY, Context.MODE_PRIVATE).edit();
-        sharedPreferencesEditor.putLong(LAST_SYNC_KEY, syncStartTime);
-        sharedPreferencesEditor.apply();
-        onSyncFinished();
     }
 
     /** Показывает индикатор загрузки, скрывая все лишнее. */

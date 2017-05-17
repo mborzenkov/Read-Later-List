@@ -64,6 +64,10 @@
         <!-- Предупреждения -->
         <string name="mainlist_longloading_title">Loading is active</string>
         <string name="mainlist_longloading_text">Some long action is still running. Please wait until it finished before starting new long action.</string>
+        <!-- Обработка конфликтов -->
+        <string name="mainlist_conflict_title">Choose version to save</string>
+        <string name="mainlist_conflict_button_next">Next</string>
+        <string name="mainlist_conflict_button_save">Save</string>
 
     <!-- Уведомления -->
         <string name="notification_backup_save_title">Saving backup</string>

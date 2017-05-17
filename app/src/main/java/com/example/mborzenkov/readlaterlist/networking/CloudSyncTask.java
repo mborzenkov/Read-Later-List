@@ -27,16 +27,16 @@ import retrofit2.converter.moshi.MoshiConverterFactory;
 
 public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResult> {
 
-    // Автосинхронизация
-    // TODO: Бродкаст ресивер на подключение к интернету, вызвает полную синхронизацию
-    // TODO: Добавить вызов синхронизации каждые N минут (позднее и позднее)
-
     // Разбор конфликтов
     // TODO: Принять и разобрать конфликты в MainActivity
     // TODO: Создать layout для разбора конфликтов
     // TODO: Открыть фрагмент для выбора изменений и сохранять их по ходу дела
     // Если при синхронизации становится известно, что произошёл конфликт изменений (например, на сервере и локально
     // у одной и той же заметки поменяли описание), нужно предложить пользователю выбрать, какой из вариантов сохранить.
+
+    // Автосинхронизация
+    // TODO: Бродкаст ресивер на подключение к интернету, вызвает полную синхронизацию
+    // TODO: Добавить вызов синхронизации каждые N минут (позднее и позднее)
 
     // Завершение
     // TODO: Документация CloudSyncTask
@@ -46,9 +46,11 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
     // TODO: Документация UserInfo
     // TODO: Инспекторы
 
-    private static final String TAG_ERROR_CLOUD = "CloudApi Error";
-    private static final String TAG_SYNC = "SYNC";
+    private static final String TAG_ERROR_NETWORK   = "Network Error";
+    private static final String TAG_ERROR_CLOUD     = "CloudApi Error";
+    private static final String TAG_SYNC            = "SYNC";
 
+    private static final String ERROR_NETWORK       = "Network not connected";
     private static final String ERROR_IO            = "IO error %s: %s, user: %s, remoteId: %s";
     private static final String ERROR_NULLPOINTER   = "Null response error %s: %s, user: %s, remoteId: %s";
     private static final String ERROR_NULL_RESPONSE = "No response error %s, user: %s, remoteId: %s";
@@ -64,9 +66,9 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
         boolean isNetworkConnected();
         long getLastSync();
         Context getApplicationContext();
-        void handleConflicts(List<ReadLaterItem[]> conflicts);
-        void onSyncFinished();
-        void onSyncFinished(long syncStartTime);
+        void onSyncFailed();
+        void onSyncSuccess(long syncStartTime);
+        void onSyncWithConflicts(List<ReadLaterItem[]> conflicts, long syncStartTime);
     }
 
     private @Nullable SyncCallback mSyncCallback;
@@ -98,7 +100,8 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
         if (mSyncCallback != null) {
             lastSync = mSyncCallback.getLastSync();
             if (!mSyncCallback.isNetworkConnected()) {
-                mSyncCallback.onSyncFinished();
+                Log.e(TAG_ERROR_NETWORK, ERROR_NETWORK);
+                mSyncCallback.onSyncFailed();
                 cancel(true);
             }
         }
@@ -157,8 +160,10 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
                                 ReadLaterDbUtils.updateItemByRemoteId(appContext, userId, itemServer, remoteId);
                             } else {
                                 // Server: есть, изменен; Local: есть, изменен
-                                Log.d(TAG_SYNC, "Conflict: " + remoteId);
-                                conflicts.add(new ReadLaterItem[]{itemServer, itemLocal});
+                                if (!itemLocal.equals(itemServer)) {
+                                    Log.d(TAG_SYNC, "Conflict: " + remoteId);
+                                    conflicts.add(new ReadLaterItem[]{itemServer, itemLocal});
+                                }
                             }
                         } else {
                             // Делим локальные заметки на измененные, без изменений и нет
@@ -239,12 +244,13 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
     protected void onPostExecute(@Nullable SyncResult syncResult) {
         if (mSyncCallback != null) {
             if (syncResult == null || !syncResult.isSuccessful) {
-                mSyncCallback.onSyncFinished();
+                mSyncCallback.onSyncFailed();
             } else {
                 if (syncResult.conflicts != null) {
-                    mSyncCallback.handleConflicts(syncResult.conflicts);
+                    mSyncCallback.onSyncWithConflicts(syncResult.conflicts, syncStartTime);
+                } else {
+                    mSyncCallback.onSyncSuccess(syncStartTime);
                 }
-                mSyncCallback.onSyncFinished(syncStartTime);
             }
         }
     }
