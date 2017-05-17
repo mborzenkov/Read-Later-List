@@ -1,6 +1,8 @@
 package com.example.mborzenkov.readlaterlist.activity.main;
 
+import android.app.Dialog;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -44,15 +46,24 @@ public class MainListConflictFragment extends DialogFragment {
     private @Nullable ConflictsCallback mConflictsCallback = null;
 
     // Элементы layout
-    private TextView mConflictDescription;
-    private GridLayout mConflictContent;
-    private Button mButtonProceed;
+    private TextView mConflictDescriptionTextView;
+    private GridLayout mConflictContentGridView;
+    private Button mProceedButton;
 
     public static MainListConflictFragment getInstance(@NonNull List<ReadLaterItem[]> conflicts) {
         MainListConflictFragment conflictFragment = new MainListConflictFragment();
         conflictFragment.mConflictsList = conflicts;
         conflictFragment.mCurrentConflict = conflicts.get(0);
         return conflictFragment;
+    }
+
+    @Override
+    public void onDestroyView() {
+        Dialog dialog = getDialog();
+        if (dialog != null && getRetainInstance()) {
+            dialog.setDismissMessage(null);
+        }
+        super.onDestroyView();
     }
 
     @Nullable
@@ -62,14 +73,21 @@ public class MainListConflictFragment extends DialogFragment {
                              @Nullable Bundle savedInstanceState) {
 
         View parentView = inflater.inflate(R.layout.fragment_conflict, container, false);
-        mConflictDescription = (TextView) parentView.findViewById(R.id.tv_conflict_description);
-        mConflictContent = (GridLayout) parentView.findViewById(R.id.grid_conflict_items);
-        mConflictContent.setOnClickListener(this::toggleSelection);
-        mButtonProceed = (Button) parentView.findViewById(R.id.button_conflict_next);
-        mButtonProceed.setOnClickListener((View v) -> saveSelectedData());
+        mConflictDescriptionTextView = (TextView) parentView.findViewById(R.id.tv_conflict_description);
+        mConflictContentGridView = (GridLayout) parentView.findViewById(R.id.grid_conflict_items);
+        mConflictContentGridView.setOnClickListener(this::toggleSelection);
+        mProceedButton = (Button) parentView.findViewById(R.id.button_conflict_next);
+        mProceedButton.setOnClickListener((View v) -> saveSelectedData());
         fillFragmentWithData();
         setCancelable(false);
+        setRetainInstance(true);
         return parentView;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        fillFragmentWithData();
     }
 
     @Override
@@ -92,12 +110,13 @@ public class MainListConflictFragment extends DialogFragment {
         if (mConflictsList.isEmpty()) {
             return;
         }
-        mConflictDescription.setText(String.format(FORMAT_DESCRIPTION, mCurrentConflict[0].getRemoteId()));
+        mConflictDescriptionTextView.setText(String.format(FORMAT_DESCRIPTION, mCurrentConflict[0].getRemoteId()));
         final String buttonText = mConflictsList.size() == 0
                 ? BUTTON_SAVE
                 : BUTTON_NEXT;
-        mButtonProceed.setText(buttonText);
-        // TODO: Заполнить mConflictContent, адаптер, tag
+        mProceedButton.setText(buttonText);
+        // mConflictContentGridView.
+        // TODO: Заполнить mConflictContentGridView, адаптер, tag
     }
 
     private void saveSelectedData() {
