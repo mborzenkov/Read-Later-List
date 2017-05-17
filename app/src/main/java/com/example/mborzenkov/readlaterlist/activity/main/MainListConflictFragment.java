@@ -38,6 +38,7 @@ public class MainListConflictFragment extends DialogFragment {
     private static String BUTTON_NEXT = null;
 
     public interface ConflictsCallback {
+        void saveConflict(ReadLaterItem item);
         void onConflictsMerged();
     }
 
@@ -111,6 +112,7 @@ public class MainListConflictFragment extends DialogFragment {
     private void fillFragmentWithData() {
         // Если есть конфликты
         if (mConflictsList.isEmpty()) {
+            this.dismiss();
             return;
         }
 
@@ -133,22 +135,24 @@ public class MainListConflictFragment extends DialogFragment {
     }
 
     private void saveSelectedData() {
-        ReadLaterItem savingItem;
-        if (mChosenOption.getCheckedRadioButtonId() == R.id.rb_conflict_item_left) {
-            savingItem = mCurrentConflict[0];
-            // TODO: save item
-        } else {
-            savingItem = mCurrentConflict[1];
-            // TODO: save item
-        }
-        mConflictsList.remove(0);
-        if (mConflictsList.isEmpty()) {
-            if (mConflictsCallback != null) {
+        if (mConflictsCallback != null) {
+            ReadLaterItem savingItem;
+            if (mChosenOption.getCheckedRadioButtonId() == R.id.rb_conflict_item_left) {
+                savingItem = mCurrentConflict[0];
+            } else {
+                savingItem = mCurrentConflict[1];
+            }
+            mConflictsCallback.saveConflict(savingItem);
+            mConflictsList.remove(0);
+            if (mConflictsList.isEmpty()) {
                 mConflictsCallback.onConflictsMerged();
+                this.dismiss();
+            } else {
+                mCurrentConflict = mConflictsList.get(0);
+                fillFragmentWithData();
             }
         } else {
-            mCurrentConflict = mConflictsList.get(0);
-            fillFragmentWithData();
+            this.dismiss();
         }
     }
 

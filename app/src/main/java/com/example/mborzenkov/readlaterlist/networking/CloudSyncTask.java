@@ -27,18 +27,6 @@ import retrofit2.converter.moshi.MoshiConverterFactory;
 
 public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResult> {
 
-    // Автосинхронизация
-    // TODO: Бродкаст ресивер на подключение к интернету, вызвает полную синхронизацию
-    // TODO: Добавить вызов синхронизации каждые N минут (позднее и позднее)
-
-    // Завершение
-    // TODO: Документация CloudSyncTask
-    // TODO: Документация MainListSyncFragment
-    // TODO: Коммент про context - SyncCallback в SyncFragment
-    // TODO: Документация ReadLaterDbUtils
-    // TODO: Документация UserInfo
-    // TODO: Инспекторы
-
     private static final String TAG_ERROR_NETWORK   = "Network Error";
     private static final String TAG_ERROR_CLOUD     = "CloudApi Error";
     private static final String TAG_SYNC            = "SYNC";
@@ -55,13 +43,126 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
         /** Ключ для даты последней синхронизации в SharedPreferences. */
         String LAST_SYNC_KEY = "lastsync";
 
-
         boolean isNetworkConnected();
         long getLastSync();
         Context getApplicationContext();
         void onSyncFailed();
         void onSyncSuccess(long syncStartTime);
         void onSyncWithConflicts(List<ReadLaterItem[]> conflicts, long syncStartTime);
+    }
+
+    public static CloudApiYufimtsev prepareApi() {
+        // Подготавливаем Retrofit к получению данных и Moshi к обработке данных
+        Moshi moshi = new Moshi.Builder().add(new ReadLaterItemJsonAdapter()).build();
+        Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
+                .baseUrl(CloudApiYufimtsev.BASE_URL)
+                .addConverterFactory(MoshiConverterFactory.create(moshi));
+
+        // Устанавливаем логирование запросов, если дебаг
+        if (BuildConfig.DEBUG) {
+            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
+            retrofitBuilder.client(client);
+        }
+
+        // Создаем объект для доступа к API
+        return retrofitBuilder.build().create(CloudApiYufimtsev.class);
+    }
+
+    private static @Nullable List<ReadLaterItem> getAllItemsOnServer(@NonNull CloudApiYufimtsev cloudApi, int userId) {
+        final String methodName = "getAll";
+        final String remoteId = "all";
+        CloudApiYufimtsev.AllItemsResponse response = null;
+        try {
+            response = cloudApi.getAllItems(userId).execute().body();
+        } catch (IOException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
+            return null;
+        } catch (NullPointerException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
+            return null;
+        }
+        if (response == null) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
+            return null;
+        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
+            return null;
+        }
+        return response.data;
+    }
+
+    private static @Nullable Integer insertItemOnServer(@NonNull CloudApiYufimtsev cloudApi,
+                                                        int userId,
+                                                        @NonNull ReadLaterItem item) {
+        final String methodName = "insert";
+        final String remoteId = "no";
+        CloudApiYufimtsev.NewItemResponse response = null;
+        try {
+            response = cloudApi.createItem(userId, item).execute().body();
+        } catch (IOException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
+            return null;
+        } catch (NullPointerException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
+            return null;
+        }
+        if (response == null) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
+            return null;
+        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
+            return null;
+        }
+        return response.data;
+    }
+
+    public static boolean updateItemOnServer(@NonNull CloudApiYufimtsev cloudApi,
+                                              int userId,
+                                              int remoteId,
+                                              @NonNull ReadLaterItem item) {
+        final String methodName = "update";
+        CloudApiYufimtsev.DefaultResponse response = null;
+        try {
+            response = cloudApi.updateItem(userId, remoteId, item).execute().body();
+        } catch (IOException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
+            return false;
+        } catch (NullPointerException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
+            return false;
+        }
+        if (response == null) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
+            return false;
+        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean deleteItemOnServer(@NonNull CloudApiYufimtsev cloudApi, int userId, int remoteId) {
+        final String methodName = "delete";
+        CloudApiYufimtsev.DefaultResponse response = null;
+        try {
+            response = cloudApi.deleteItem(userId, remoteId).execute().body();
+        } catch (IOException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
+            return false;
+        } catch (NullPointerException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
+            return false;
+        }
+        if (response == null) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
+            return false;
+        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
+            return false;
+        }
+        return true;
     }
 
     private @Nullable SyncCallback mSyncCallback;
@@ -246,120 +347,6 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
                 }
             }
         }
-    }
-
-    private static CloudApiYufimtsev prepareApi() {
-        // Подготавливаем Retrofit к получению данных и Moshi к обработке данных
-        Moshi moshi = new Moshi.Builder().add(new ReadLaterItemJsonAdapter()).build();
-        Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
-                .baseUrl(CloudApiYufimtsev.BASE_URL)
-                .addConverterFactory(MoshiConverterFactory.create(moshi));
-
-        // Устанавливаем логирование запросов, если дебаг
-        if (BuildConfig.DEBUG) {
-            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-            OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
-            retrofitBuilder.client(client);
-        }
-
-        // Создаем объект для доступа к API
-        return retrofitBuilder.build().create(CloudApiYufimtsev.class);
-    }
-
-    private @Nullable List<ReadLaterItem> getAllItemsOnServer(@NonNull CloudApiYufimtsev cloudApi, int userId) {
-        final String methodName = "getAll";
-        final String remoteId = "all";
-        CloudApiYufimtsev.AllItemsResponse response = null;
-        try {
-            response = cloudApi.getAllItems(userId).execute().body();
-        } catch (IOException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
-            return null;
-        } catch (NullPointerException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
-            return null;
-        }
-        if (response == null) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
-            return null;
-        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
-            return null;
-        }
-        return response.data;
-    }
-
-    private @Nullable Integer insertItemOnServer(@NonNull CloudApiYufimtsev cloudApi,
-                                                 int userId,
-                                                 @NonNull ReadLaterItem item) {
-        final String methodName = "insert";
-        final String remoteId = "no";
-        CloudApiYufimtsev.NewItemResponse response = null;
-        try {
-            response = cloudApi.createItem(userId, item).execute().body();
-        } catch (IOException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
-            return null;
-        } catch (NullPointerException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
-            return null;
-        }
-        if (response == null) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
-            return null;
-        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
-            return null;
-        }
-        return response.data;
-    }
-
-    private boolean updateItemOnServer(@NonNull CloudApiYufimtsev cloudApi,
-                                       int userId,
-                                       int remoteId,
-                                       @NonNull ReadLaterItem item) {
-        final String methodName = "update";
-        CloudApiYufimtsev.DefaultResponse response = null;
-        try {
-            response = cloudApi.updateItem(userId, remoteId, item).execute().body();
-        } catch (IOException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
-            return false;
-        } catch (NullPointerException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
-            return false;
-        }
-        if (response == null) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
-            return false;
-        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
-            return false;
-        }
-        return true;
-    }
-
-    private boolean deleteItemOnServer(@NonNull CloudApiYufimtsev cloudApi, int userId, int remoteId) {
-        final String methodName = "delete";
-        CloudApiYufimtsev.DefaultResponse response = null;
-        try {
-            response = cloudApi.deleteItem(userId, remoteId).execute().body();
-        } catch (IOException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
-            return false;
-        } catch (NullPointerException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
-            return false;
-        }
-        if (response == null) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
-            return false;
-        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
-            return false;
-        }
-        return true;
     }
 
 }

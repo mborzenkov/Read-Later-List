@@ -8,6 +8,9 @@ import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -29,6 +32,8 @@ import com.example.mborzenkov.readlaterlist.activity.EditItemActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
+import com.example.mborzenkov.readlaterlist.adt.UserInfo;
+import com.example.mborzenkov.readlaterlist.networking.CloudApiYufimtsev;
 import com.example.mborzenkov.readlaterlist.networking.CloudSyncTask;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 
@@ -274,6 +279,23 @@ public class MainListActivity extends AppCompatActivity implements
             updateLastSyncDate(mLastSync);
             finishSync();
         }
+    }
+
+    @Override
+    public void saveConflict(ReadLaterItem item) {
+        HandlerThread handlerThread = new HandlerThread("BackupHandlerThread");
+        handlerThread.start();
+        Looper looper = handlerThread.getLooper();
+        Handler handler = new Handler(looper);
+        handler.post(() -> {
+            int remoteId = item.getRemoteId();
+            int userId = UserInfo.getCurentUser(this).getUserId();
+            if (remoteId > 0) {
+                if (CloudSyncTask.updateItemOnServer(CloudSyncTask.prepareApi(), userId, remoteId, item)) {
+                    ReadLaterDbUtils.updateItemByRemoteId(this, userId, item, remoteId);
+                }
+            }
+        });
     }
 
     @Override
