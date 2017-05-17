@@ -1,12 +1,9 @@
 package com.example.mborzenkov.readlaterlist.networking;
 
-import android.Manifest;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.RequiresPermission;
 import android.support.annotation.StringDef;
-import android.support.annotation.VisibleForTesting;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 
@@ -62,7 +59,7 @@ public interface CloudApiYufimtsev {
 
     /** Разрешенные статусы выполнения запроса. */
     @StringDef({STATUS_SUCCESS, STATUS_ERROR})
-    public @interface RequestStatus { }
+    @interface RequestStatus { }
 
     // -- Ответы сервера
     /** Ответ сервера 200 OK. */
@@ -101,7 +98,7 @@ public interface CloudApiYufimtsev {
      *          Будет содержать ошибку, если указан неверный userId.
      */
     @GET(PATH_NOTES_ALL)
-    Call<AllItemsResponse> getAllItems(@Path(PARAM_USER_ID) @IntRange(from=0) int userId);
+    Call<AllItemsResponse> getAllItems(@Path(PARAM_USER_ID) @IntRange(from = 0) int userId);
 
     /** Возвращает отдельную заметку, принадлежащую пользователю.
      *
@@ -111,8 +108,8 @@ public interface CloudApiYufimtsev {
      *          Будет содержать ошибку, если указан неверный userId или заметки с таким itemId у пользователя нет.
      */
     @GET(PATH_NOTE)
-    Call<SingleItemResponse> getItem(@Path(PARAM_USER_ID) @IntRange(from=0) int userId,
-                          @Path(PARAM_ITEM_ID) @IntRange(from=0) int itemId);
+    Call<SingleItemResponse> getItem(@Path(PARAM_USER_ID) @IntRange(from = 0) int userId,
+                          @Path(PARAM_ITEM_ID) @IntRange(from = 0) int itemId);
 
     /** Создает новую заметку для пользователя.
      *
@@ -122,7 +119,7 @@ public interface CloudApiYufimtsev {
      *          Будет содержать ошибку, если указан неверный userId.
      */
     @POST(PATH_NOTES_ALL)
-    Call<NewItemResponse> createItem(@Path(PARAM_USER_ID) @IntRange(from=0) int userId,
+    Call<NewItemResponse> createItem(@Path(PARAM_USER_ID) @IntRange(from = 0) int userId,
                    @Body @NonNull ReadLaterItem item);
 
     /** Обновляет отдельную заметку, принадлежащую пользователю.
@@ -134,8 +131,8 @@ public interface CloudApiYufimtsev {
      *          Будет содержать ошибку, если указан неверный userId или заметки с таким itemId у пользователя нет.
      */
     @POST(PATH_NOTE)
-    Call<DefaultResponse> updateItem(@Path(PARAM_USER_ID) @IntRange(from=0) int userId,
-                       @Path(PARAM_ITEM_ID) @IntRange(from=0) int itemId,
+    Call<DefaultResponse> updateItem(@Path(PARAM_USER_ID) @IntRange(from = 0) int userId,
+                       @Path(PARAM_ITEM_ID) @IntRange(from = 0) int itemId,
                        @Body @NonNull ReadLaterItem item);
 
     /** Удаляет отдельную заметку, принадлежащую пользователю.
@@ -146,7 +143,7 @@ public interface CloudApiYufimtsev {
      *          Будет содержать ошибку, если указан неверный userId или заметки с таким itemId у пользователя нет.
      */
     @DELETE(PATH_NOTE)
-    Call<DefaultResponse> deleteItem(@Path(PARAM_USER_ID) @IntRange(from=0) int userId,
-                       @Path(PARAM_ITEM_ID) @IntRange(from=0) int itemId);
+    Call<DefaultResponse> deleteItem(@Path(PARAM_USER_ID) @IntRange(from = 0) int userId,
+                       @Path(PARAM_ITEM_ID) @IntRange(from = 0) int itemId);
 
 }

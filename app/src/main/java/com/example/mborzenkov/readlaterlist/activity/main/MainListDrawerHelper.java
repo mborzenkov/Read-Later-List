@@ -1,7 +1,6 @@
 package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.app.DatePickerDialog;
-import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -34,14 +33,10 @@ import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 /** Класс помощник для DrawerLayout в MainActivity. */
 class MainListDrawerHelper implements View.OnClickListener {
@@ -104,17 +99,17 @@ class MainListDrawerHelper implements View.OnClickListener {
                     inputNumber,
                     mActivity.getString(R.string.mainlist_menu_add_placeholders_question_title),
                     mActivity.getString(R.string.mainlist_menu_add_placeholders_question_text),
-                    (input) -> {
-                        try {
-                            // Смотрим введенное значение
-                            int number = Integer.parseInt(input);
-                            UserInfo.changeCurrentUser(mActivity, number);
-                            mCurrentUser.setText(String.valueOf(UserInfo.getCurentUser(mActivity).getUserId()));
-                            mActivity.toggleSync();
-                        } catch (ClassCastException e) {
-                            Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
-                        }
-                    },
+                (input) -> {
+                    try {
+                        // Смотрим введенное значение
+                        int number = Integer.parseInt(input);
+                        UserInfo.changeCurrentUser(mActivity, number);
+                        mCurrentUser.setText(String.valueOf(UserInfo.getCurentUser(mActivity).getUserId()));
+                        mActivity.toggleSync();
+                    } catch (ClassCastException e) {
+                        Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
+                    }
+                },
                     null);
         });
 
@@ -240,7 +235,7 @@ class MainListDrawerHelper implements View.OnClickListener {
             default:
                 // Нажатия на кнопки действий обрабатываются другой функцией
                 clickOnActions(v);
-                return;
+                break;
         }
 
     }

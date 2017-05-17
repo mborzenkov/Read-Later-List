@@ -22,7 +22,8 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
     /** ID Используемого LoadManager'а. */
     private static final int ITEM_LOADER_ID = 13;
     /** Запрос на заметки пользователя. */
-    private static final String QUERY_USER_ID = String.format("%s = ?", ReadLaterContract.ReadLaterEntry.COLUMN_USER_ID);
+    private static final String QUERY_USER_ID = String.format("%s = ?",
+            ReadLaterContract.ReadLaterEntry.COLUMN_USER_ID);
 
     /** Используемые колонки базы данных. */
     private static final String[] MAIN_LIST_PROJECTION = {
@@ -89,7 +90,7 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
         Log.d("ORDERING", sortOrder);
         return new CursorLoader(mActivity, ReadLaterContract.ReadLaterEntry.CONTENT_URI, MAIN_LIST_PROJECTION,
                 selection.toString(), selectionArgs.toArray(new String[selectionArgs.size()]), sortOrder);
-}
+    }
 
     @Override
     public Loader<Cursor> onCreateLoader(int loaderId, final Bundle args) {

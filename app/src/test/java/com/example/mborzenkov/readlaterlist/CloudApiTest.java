@@ -3,28 +3,19 @@ package com.example.mborzenkov.readlaterlist;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import android.graphics.Color;
-
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemJsonAdapter;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiYufimtsev;
-import com.example.mborzenkov.readlaterlist.networking.CloudApiYufimtsev.DefaultResponse;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiYufimtsev.AllItemsResponse;
+import com.example.mborzenkov.readlaterlist.networking.CloudApiYufimtsev.DefaultResponse;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiYufimtsev.NewItemResponse;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiYufimtsev.SingleItemResponse;
 import com.squareup.moshi.Moshi;
 
 import java.io.IOException;
 
-import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
-
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
-import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.moshi.MoshiConverterFactory;

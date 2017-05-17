@@ -20,7 +20,6 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,7 +33,6 @@ import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
-import com.example.mborzenkov.readlaterlist.networking.CloudApiYufimtsev;
 import com.example.mborzenkov.readlaterlist.networking.CloudSyncTask;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 

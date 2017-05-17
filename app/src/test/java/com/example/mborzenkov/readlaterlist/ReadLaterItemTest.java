@@ -417,18 +417,21 @@ public class ReadLaterItemTest {
     }
 
     /* Покрывает label: пустой */
+    @SuppressWarnings("UnusedAssignment")
     @Test(expected = IllegalArgumentException.class)
     public void testLabelEmpty() {
         ReadLaterItem item = new ReadLaterItem.Builder("").build();
     }
 
     /* Покрывает label: многострочный */
+    @SuppressWarnings("UnusedAssignment")
     @Test(expected = IllegalArgumentException.class)
     public void testLabelMultiline() {
         ReadLaterItem item = new ReadLaterItem.Builder(normalLabel + "\n" + normalLabel).build();
     }
 
     /* Покрывает imageUrl: неправильно сформированная ссылка */
+    @SuppressWarnings("UnusedAssignment")
     @Test(expected = IllegalArgumentException.class)
     public void testImageUrlMalformed() {
         ReadLaterItem item = new ReadLaterItem.Builder(normalLabel)
@@ -437,6 +440,7 @@ public class ReadLaterItemTest {
     }
 
     /* Покрывает remoteId: <0 */
+    @SuppressWarnings("UnusedAssignment")
     @Test(expected = IllegalArgumentException.class)
     public void testRemoteIdIllegal() {
         ReadLaterItem item = new ReadLaterItem.Builder(normalLabel)

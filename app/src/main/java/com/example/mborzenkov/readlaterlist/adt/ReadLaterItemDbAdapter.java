@@ -3,7 +3,6 @@ package com.example.mborzenkov.readlaterlist.adt;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 
@@ -18,15 +17,15 @@ public class ReadLaterItemDbAdapter {
 
     /** Используемые колонки базы данных. */
     public static final String[] PROJECTION = {
-            ReadLaterContract.ReadLaterEntry._ID,
-            ReadLaterContract.ReadLaterEntry.COLUMN_LABEL,
-            ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION,
-            ReadLaterContract.ReadLaterEntry.COLUMN_COLOR,
-            ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED,
-            ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED,
-            ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW,
-            ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL,
-            ReadLaterContract.ReadLaterEntry.COLUMN_REMOTE_ID
+        ReadLaterContract.ReadLaterEntry._ID,
+        ReadLaterContract.ReadLaterEntry.COLUMN_LABEL,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION,
+        ReadLaterContract.ReadLaterEntry.COLUMN_COLOR,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW,
+        ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL,
+        ReadLaterContract.ReadLaterEntry.COLUMN_REMOTE_ID
     };
 
     /** Преобразует текущую позицию cursor в объект ReadLaterItem.

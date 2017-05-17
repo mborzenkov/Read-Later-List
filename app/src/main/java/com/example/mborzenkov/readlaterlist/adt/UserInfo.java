@@ -4,11 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 /** Объект, представляющий информацию о пользователе. */
 public class UserInfo {
 
@@ -43,7 +38,7 @@ public class UserInfo {
         if (curentUser == null) {
             int lastUserId = context.getSharedPreferences(USERS_KEY, Context.MODE_PRIVATE)
                     .getInt(LAST_USER_KEY, DEFAULT_USER_ID);
-            changeCurrentUser(context, Integer.valueOf(lastUserId));
+            changeCurrentUser(context, lastUserId);
         }
         return curentUser;
     }

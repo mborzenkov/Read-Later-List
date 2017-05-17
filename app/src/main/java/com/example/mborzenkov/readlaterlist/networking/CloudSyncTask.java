@@ -119,7 +119,7 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
     private static @Nullable List<ReadLaterItem> getAllItemsOnServer(@NonNull CloudApiYufimtsev cloudApi, int userId) {
         final String methodName = "getAll";
         final String remoteId = "all";
-        CloudApiYufimtsev.AllItemsResponse response = null;
+        CloudApiYufimtsev.AllItemsResponse response;
         try {
             response = cloudApi.getAllItems(userId).execute().body();
         } catch (IOException e) {
@@ -152,7 +152,7 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
                                                         @NonNull ReadLaterItem item) {
         final String methodName = "insert";
         final String remoteId = "no";
-        CloudApiYufimtsev.NewItemResponse response = null;
+        CloudApiYufimtsev.NewItemResponse response;
         try {
             response = cloudApi.createItem(userId, item).execute().body();
         } catch (IOException e) {
@@ -186,7 +186,7 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
                                               int remoteId,
                                               @NonNull ReadLaterItem item) {
         final String methodName = "update";
-        CloudApiYufimtsev.DefaultResponse response = null;
+        CloudApiYufimtsev.DefaultResponse response;
         try {
             response = cloudApi.updateItem(userId, remoteId, item).execute().body();
         } catch (IOException e) {
@@ -215,7 +215,7 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
      */
     private static boolean deleteItemOnServer(@NonNull CloudApiYufimtsev cloudApi, int userId, int remoteId) {
         final String methodName = "delete";
-        CloudApiYufimtsev.DefaultResponse response = null;
+        CloudApiYufimtsev.DefaultResponse response;
         try {
             response = cloudApi.deleteItem(userId, remoteId).execute().body();
         } catch (IOException e) {
@@ -266,7 +266,7 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
          *
          * @param conflicts список конфликтов, каждый элемент состоит из 2 объектов ReadLaterItem.
          */
-        private SyncResult(List<ReadLaterItem[]> conflicts) {
+        private SyncResult(@Nullable List<ReadLaterItem[]> conflicts) {
             this.isSuccessful = true;
             this.conflicts = conflicts;
         }
@@ -356,6 +356,7 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
                                 }
                             } else if (itemLocal.getDateModified() <= lastSync)  {
                                 // Server: есть, без изм.; Local: есть, без изм.
+                                //noinspection UnnecessaryContinue
                                 continue;
                             } else {
                                 // Server: есть, без изм.; Local: есть, изменен

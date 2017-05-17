@@ -1,20 +1,13 @@
 package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
 
-import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
-import com.example.mborzenkov.readlaterlist.adt.UserInfo;
-import com.example.mborzenkov.readlaterlist.networking.CloudApiYufimtsev;
 import com.example.mborzenkov.readlaterlist.networking.CloudSyncTask;
 import com.example.mborzenkov.readlaterlist.networking.CloudSyncTask.SyncCallback;
-
-import java.util.List;
 
 /** Фрагмент для фоновой синхронизации с Cloud API. */
 public class MainListSyncFragment extends Fragment {

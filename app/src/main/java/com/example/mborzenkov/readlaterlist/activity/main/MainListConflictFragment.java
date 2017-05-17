@@ -2,31 +2,22 @@ package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.GridLayout;
-import android.widget.GridView;
-import android.widget.LinearLayout;
 import android.widget.RadioGroup;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /** Фрагмент для обработки конфликтов. */
 public class MainListConflictFragment extends DialogFragment {
@@ -145,7 +136,6 @@ public class MainListConflictFragment extends DialogFragment {
 
         // Читаем левый и правый элемент
         ReadLaterItem leftItem  = mCurrentConflict[0];
-        ReadLaterItem rightItem = mCurrentConflict[1];
 
         // Устанавливаем заголовок и кнопку
         mConflictDescriptionTextView.setText(String.format(FORMAT_DESCRIPTION, leftItem.getRemoteId()));
@@ -154,6 +144,8 @@ public class MainListConflictFragment extends DialogFragment {
                 : BUTTON_NEXT;
         mProceedButton.setText(buttonText);
 
+
+        ReadLaterItem rightItem = mCurrentConflict[1];
         // Устанавливаем сравнение
         mConflictLeftTextView.setText(leftItem.toString());
         mConflictRightTextView.setText(rightItem.toString());

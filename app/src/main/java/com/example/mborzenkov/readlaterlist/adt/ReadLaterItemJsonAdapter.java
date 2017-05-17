@@ -6,11 +6,8 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.squareup.moshi.FromJson;
-import com.squareup.moshi.JsonQualifier;
 import com.squareup.moshi.ToJson;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;

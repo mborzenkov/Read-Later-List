@@ -5,7 +5,6 @@ import android.support.annotation.Nullable;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
