@@ -67,7 +67,7 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
         MainListFilter filter = MainListFilterUtils.getCurrentFilter();
         StringBuilder selection = new StringBuilder(QUERY_USER_ID);
         List<String> selectionArgs = new ArrayList<>();
-        selectionArgs.add(String.valueOf(UserInfo.getCurentUser().getUserId()));
+        selectionArgs.add(String.valueOf(UserInfo.getCurentUser(mActivity).getUserId()));
         String sortOrder = "";
         if (filter != null) {
             sortOrder = filter.getSqlSortOrder();

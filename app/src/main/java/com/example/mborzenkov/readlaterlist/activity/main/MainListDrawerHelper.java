@@ -1,6 +1,7 @@
 package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -18,10 +19,12 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
+import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
 import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
@@ -31,10 +34,14 @@ import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /** Класс помощник для DrawerLayout в MainActivity. */
 class MainListDrawerHelper implements View.OnClickListener {
@@ -51,6 +58,7 @@ class MainListDrawerHelper implements View.OnClickListener {
     private final Button mSortByDateCreatedButton;
     private final Button mSortByDateModifiedButton;
     private final Button mSortByDateViewedButton;
+    private final TextView mCurrentUser;
 
     /** Адаптер для SavedFilters. */
     private ArrayAdapter<String> mSavedFiltersAdapter = null;
@@ -81,6 +89,34 @@ class MainListDrawerHelper implements View.OnClickListener {
         mSortByDateCreatedButton = (Button) mActivity.findViewById(R.id.button_drawermainlist_sortcreate);
         mSortByDateModifiedButton = (Button) mActivity.findViewById(R.id.button_drawermainlist_sortmodified);
         mSortByDateViewedButton = (Button) mActivity.findViewById(R.id.button_drawermainlist_sortview);
+        mCurrentUser = (TextView) mActivity.findViewById(R.id.tv_drawermainlist_user_value);
+
+        // Инициализируем поле смены пользователя
+        TextView urlChangeUser = (TextView) mActivity.findViewById(R.id.tv_drawermainlist_user_change);
+        urlChangeUser.setOnClickListener((View v) -> {
+            // Нажатие на "сменить пользователя"
+            EditText inputNumber = new EditText(mActivity);
+            inputNumber.setInputType(InputType.TYPE_CLASS_NUMBER);
+            inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(8)}); // Не более 8 цифр
+            inputNumber.setText(mCurrentUser.getText().toString());
+            ActivityUtils.showInputTextDialog(
+                    mActivity,
+                    inputNumber,
+                    mActivity.getString(R.string.mainlist_menu_add_placeholders_question_title),
+                    mActivity.getString(R.string.mainlist_menu_add_placeholders_question_text),
+                    (input) -> {
+                        try {
+                            // Смотрим введенное значение
+                            int number = Integer.parseInt(input);
+                            UserInfo.changeCurrentUser(mActivity, number);
+                            mCurrentUser.setText(String.valueOf(UserInfo.getCurentUser(mActivity).getUserId()));
+                            mActivity.toggleSync();
+                        } catch (ClassCastException e) {
+                            Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
+                        }
+                    },
+                    null);
+        });
 
 
         // Обработчик открытия и закрытия Drawer
@@ -103,6 +139,11 @@ class MainListDrawerHelper implements View.OnClickListener {
         };
         mDrawerLayout.addDrawerListener(drawerToggle);
 
+        // Устанавливаем текущего пользователя
+        if (UserInfo.userInfoNotSet()) {
+            mActivity.toggleSync();
+        }
+        mCurrentUser.setText(String.valueOf(UserInfo.getCurentUser(mActivity).getUserId()));
 
         // Заполняем варианты запомненных фильтров
         reloadSavedFiltersList();

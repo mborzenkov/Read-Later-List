@@ -27,15 +27,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory;
 
 public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResult> {
 
-    // Пользователи
-    // TODO: layout регистрации
-    // TODO: Вместо названия приложения сделать имя пользоваетеля, выпадающий список с пунктом "Выйти"
-    // TODO: Выйти сбрасывает текущего выбранного и открывает вновь layout регистрации
-    // TODO: Сохранение и восстановление последнего выбранного Shared Preferences
-    // TODO: cancel sync при смене пользователя
-
     // Автосинхронизация
-    // TODO: Добавить синхронизацию при открытии приложения (после выбора пользователя)
     // TODO: Бродкаст ресивер на подключение к интернету, вызвает полную синхронизацию
     // TODO: Добавить вызов синхронизации каждые N минут (позднее и позднее)
 
@@ -63,8 +55,11 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
     private static final String ERORR_FAIL_RESPONSE = "Fail response %s /w error: %s, user: %s, remoteId: %s";
 
     public interface SyncCallback {
+
+        String SYNC_KEY = "com.example.mborzenkov.mainlist.sync";
         /** Ключ для даты последней синхронизации в SharedPreferences. */
-        String LAST_SYNC_KEY = "com.example.mborzenkov.mainlist.sync.lastsync";
+        String LAST_SYNC_KEY = "lastsync";
+
 
         boolean isNetworkConnected();
         long getLastSync();
@@ -129,7 +124,7 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
         // Запоминаем дату начала синхронизации, контекст приложения (для бд), объект для доступа к API и тек. польз.
         final Context appContext            = mSyncCallback.getApplicationContext();
         final CloudApiYufimtsev cloudApi    = prepareApi();
-        final int userId = UserInfo.getCurentUser().getUserId();
+        final int userId = UserInfo.getCurentUser(appContext).getUserId();
 
         // Список всех идентификаторов заметок на сервере
         List<Integer> allServerIds = new ArrayList<>();

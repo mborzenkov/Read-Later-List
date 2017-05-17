@@ -24,6 +24,9 @@
         <!-- Поиск -->
         <string name="searchable_mainlist_hint">Search items</string>
         <string name="mainlist_menu_search">Search</string>
+        <!-- Пользователи -->
+        <string name="mainlist_user_title">User:</string>
+        <string name="mainlist_user_change">(change)</string>
         <!-- Фильтр -->
         <string name="mainlist_drawer_title">Settings</string>
         <string name="mainlist_drawer_filters_title">Filter by</string>

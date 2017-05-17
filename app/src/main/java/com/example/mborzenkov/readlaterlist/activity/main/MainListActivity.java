@@ -93,6 +93,9 @@ public class MainListActivity extends AppCompatActivity implements
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_main_loading);
         mEmptyList = (LinearLayout) findViewById(R.id.linearLayout_emptylist);
 
+        // Инициализация SyncFragment
+        mSyncFragment = MainListSyncFragment.getInstance(getSupportFragmentManager());
+
         // Инициализация Drawer Layout
         mDrawerHelper = new MainListDrawerHelper(this);
 
@@ -104,8 +107,6 @@ public class MainListActivity extends AppCompatActivity implements
             MainListLongTask.swapActivity(this);
             showLoading();
         }
-
-        mSyncFragment = MainListSyncFragment.getInstance(getSupportFragmentManager());
     }
 
     @Override
@@ -239,7 +240,7 @@ public class MainListActivity extends AppCompatActivity implements
 
     }
 
-    private void toggleSync() {
+    void toggleSync() {
         mSwipeRefreshLayout.setRefreshing(true);
         mSyncFragment.startFullSync();
         mSwipeRefreshLayout.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 3000);
@@ -248,7 +249,7 @@ public class MainListActivity extends AppCompatActivity implements
     @Override
     public long getLastSync() {
         // Читаем дату последней синхронизации
-        SharedPreferences sharedPreferences = getSharedPreferences(LAST_SYNC_KEY, Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(SYNC_KEY, Context.MODE_PRIVATE);
         return sharedPreferences.getLong(LAST_SYNC_KEY, 0);
     }
 
@@ -277,7 +278,7 @@ public class MainListActivity extends AppCompatActivity implements
     @Override
     public void onSyncFinished(long syncStartTime) {
         SharedPreferences.Editor sharedPreferencesEditor =
-                getSharedPreferences(LAST_SYNC_KEY, Context.MODE_PRIVATE).edit();
+                getSharedPreferences(SYNC_KEY, Context.MODE_PRIVATE).edit();
         sharedPreferencesEditor.putLong(LAST_SYNC_KEY, syncStartTime);
         sharedPreferencesEditor.apply();
         onSyncFinished();

@@ -87,7 +87,7 @@ public class ReadLaterDbUtils {
     public static boolean insertItem(Context context, ReadLaterItem item) {
         ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentValues contentValues = dbAdapter.contentValuesFromItem(item);
-        contentValues.put(ReadLaterEntry.COLUMN_USER_ID, UserInfo.getCurentUser().getUserId());
+        contentValues.put(ReadLaterEntry.COLUMN_USER_ID, UserInfo.getCurentUser(context).getUserId());
         Uri uri = context.getContentResolver().insert(ReadLaterEntry.CONTENT_URI, contentValues);
         return uri != null;
     }
@@ -98,7 +98,7 @@ public class ReadLaterDbUtils {
      * @param itemList Данные в формате ReadLaterItem.
      */
     public static void bulkInsertItems(Context context, List<ReadLaterItem> itemList) {
-        final int currentUser = UserInfo.getCurentUser().getUserId();
+        final int currentUser = UserInfo.getCurentUser(context).getUserId();
         ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentValues[] values = new ContentValues[itemList.size()];
         for (int i = 0; i < itemList.size(); i++) {
@@ -188,7 +188,7 @@ public class ReadLaterDbUtils {
                 ReadLaterContract.ReadLaterEntry.CONTENT_URI,
                 null,
                 QUERY_USER_ID,
-                new String[] { String.valueOf(UserInfo.getCurentUser().getUserId()) },
+                new String[] { String.valueOf(UserInfo.getCurentUser(context).getUserId()) },
                 String.format(Locale.US, QUERY_RANGE, count, from));
     }
 

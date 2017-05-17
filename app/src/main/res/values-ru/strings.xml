@@ -76,4 +76,6 @@
     <string name="notification_debug_deleteall_title">Очистка списка</string>
     <string name="notification_debug_fillplaceholders_title">Автозаполнение списка</string>
     <string name="mainlist_menu_refresh">Обновить</string>
+    <string name="mainlist_user_change">(изменить)</string>
+    <string name="mainlist_user_title">Логин:</string>
 </resources>
