@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/** Фрагмент для обработки конфликтов. */
 public class MainListConflictFragment extends DialogFragment {
 
     /** Формат поля описания текущего конфликта (remoteId). */
@@ -37,8 +38,16 @@ public class MainListConflictFragment extends DialogFragment {
     /** Название кнопки, если элементов несколько. */
     private static String BUTTON_NEXT = null;
 
+    /** Коллбэк для оповещения о результатах обработки конфликтов. */
     public interface ConflictsCallback {
+
+        /** Вызывается, когда пользователь выбрал вариант, который нужно сохранить.
+         *
+         * @param item вариант для сохранения, содержит remoteId
+         */
         void saveConflict(ReadLaterItem item);
+
+        /** Вызывается, когда пользователь разобрал все конфликты. */
         void onConflictsMerged();
     }
 
@@ -56,6 +65,12 @@ public class MainListConflictFragment extends DialogFragment {
     private TextView mConflictRightTextView;
     private Button mProceedButton;
 
+    /** Создает новый instance MainListConflictFragment.
+     *
+     * @param conflicts список конфликтов, не null
+     * @return всегда новый объект MainListConflictFragment
+     * @throws NullPointerException если conflicts - null
+     */
     public static MainListConflictFragment getInstance(@NonNull List<ReadLaterItem[]> conflicts) {
         MainListConflictFragment conflictFragment = new MainListConflictFragment();
         conflictFragment.mConflictsList = conflicts;
@@ -65,6 +80,7 @@ public class MainListConflictFragment extends DialogFragment {
 
     @Override
     public void onDestroyView() {
+        // Предотвращает закрытие DialogFragment при повороте экрана
         Dialog dialog = getDialog();
         if (dialog != null && getRetainInstance()) {
             dialog.setDismissMessage(null);
@@ -78,6 +94,7 @@ public class MainListConflictFragment extends DialogFragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
+        // Инфлейтим все элементы layout
         View parentView = inflater.inflate(R.layout.fragment_conflict, container, false);
         mChosenOption = (RadioGroup) parentView.findViewById(R.id.rg_conflict_chosen);
         mConflictDescriptionTextView = (TextView) parentView.findViewById(R.id.tv_conflict_description);
@@ -87,15 +104,22 @@ public class MainListConflictFragment extends DialogFragment {
         mConflictRightTextView.setOnClickListener(this::toggleSelection);
         mProceedButton = (Button) parentView.findViewById(R.id.button_conflict_next);
         mProceedButton.setOnClickListener((View v) -> saveSelectedData());
+
         fillFragmentWithData();
+
+        // Нельзя закрыть
         setCancelable(false);
+        // Восстанавливает себя после поворота экрана
         setRetainInstance(true);
+
         return parentView;
+
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        // Ленивая инициализация строк из ресурсов и спасает от лишней переменной с контекстом.
         if (BUTTON_NEXT == null) {
             BUTTON_SAVE = context.getString(R.string.mainlist_conflict_button_save);
             BUTTON_NEXT = context.getString(R.string.mainlist_conflict_button_next);
@@ -109,6 +133,7 @@ public class MainListConflictFragment extends DialogFragment {
         mConflictsCallback = null;
     }
 
+    /** Заполняет фрагмент данными из mCurrentConflict. */
     private void fillFragmentWithData() {
         // Если есть конфликты
         if (mConflictsList.isEmpty()) {
@@ -134,6 +159,7 @@ public class MainListConflictFragment extends DialogFragment {
         mConflictRightTextView.setText(rightItem.toString());
     }
 
+    /** Сохраняет выбранный вариант. */
     private void saveSelectedData() {
         if (mConflictsCallback != null) {
             ReadLaterItem savingItem;
@@ -156,6 +182,10 @@ public class MainListConflictFragment extends DialogFragment {
         }
     }
 
+    /** Выбирает новый вариант.
+     *
+     * @param view вариант, на который кликнули: R.id.tv_conflict_item_(left или right)
+     */
     private void toggleSelection(View view) {
         switch (view.getId()) {
             case R.id.tv_conflict_item_left:

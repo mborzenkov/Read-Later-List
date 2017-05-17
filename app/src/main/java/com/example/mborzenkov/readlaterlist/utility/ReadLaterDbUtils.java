@@ -31,6 +31,13 @@ public class ReadLaterDbUtils {
         throw new UnsupportedOperationException("Класс ReadLaterDbUtils - static util, не может иметь экземпляров");
     }
 
+    /** Возвращает заметку с указанным remoteId.
+     *
+     * @param context контекст
+     * @param userId идентификатор пользователя
+     * @param remoteId внешний идентификатор заметки
+     * @return заметка с указанным remoteId у указанного пользователя или null, если такой нет
+     */
     public static @Nullable ReadLaterItem getItemByRemoteId(Context context, int userId, int remoteId) {
         ReadLaterItem result = null;
         Cursor queryCursor = context.getContentResolver().query(
@@ -50,6 +57,14 @@ public class ReadLaterDbUtils {
         return result;
     }
 
+    /** Возвращает _id для заметки с указанным remoteId.
+     *
+     * @param context контекст
+     * @param userId идентификатор пользователя
+     * @param remoteId внешний идентификатор заметки
+     * @return _id для заметки с указанным remoteId или -1, если у указанного пользователя нет заметки с указанным
+     *                  remoteId
+     */
     public static int getItemLocalIdByRemoteId(Context context, int userId, int remoteId) {
         Cursor queryCursor = context.getContentResolver().query(
                 ReadLaterEntry.buildUriForRemoteId(remoteId),
@@ -69,7 +84,13 @@ public class ReadLaterDbUtils {
         return localId;
     }
 
-    public static Cursor queryAllItems(Context context, int userId) {
+    /** Возвращает Cursor со всеми заметками указанного пользователя.
+     *
+     * @param context контекст
+     * @param userId идентификатор пользователя
+     * @return курсор со всеми заметками указанного пользователя
+     */
+    public static @Nullable Cursor queryAllItems(Context context, int userId) {
         return context.getContentResolver().query(
                 ReadLaterEntry.CONTENT_URI,
                 null,
@@ -108,6 +129,14 @@ public class ReadLaterDbUtils {
         context.getContentResolver().bulkInsert(ReadLaterEntry.CONTENT_URI, values);
     }
 
+    /** Обновляет заметку с указанным remoteId.
+     *
+     * @param context контекст
+     * @param userId идентификатор пользователя
+     * @param item заметка с содержимым, которое нужно положить на место обновляемой заметки
+     * @param remoteId внешний идентификатор заметки
+     * @return true - если обновление прошло успешно, иначе false
+     */
     public static boolean updateItemByRemoteId(Context context, int userId, ReadLaterItem item, int remoteId) {
         int localId = getItemLocalIdByRemoteId(context, userId, remoteId);
         if (localId < 0) {
@@ -147,6 +176,13 @@ public class ReadLaterDbUtils {
         return updated > 0;
     }
 
+    /** Обновляет внешний идентификатор заметки с указанным _id.
+     *
+     * @param context контекст
+     * @param uid внутренний идентификатор заметки
+     * @param remoteId внешний идентификатор заметки
+     * @return true - если обновление прошло успешно, иначе false
+     */
     public static boolean updateItemRemoteId(Context context, int uid, int remoteId) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(ReadLaterEntry.COLUMN_REMOTE_ID, remoteId);
