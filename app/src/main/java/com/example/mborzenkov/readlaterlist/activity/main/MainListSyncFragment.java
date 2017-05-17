@@ -16,6 +16,7 @@ import com.example.mborzenkov.readlaterlist.networking.CloudSyncTask.SyncCallbac
 
 import java.util.List;
 
+/** Фрагмент для фоновой синхронизации с Cloud API. */
 public class MainListSyncFragment extends Fragment {
 
     /** Тэг для этого фрагмента. */
@@ -29,6 +30,12 @@ public class MainListSyncFragment extends Fragment {
     /** AsyncTask для синхронизации. */
     private CloudSyncTask mSyncTask = null;
 
+    /** Возвращает instance фрагмента.
+     *  Если FragmentManager уже содержит подобный фрагмент, возвращает его, а не новый.
+     *
+     * @param manager менеджер фрагментов
+     * @return instance MainListSyncFragment
+     */
     public static MainListSyncFragment getInstance(FragmentManager manager) {
         MainListSyncFragment syncFragment = (MainListSyncFragment) manager.findFragmentByTag(TAG);
         if (syncFragment == null) {
@@ -62,6 +69,7 @@ public class MainListSyncFragment extends Fragment {
         super.onDestroy();
     }
 
+    /** Принудительно останавливает синхронизацию. */
     synchronized void stopSync() {
         if (syncInAction) {
             if (mSyncTask != null) {
@@ -71,6 +79,7 @@ public class MainListSyncFragment extends Fragment {
         syncInAction = false;
     }
 
+    /** Запускает полную синхронизацию. */
     synchronized void startFullSync() {
 
         // Проверяем, что еще не запущена синхронизация
