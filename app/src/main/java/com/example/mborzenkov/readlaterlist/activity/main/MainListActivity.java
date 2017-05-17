@@ -249,6 +249,7 @@ public class MainListActivity extends AppCompatActivity implements
 
     }
 
+    /** Вызывает начало синхронизации. */
     void toggleSync() {
         mSwipeRefreshLayout.setRefreshing(true);
         mSyncFragment.startFullSync();
@@ -317,6 +318,10 @@ public class MainListActivity extends AppCompatActivity implements
         finishSync();
     }
 
+    /** Обновляет дату последней синхронизации в SharedPreferences.
+     *
+     * @param lastSyncDate дата, которую нужно сохранить
+     */
     private void updateLastSyncDate(long lastSyncDate) {
         SharedPreferences.Editor sharedPreferencesEditor =
                 getSharedPreferences(SYNC_KEY, Context.MODE_PRIVATE).edit();
@@ -325,6 +330,7 @@ public class MainListActivity extends AppCompatActivity implements
         mLastSync = lastSyncDate;
     }
 
+    /** Завершает синхронизацию принудительно. */
     private void finishSync() {
         if (mSyncFragment != null) {
             mSyncFragment.stopSync();
