@@ -7,18 +7,26 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridLayout;
+import android.widget.GridView;
+import android.widget.LinearLayout;
+import android.widget.RadioGroup;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainListConflictFragment extends DialogFragment {
 
@@ -29,9 +37,6 @@ public class MainListConflictFragment extends DialogFragment {
     /** Название кнопки, если элементов несколько. */
     private static String BUTTON_NEXT = null;
 
-    /** Возможные для выбора варианты: Левый и Правый. */
-    private enum TypesOfConflicts { LEFT, RIGHT }
-
     public interface ConflictsCallback {
         void onConflictsMerged();
     }
@@ -40,14 +45,14 @@ public class MainListConflictFragment extends DialogFragment {
     private @NonNull List<ReadLaterItem[]> mConflictsList = new ArrayList<>();
     /** Текущая редактируемая пара. */
     private ReadLaterItem[] mCurrentConflict;
-    /** Выбранный для сохранения вариант. */
-    private TypesOfConflicts mChosenOption = TypesOfConflicts.LEFT;
     /** Колбек для оповещений о ходе синхронизации. */
     private @Nullable ConflictsCallback mConflictsCallback = null;
 
     // Элементы layout
+    private RadioGroup mChosenOption;
     private TextView mConflictDescriptionTextView;
-    private GridLayout mConflictContentGridView;
+    private TextView mConflictLeftTextView;
+    private TextView mConflictRightTextView;
     private Button mProceedButton;
 
     public static MainListConflictFragment getInstance(@NonNull List<ReadLaterItem[]> conflicts) {
@@ -73,21 +78,18 @@ public class MainListConflictFragment extends DialogFragment {
                              @Nullable Bundle savedInstanceState) {
 
         View parentView = inflater.inflate(R.layout.fragment_conflict, container, false);
+        mChosenOption = (RadioGroup) parentView.findViewById(R.id.rg_conflict_chosen);
         mConflictDescriptionTextView = (TextView) parentView.findViewById(R.id.tv_conflict_description);
-        mConflictContentGridView = (GridLayout) parentView.findViewById(R.id.grid_conflict_items);
-        mConflictContentGridView.setOnClickListener(this::toggleSelection);
+        mConflictLeftTextView = (TextView) parentView.findViewById(R.id.tv_conflict_item_left);
+        mConflictLeftTextView.setOnClickListener(this::toggleSelection);
+        mConflictRightTextView = (TextView) parentView.findViewById(R.id.tv_conflict_item_right);
+        mConflictRightTextView.setOnClickListener(this::toggleSelection);
         mProceedButton = (Button) parentView.findViewById(R.id.button_conflict_next);
         mProceedButton.setOnClickListener((View v) -> saveSelectedData());
         fillFragmentWithData();
         setCancelable(false);
         setRetainInstance(true);
         return parentView;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        fillFragmentWithData();
     }
 
     @Override
@@ -107,36 +109,59 @@ public class MainListConflictFragment extends DialogFragment {
     }
 
     private void fillFragmentWithData() {
+        // Если есть конфликты
         if (mConflictsList.isEmpty()) {
             return;
         }
-        mConflictDescriptionTextView.setText(String.format(FORMAT_DESCRIPTION, mCurrentConflict[0].getRemoteId()));
-        final String buttonText = mConflictsList.size() == 0
+
+        mChosenOption.check(R.id.rb_conflict_item_left);
+
+        // Читаем левый и правый элемент
+        ReadLaterItem leftItem  = mCurrentConflict[0];
+        ReadLaterItem rightItem = mCurrentConflict[1];
+
+        // Устанавливаем заголовок и кнопку
+        mConflictDescriptionTextView.setText(String.format(FORMAT_DESCRIPTION, leftItem.getRemoteId()));
+        final String buttonText = mConflictsList.size() == 1
                 ? BUTTON_SAVE
                 : BUTTON_NEXT;
         mProceedButton.setText(buttonText);
-        // mConflictContentGridView.
-        // TODO: Заполнить mConflictContentGridView, адаптер, tag
+
+        // Устанавливаем сравнение
+        mConflictLeftTextView.setText(leftItem.toString());
+        mConflictRightTextView.setText(rightItem.toString());
     }
 
     private void saveSelectedData() {
-        // TODO: Выполнить сохранение данных
+        ReadLaterItem savingItem;
+        if (mChosenOption.getCheckedRadioButtonId() == R.id.rb_conflict_item_left) {
+            savingItem = mCurrentConflict[0];
+            // TODO: save item
+        } else {
+            savingItem = mCurrentConflict[1];
+            // TODO: save item
+        }
+        mConflictsList.remove(0);
+        if (mConflictsList.isEmpty()) {
+            if (mConflictsCallback != null) {
+                mConflictsCallback.onConflictsMerged();
+            }
+        } else {
+            mCurrentConflict = mConflictsList.get(0);
+            fillFragmentWithData();
+        }
     }
 
-    private void toggleSelection(View v) {
-        if (v.getTag() != null) {
-            TypesOfConflicts clickedOption = (TypesOfConflicts) v.getTag();
-            if (clickedOption != mChosenOption) {
-                // TODO: Выполнить selection
-                switch (clickedOption) {
-                    case LEFT:
-                        break;
-                    case RIGHT:
-                        break;
-                    default:
-                        break;
-                }
-            }
+    private void toggleSelection(View view) {
+        switch (view.getId()) {
+            case R.id.tv_conflict_item_left:
+                mChosenOption.check(R.id.rb_conflict_item_left);
+                break;
+            case R.id.tv_conflict_item_right:
+                mChosenOption.check(R.id.rb_conflict_item_right);
+                break;
+            default:
+                break;
         }
     }
 
