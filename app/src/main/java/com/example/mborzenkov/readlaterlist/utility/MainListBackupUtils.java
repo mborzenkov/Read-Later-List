@@ -137,6 +137,8 @@ public class MainListBackupUtils {
                 result.add(jsonAdapter.toJson(savedData));
             }
 
+            allData.close();
+
         }
 
         return result;

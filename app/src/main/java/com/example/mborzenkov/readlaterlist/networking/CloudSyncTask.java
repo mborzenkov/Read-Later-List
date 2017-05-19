@@ -417,6 +417,7 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
                     }
                 }
             }
+            itemsLocalCursor.close();
         }
 
         return new SyncResult(conflicts);
