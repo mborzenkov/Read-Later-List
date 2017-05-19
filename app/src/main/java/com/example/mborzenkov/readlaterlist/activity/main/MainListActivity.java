@@ -293,8 +293,8 @@ public class MainListActivity extends AppCompatActivity implements
     @Override
     public long getLastSync() {
         // Читаем дату последней синхронизации
-        SharedPreferences sharedPreferences = getSharedPreferences(SYNC_KEY, Context.MODE_PRIVATE);
-        return sharedPreferences.getLong(LAST_SYNC_KEY, 0);
+        SharedPreferences sharedPreferences = getSharedPreferences(LAST_SYNC_KEY, Context.MODE_PRIVATE);
+        return sharedPreferences.getLong(String.valueOf(UserInfo.getCurentUser(this).getUserId()), 0);
     }
 
     @Override
@@ -358,8 +358,8 @@ public class MainListActivity extends AppCompatActivity implements
      */
     private void updateLastSyncDate(long lastSyncDate) {
         SharedPreferences.Editor sharedPreferencesEditor =
-                getSharedPreferences(SYNC_KEY, Context.MODE_PRIVATE).edit();
-        sharedPreferencesEditor.putLong(LAST_SYNC_KEY, lastSyncDate);
+                getSharedPreferences(LAST_SYNC_KEY, Context.MODE_PRIVATE).edit();
+        sharedPreferencesEditor.putLong(String.valueOf(UserInfo.getCurentUser(this).getUserId()), lastSyncDate);
         sharedPreferencesEditor.apply();
         mLastSync = lastSyncDate;
     }

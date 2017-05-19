@@ -46,10 +46,11 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
     /** Колбек для оповещений о результатах синхронизации. */
     public interface SyncCallback {
 
-        /** Ключ для доступа к данным о синхронизации в SharedPreferences. */
-        String SYNC_KEY = "com.example.mborzenkov.mainlist.sync";
-        /** Ключ для даты последней синхронизации в SharedPreferences. */
-        String LAST_SYNC_KEY = "lastsync";
+        /** Ключ для даты последней синхронизации в SharedPreferences.
+         *  Под этим ключем хранятся связи String-Long,
+         *      где ключ - идентификатор пользоватля, значение - дата и время последней синхронизации как timestamp
+         */
+        String LAST_SYNC_KEY = "com.example.mborzenkov.mainlist.sync.lastsync";
 
         /** Проверяет, доступно ли подключение к интернету.
          *
