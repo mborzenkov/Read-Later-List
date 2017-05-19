@@ -1,8 +1,10 @@
 package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.app.SearchManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
@@ -48,6 +50,8 @@ public class MainListActivity extends AppCompatActivity implements
     // Константы
     /** Формат даты для вывода на формах редактирования дат. */
     public static final String FORMAT_DATE = "dd/MM/yy";
+    /** Длительность показа значка синхронизации в мс. */
+    private static final int SYNC_ICON_DURATION = 1000;
 
     // Intent
     /** Константа, обозначающая пустой UID. */
@@ -62,6 +66,8 @@ public class MainListActivity extends AppCompatActivity implements
     private MainListDrawerHelper mDrawerHelper;
     private MainListLoaderManager mLoaderManager;
     private MainListSyncFragment mSyncFragment;
+    private InternetBroadcastReceiver mInternetBroadcastReceiver;
+    private IntentFilter mInternetChangedIntentFilter;
 
     // Элементы layout
     private SwipeRefreshLayout mSwipeRefreshLayout;
@@ -74,6 +80,18 @@ public class MainListActivity extends AppCompatActivity implements
     /** Дата последней синхронизации. */
     private long mLastSync;
 
+    /** Класс {@link android.content.BroadcastReceiver} для получения бродкаста об изменении сети.
+     *  Запускает синхронизацию при подключении к интернету.
+     *
+     */
+    private class InternetBroadcastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (isNetworkConnected()) {
+                toggleSync();
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,6 +121,11 @@ public class MainListActivity extends AppCompatActivity implements
         // Инициализация SyncFragment
         mSyncFragment = MainListSyncFragment.getInstance(getSupportFragmentManager());
 
+        // Инициализация BroadcastReceiver
+        mInternetBroadcastReceiver = new InternetBroadcastReceiver();
+        mInternetChangedIntentFilter = new IntentFilter();
+        mInternetChangedIntentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+
         // Инициализация Drawer Layout
         mDrawerHelper = new MainListDrawerHelper(this);
 
@@ -114,6 +137,19 @@ public class MainListActivity extends AppCompatActivity implements
             MainListLongTask.swapActivity(this);
             showLoading();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        toggleSync();
+        registerReceiver(mInternetBroadcastReceiver, mInternetChangedIntentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(mInternetBroadcastReceiver);
     }
 
     @Override
@@ -251,7 +287,7 @@ public class MainListActivity extends AppCompatActivity implements
     void toggleSync() {
         mSwipeRefreshLayout.setRefreshing(true);
         mSyncFragment.startFullSync();
-        mSwipeRefreshLayout.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 3000);
+        mSwipeRefreshLayout.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), SYNC_ICON_DURATION);
     }
 
     @Override

@@ -137,9 +137,6 @@ class MainListDrawerHelper implements View.OnClickListener {
         // Устанавливаем текущего пользователя
         boolean appStart = UserInfo.userInfoNotSet();
         mCurrentUser.setText(String.valueOf(UserInfo.getCurentUser(mActivity).getUserId()));
-        if (appStart) {
-            // mActivity.toggleSync();
-        }
 
         // Заполняем варианты запомненных фильтров
         reloadSavedFiltersList();
