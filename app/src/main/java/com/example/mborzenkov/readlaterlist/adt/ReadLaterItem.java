@@ -64,6 +64,22 @@ public class ReadLaterItem {
             this.dateViewed = currentTime;
         }
 
+        /** Начинает создание элемента.
+         * Заполняет все параметры значениями из объекта ReadLaterItem.
+         *
+         * @param item объект, на основании которого нужно создать Builder
+         */
+        public Builder(ReadLaterItem item) {
+            label           = item.getLabel();
+            description     = item.getDescription();
+            color           = item.getColor();
+            dateCreated     = item.getDateCreated();
+            dateModified    = item.getDateModified();
+            dateViewed      = item.getDateViewed();
+            remoteId        = item.getRemoteId();
+            this.imageUrl(item.getImageUrl());
+        }
+
         /** Устанавливает описание у элемента.
          *  Значение по умолчанию: пустая строка.
          *

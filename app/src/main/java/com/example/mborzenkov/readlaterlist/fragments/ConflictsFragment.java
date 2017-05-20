@@ -9,6 +9,8 @@ import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -35,6 +37,7 @@ public class ConflictsFragment extends DialogFragment {
     public interface ConflictsCallback {
 
         /** Вызывается, когда пользователь выбрал вариант, который нужно сохранить.
+         * Возвращает в точности тот объкт, который нужно сохранить. У него обновлена дата изменения.
          *
          * @param item вариант для сохранения, содержит remoteId
          */
@@ -73,6 +76,14 @@ public class ConflictsFragment extends DialogFragment {
     }
 
     @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        if (getDialog() == null) {
+            setShowsDialog(false);
+        }
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
     public void onDestroyView() {
         // Предотвращает закрытие DialogFragment при повороте экрана
         Dialog dialog = getDialog();
@@ -99,11 +110,6 @@ public class ConflictsFragment extends DialogFragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        if (container == null) {
-            dismiss();
-            return null;
-        }
-
         // Инфлейтим все элементы layout
         View parentView = inflater.inflate(R.layout.fragment_conflict, container, false);
         mChosenOption = (RadioGroup) parentView.findViewById(R.id.rg_conflict_chosen);
@@ -124,6 +130,15 @@ public class ConflictsFragment extends DialogFragment {
 
         return parentView;
 
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Window dialogWindow = getDialog().getWindow();
+        if (dialogWindow != null) {
+            dialogWindow.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+        }
     }
 
     @Override
@@ -168,6 +183,7 @@ public class ConflictsFragment extends DialogFragment {
             } else {
                 savingItem = mCurrentConflict[1];
             }
+            savingItem = (new ReadLaterItem.Builder(savingItem).dateModified(System.currentTimeMillis())).build();
             mConflictsCallback.saveConflict(savingItem);
             mConflictsList.remove(0);
             if (mConflictsList.isEmpty()) {

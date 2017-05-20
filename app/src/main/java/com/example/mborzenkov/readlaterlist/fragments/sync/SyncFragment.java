@@ -2,11 +2,18 @@ package com.example.mborzenkov.readlaterlist.fragments.sync;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.support.annotation.IntDef;
+import android.support.annotation.IntRange;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 
+import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncAsyncTask.SyncCallback;
 
 /** Фрагмент для фоновой синхронизации с Cloud API. */
@@ -62,6 +69,31 @@ public class SyncFragment extends Fragment {
         super.onDestroy();
     }
 
+    /** Обновляет одну запись на сервере.
+     * Выполняет работу в том же потоке, в котором вызван метод, поэтому должен быть вызван не в основном потоке.
+     *
+     * @param item запись для обновления. item.getRemoteId() должен быть > 0.
+     * @param userId
+     * @param remoteId
+     *
+     * @return true, если обновление прошло успешно, иначе false
+     *
+     * @throws android.os.NetworkOnMainThreadException если метод запущен на основном потоке
+     * @throws IllegalArgumentException если userId <= 0 или remoteId <= 0
+     */
+    public synchronized boolean updateOneItem(@NonNull ReadLaterItem item,
+                                            @IntRange(from = 1) int userId,
+                                            @IntRange(from = 1) int remoteId) {
+
+        if ((userId <= 0) || (remoteId <= 0)) {
+            throw new IllegalArgumentException(String.format("Error @ updateOneItem: userId = %s, remoteId = %s.",
+                    userId,
+                    remoteId));
+        }
+        return SyncAsyncTask.updateItemOnServer(SyncAsyncTask.prepareApi(), userId, remoteId, item);
+
+    }
+
     /** Принудительно останавливает синхронизацию. */
     public synchronized void stopSync() {
         if (syncInAction) {
@@ -72,7 +104,10 @@ public class SyncFragment extends Fragment {
         syncInAction = false;
     }
 
-    /** Запускает полную синхронизацию. */
+    /** Запускает полную синхронизацию.
+     * Синхронизация выполняется в AsyncTask, поэтому startFullSync должен быть запущен в UI Thread.
+     */
+    @MainThread
     public synchronized void startFullSync() {
 
         // Проверяем, что еще не запущена синхронизация

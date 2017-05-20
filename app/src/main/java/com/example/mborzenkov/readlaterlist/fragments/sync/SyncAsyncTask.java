@@ -26,7 +26,7 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.moshi.MoshiConverterFactory;
 
-/** AsyncTask для выполнения фоновой синхронизации.
+/** Совмещает в себе AsyncTask для выполнения фоновой синхронизации и Utility методы.
  *  Необходимо избегать вызова операций на основном потоке, если методы вызываются без AsyncTask.
  *  Методы могут вызывать NetworkOnMainThreadException если вызвана операция на основном потоке
  */
@@ -87,11 +87,15 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
         void onSyncWithConflicts(@Nullable List<ReadLaterItem[]> conflicts, long syncStartTime);
     }
 
+
+    /////////////////////////
+    // Util
+
     /** Подготавливает API для синхронизации.
      *
      * @return API для синхронизации
      */
-    public static CloudApiYufimtsev prepareApi() {
+    static CloudApiYufimtsev prepareApi() {
         // Подготавливаем Retrofit к получению данных и Moshi к обработке данных
         Moshi moshi = new Moshi.Builder().add(new ReadLaterItemJsonAdapter()).build();
         Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
@@ -108,6 +112,39 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
 
         // Создаем объект для доступа к API
         return retrofitBuilder.build().create(CloudApiYufimtsev.class);
+    }
+
+    /** Обновляет заметку на сервере.
+     *  Делает записи в Log.e в случае ошибок.
+     *
+     * @param userId идентификатор пользователя, UserInfo.getCurrentUser().getId()
+     * @param remoteId внешний идентификатор заметки
+     * @param item заметка в формате ReadLaterItem
+     * @return true - если обновление прошло успешно, false иначе
+     */
+    static boolean updateItemOnServer(@NonNull CloudApiYufimtsev cloudApi,
+                                      int userId,
+                                      int remoteId,
+                                      @NonNull ReadLaterItem item) {
+        final String methodName = "update";
+        CloudApiYufimtsev.DefaultResponse response;
+        try {
+            response = cloudApi.updateItem(userId, remoteId, item).execute().body();
+        } catch (IOException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
+            return false;
+        } catch (NullPointerException e) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
+            return false;
+        }
+        if (response == null) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
+            return false;
+        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
+            return false;
+        }
+        return true;
     }
 
     /** Получает все записи с сервера.
@@ -173,40 +210,6 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
         return response.data;
     }
 
-    /** Обновляет заметку на сервере.
-     *  Делает записи в Log.e в случае ошибок.
-     *
-     * @param cloudApi API, полученный из prepareApi
-     * @param userId идентификатор пользователя, UserInfo.getCurrentUser().getId()
-     * @param remoteId внешний идентификатор заметки
-     * @param item заметка в формате ReadLaterItem
-     * @return true - если обновление прошло успешно, false иначе
-     */
-    public static boolean updateItemOnServer(@NonNull CloudApiYufimtsev cloudApi,
-                                              int userId,
-                                              int remoteId,
-                                              @NonNull ReadLaterItem item) {
-        final String methodName = "update";
-        CloudApiYufimtsev.DefaultResponse response;
-        try {
-            response = cloudApi.updateItem(userId, remoteId, item).execute().body();
-        } catch (IOException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
-            return false;
-        } catch (NullPointerException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
-            return false;
-        }
-        if (response == null) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
-            return false;
-        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
-            return false;
-        }
-        return true;
-    }
-
     /** Удаляет заметку с сервера.
      *  Делает записи в Log.e в случае ошибок.
      * @param cloudApi API, полученный из prepareApi
@@ -236,6 +239,10 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
         return true;
     }
 
+
+    /////////////////////////
+    // AsyncTask
+
     /** Callback для оповещений о результатах синхронизации. */
     private final @Nullable SyncCallback mSyncCallback;
     /** Дата последней синхронизации. */
@@ -243,7 +250,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
     /** Дата начала синхронизации. */
     private long syncStartTime = 0;
 
-    public SyncAsyncTask(@Nullable SyncCallback callback) {
+    SyncAsyncTask(@Nullable SyncCallback callback) {
         mSyncCallback = callback;
     }
 
