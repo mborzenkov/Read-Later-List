@@ -121,7 +121,7 @@ public class ItemListFragment extends Fragment implements
         if ((mCallbacks != null) && (mItemListAdapter != null)) {
             // При нажатии на элемент, подготавливает и отправляет колбек.
             Cursor cursor = mItemListAdapter.getCursor();
-            if (cursor != null) {
+            if (cursor != null && !cursor.isClosed()) {
                 cursor.moveToPosition(position);
                 int itemLocalId = cursor.getInt(ItemListLoaderManager.INDEX_COLUMN_ID);
                 ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
