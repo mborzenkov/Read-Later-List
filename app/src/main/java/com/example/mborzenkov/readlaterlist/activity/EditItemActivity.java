@@ -59,8 +59,6 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
 
     /** Текущий режим. */
     private EditModes mMode = EditModes.NEW;
-    /** Признак наличия изменений. */
-    private boolean mModified = false;
     /** Редактируемый элемент. */
     private @Nullable ReadLaterItem mFromItem = null;
 
@@ -144,21 +142,7 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
             public void onTextChanged(CharSequence s, int start, int before, int count) { }
 
             @Override
-            public void afterTextChanged(Editable s) {
-                mModified = true;
-            }
-        });
-        mDescriptionEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) { }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                mModified = true;
-            }
+            public void afterTextChanged(Editable s) { }
         });
         updateChosenColor();
     }
@@ -247,6 +231,10 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
 
     /** Выполняет сохранение. */
     private void finishEditing() {
+        if (!isModified()) {
+            onBackPressed();
+            return;
+        }
         // packInputData возвращает null, если что-то не так
         ReadLaterItem resultData = packInputData();
         if (resultData != null) {
@@ -263,7 +251,6 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
             if (mChosenColor != newColor) {
                 mChosenColor = newColor;
                 updateChosenColor();
-                mModified = true;
             }
         }
     }
@@ -293,9 +280,9 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
      *      Например, если не заполнен Label
      */
     private @Nullable ReadLaterItem packInputData() {
-        String label = mLabelEditText.getText().toString();
-        String description = mDescriptionEditText.getText().toString();
-        String imageUrl = mImageUrlEditText.getText().toString();
+        String label = mLabelEditText.getText().toString().trim();
+        String description = mDescriptionEditText.getText().toString().trim();
+        String imageUrl = mImageUrlEditText.getText().toString().trim();
         if (!imageUrl.isEmpty()) {
             try {
                 new URL(imageUrl);
@@ -304,7 +291,7 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
                 return null; // Это не url
             }
         }
-        if (!label.trim().isEmpty()) {
+        if (!label.isEmpty()) {
 
             ReadLaterItem.Builder resultBuilder = new ReadLaterItem.Builder(label)
                     .description(description)
@@ -324,9 +311,28 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
+    /** Проверяет, были ли изменения.
+     *
+     * @return true, если изменения были, иначе false
+     */
+    private boolean isModified() {
+        if (mFromItem != null) {
+            ReadLaterItem thisItem = packInputData();
+            return thisItem == null
+                    || mFromItem.getColor() != thisItem.getColor()
+                    || !mFromItem.getLabel().equals(thisItem.getLabel())
+                    || !mFromItem.getDescription().equals(thisItem.getDescription())
+                    || !mFromItem.getImageUrl().equals(thisItem.getImageUrl());
+        }
+        return mChosenColor != ContextCompat.getColor(this, R.color.item_default_color)
+                || !mLabelEditText.getText().toString().trim().isEmpty()
+                || !mDescriptionEditText.getText().toString().trim().isEmpty()
+                || !mImageUrlEditText.getText().toString().trim().isEmpty();
+    }
+
     @Override
     public void onBackPressed() {
-        if (mModified) {
+        if (isModified()) {
             ActivityUtils.showAlertDialog(EditItemActivity.this,
                     getString(R.string.edititem_menu_back_question_title),
                     getString(R.string.edititem_menu_back_question_text),
