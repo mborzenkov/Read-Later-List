@@ -20,6 +20,9 @@ import java.util.Set;
 /** Этот класс представляет собой фильтр для MainList. */
 public class MainListFilter {
 
+    /** Формат даты для вывода на формах Drawer. */
+    private static final String FORMAT_DATE = "dd/MM/yy";
+
     /** Типы сортировок. */
     public enum SortType {
         LABEL(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL),
@@ -203,7 +206,7 @@ public class MainListFilter {
     /** Возвращает форматированную дату "от". */
     public String getDateFrom() {
         if (dateFrom != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat(MainListActivity.FORMAT_DATE, Locale.US);
+            SimpleDateFormat sdf = new SimpleDateFormat(FORMAT_DATE, Locale.US);
             return sdf.format(dateFrom);
         } else {
             return "";
@@ -213,7 +216,7 @@ public class MainListFilter {
     /** Возвращает форматированную дату "до". */
     public String getDateTo() {
         if (dateTo != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat(MainListActivity.FORMAT_DATE, Locale.US);
+            SimpleDateFormat sdf = new SimpleDateFormat(FORMAT_DATE, Locale.US);
             return sdf.format(dateTo);
         } else {
             return "";
