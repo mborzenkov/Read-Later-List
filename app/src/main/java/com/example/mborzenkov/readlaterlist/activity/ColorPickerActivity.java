@@ -165,7 +165,7 @@ public class ColorPickerActivity extends AppCompatActivity implements View.OnTou
         // Инициализация
         mScrollView = (HorizontalScrollView) findViewById(R.id.horizontalScrollView);
         mColorsLinearLayout = (LinearLayout) findViewById(R.id.linearLayout_main);
-        mFavLinearLayout = (LinearLayout) findViewById(R.id.linearlayout_drawermainlist_favorites);
+        mFavLinearLayout = (LinearLayout) findViewById(R.id.linearlayout_filterdrawer_favorites);
         mRgbValueTextView = (TextView) findViewById(R.id.textView_RGB_value);
         mHsvValueTextView = (TextView) findViewById(R.id.textView_HSV_value);
         mSharedPreferences = getSharedPreferences(FAVORITES_KEY, Context.MODE_PRIVATE);

@@ -1,6 +1,7 @@
 package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.os.AsyncTask;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -9,7 +10,8 @@ import android.support.annotation.Nullable;
  * Показывает notification с прогрессом выполнения.
  * По окончанию разблокирует интерфейс и обновляет список.
  */
-public class MainActivityLongTask extends AsyncTask<Runnable, Integer, Void>  {
+@MainThread
+class MainActivityLongTask extends AsyncTask<Runnable, Integer, Void>  {
 
     /** Признак, есть ли запущенные длительные процессы. */
     private static boolean isActive = false;
@@ -21,7 +23,7 @@ public class MainActivityLongTask extends AsyncTask<Runnable, Integer, Void>  {
      *
      * @return true или false, результат
      */
-    public static synchronized boolean isActive() {
+    static synchronized boolean isActive() {
         return isActive;
     }
 
@@ -30,7 +32,7 @@ public class MainActivityLongTask extends AsyncTask<Runnable, Integer, Void>  {
      *
      * @return true - если все прошло успешно и можно начинать работу, иначе false
      */
-    public static synchronized boolean startAnotherLongTask() {
+    static synchronized boolean startAnotherLongTask() {
         if (isActive) {
             return false;
         }
@@ -43,7 +45,7 @@ public class MainActivityLongTask extends AsyncTask<Runnable, Integer, Void>  {
      *
      * @return true - если все прошло успешно и можно начинать работу, иначе false
      */
-    public static synchronized boolean stopAnotherLongTask() {
+    static synchronized boolean stopAnotherLongTask() {
         if (!isActive) {
             return false;
         }
@@ -59,7 +61,7 @@ public class MainActivityLongTask extends AsyncTask<Runnable, Integer, Void>  {
      * @param activity ссылка на MainActivity, где нужно отображать процесс
      * @return true, если выполнение началось или false, если было отклонено
      */
-    public static synchronized boolean startLongBackgroundTask(@NonNull Runnable task,
+    static synchronized boolean startLongBackgroundTask(@NonNull Runnable task,
                                                         @NonNull MainActivity activity) {
 
         // Может выполняться только одно действие
@@ -100,16 +102,6 @@ public class MainActivityLongTask extends AsyncTask<Runnable, Integer, Void>  {
     }
 
     @Override
-    protected void onPreExecute() {
-        // Лок от изменений mActivity на null
-        synchronized (MainActivityLongTask.class) {
-            if (mActivity != null) {
-                mActivity.showLoading();
-            }
-        }
-    }
-
-    @Override
     protected Void doInBackground(@NonNull Runnable... backgroundTask) {
         backgroundTask[0].run();
         return null;
@@ -120,7 +112,7 @@ public class MainActivityLongTask extends AsyncTask<Runnable, Integer, Void>  {
         synchronized (MainActivityLongTask.class) {
             isActive = false;
             if (mActivity != null) {
-                mActivity.reloadData();
+                mActivity.onLongTaskFinished();
             }
         }
         // покажет данные по окончанию

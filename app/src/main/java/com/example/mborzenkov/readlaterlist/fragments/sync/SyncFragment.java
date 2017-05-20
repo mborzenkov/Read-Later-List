@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.fragments;
+package com.example.mborzenkov.readlaterlist.fragments.sync;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -7,8 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 
-import com.example.mborzenkov.readlaterlist.networking.CloudSyncTask;
-import com.example.mborzenkov.readlaterlist.networking.CloudSyncTask.SyncCallback;
+import com.example.mborzenkov.readlaterlist.fragments.sync.SyncAsyncTask.SyncCallback;
 
 /** Фрагмент для фоновой синхронизации с Cloud API. */
 public class SyncFragment extends Fragment {
@@ -22,7 +21,7 @@ public class SyncFragment extends Fragment {
     /** Колбек для оповещений о ходе синхронизации. */
     private @Nullable SyncCallback mSyncCallback = null;
     /** AsyncTask для синхронизации. */
-    private CloudSyncTask mSyncTask = null;
+    private SyncAsyncTask mSyncTask = null;
 
     /** Возвращает instance фрагмента.
      *  Если FragmentManager уже содержит подобный фрагмент, возвращает его, а не новый.
@@ -83,7 +82,7 @@ public class SyncFragment extends Fragment {
 
         // Устанавливаем индикатор запущенной синхронизации
         syncInAction = true;
-        mSyncTask = new CloudSyncTask(mSyncCallback);
+        mSyncTask = new SyncAsyncTask(mSyncCallback);
         mSyncTask.execute();
 
     }

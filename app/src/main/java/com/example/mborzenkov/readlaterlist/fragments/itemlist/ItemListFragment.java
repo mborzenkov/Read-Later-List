@@ -11,7 +11,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,11 +18,12 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.example.mborzenkov.readlaterlist.R;
-import com.example.mborzenkov.readlaterlist.activity.main.MainActivityLongTask;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 
-/** Фрагмент со списком ReadLaterItem. */
+/** Фрагмент со списком ReadLaterItem.
+ * Activity, использующая фрагмент, должна реализовывать интерфейс ItemListCallbacks.
+ */
 public class ItemListFragment extends Fragment implements
         ItemListAdapter.ItemListAdapterOnClickHandler,
         LoaderManager.LoaderCallbacks<Cursor> {
@@ -70,11 +70,11 @@ public class ItemListFragment extends Fragment implements
     }
 
     /** Объект для колбеков о событиях во фрагменте. */
-    private @Nullable ItemListCallbacks mCallbacks;
+    private @Nullable ItemListCallbacks mCallbacks = null;
 
     // Хэлперы
-    private @Nullable ItemListAdapter mItemListAdapter;
-    private @Nullable ItemListLoaderManager mLoaderManager;
+    private @Nullable ItemListAdapter mItemListAdapter = null;
+    private @Nullable ItemListLoaderManager mLoaderManager = null;
 
     // Объекты layout
     private ListView mItemsListView;
@@ -83,7 +83,9 @@ public class ItemListFragment extends Fragment implements
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mCallbacks = (ItemListCallbacks) context;
+        if (context instanceof ItemListCallbacks) {
+            mCallbacks = (ItemListCallbacks) context;
+        }
         mItemListAdapter = new ItemListAdapter(context, this);
         mLoaderManager = new ItemListLoaderManager(this);
     }
@@ -101,16 +103,12 @@ public class ItemListFragment extends Fragment implements
         mItemsListView.setAdapter(mItemListAdapter);
         mEmptyListView = (LinearLayout) rootView.findViewById(R.id.linearLayout_emptylist);
 
-        // Восстанавливает себя после поворота экрана
-        setRetainInstance(true);
-
         return rootView;
 
     }
 
     @Override
     public void onDetach() {
-        Log.d("FRAGMENT", "ItemList.onDetach()");
         super.onDetach();
         mCallbacks = null;
         mItemListAdapter = null;
@@ -141,7 +139,7 @@ public class ItemListFragment extends Fragment implements
     }
 
     /** Устанавливает поисковый запрос и применяет поиск.
-     * Перезагружает данные самостоятельно, если не выполняется длительная загрузка.
+     * Перезагружает данные самостоятельно.
      *
      * @param query поисковый запрос
      */
@@ -172,29 +170,26 @@ public class ItemListFragment extends Fragment implements
     @Override
     public void onLoadFinished(Loader<Cursor> loader, @Nullable Cursor data) {
         // По завершению загрузки, подменяем Cursor в адаптере и показываем данные
-        if (!MainActivityLongTask.isActive()) {
-
-            Handler handler = new Handler() {
-                @Override
-                public void handleMessage(Message msg) {
-                    if (msg.what == 1) {
-                        if ((mCallbacks != null) && (mItemListAdapter != null)) {
-                            mItemListAdapter.changeCursor(data);
-                            boolean listIsEmpty = data == null || data.getCount() == 0;
-                            if (listIsEmpty) {
-                                mItemsListView.setVisibility(View.INVISIBLE);
-                                mEmptyListView.setVisibility(View.VISIBLE);
-                            } else {
-                                mEmptyListView.setVisibility(View.INVISIBLE);
-                                mItemsListView.setVisibility(View.VISIBLE);
-                            }
-                            mCallbacks.onItemListReloaded(listIsEmpty);
+        Handler handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                if (msg.what == 1) {
+                    if ((mCallbacks != null) && (mItemListAdapter != null)) {
+                        mItemListAdapter.changeCursor(data);
+                        boolean listIsEmpty = data == null || data.getCount() == 0;
+                        if (listIsEmpty) {
+                            mItemsListView.setVisibility(View.INVISIBLE);
+                            mEmptyListView.setVisibility(View.VISIBLE);
+                        } else {
+                            mEmptyListView.setVisibility(View.INVISIBLE);
+                            mItemsListView.setVisibility(View.VISIBLE);
                         }
+                        mCallbacks.onItemListReloaded(listIsEmpty);
                     }
                 }
-            };
-            handler.sendEmptyMessage(1);
-        }
+            }
+        };
+        handler.sendEmptyMessage(1);
     }
 
     @Override

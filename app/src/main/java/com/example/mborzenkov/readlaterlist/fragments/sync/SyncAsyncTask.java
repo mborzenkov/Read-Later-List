@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.networking;
+package com.example.mborzenkov.readlaterlist.fragments.sync;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -13,6 +13,7 @@ import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemJsonAdapter;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
+import com.example.mborzenkov.readlaterlist.networking.CloudApiYufimtsev;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 import com.squareup.moshi.Moshi;
 
@@ -29,7 +30,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory;
  *  Необходимо избегать вызова операций на основном потоке, если методы вызываются без AsyncTask.
  *  Методы могут вызывать NetworkOnMainThreadException если вызвана операция на основном потоке
  */
-public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResult> {
+public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResult> {
 
     // Тэги и тексты ошибок
     private static final String TAG_ERROR_NETWORK   = "Network Error";
@@ -242,7 +243,7 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
     /** Дата начала синхронизации. */
     private long syncStartTime = 0;
 
-    public CloudSyncTask(@Nullable SyncCallback callback) {
+    public SyncAsyncTask(@Nullable SyncCallback callback) {
         mSyncCallback = callback;
     }
 

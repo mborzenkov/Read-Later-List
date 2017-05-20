@@ -5,7 +5,6 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.util.Log;
 
-import com.example.mborzenkov.readlaterlist.activity.main.MainActivityLongTask;
 import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
@@ -99,29 +98,24 @@ class ItemListLoaderManager  {
     }
 
     /** Устанавливает поисковый запрос и применяет поиск.
-     * Вызывает reloadData() самостоятельно, если не выполняется длительная загрузка.
+     * Вызывает reloadData() самостоятельно.
      *
      * @param query поисковый запрос
      */
     void setSearchQuery(String query) {
         mSearchQuery = query;
-        if (!MainActivityLongTask.isActive()) {
-            reloadData();
-        }
+        reloadData();
     }
 
     /** Обновляет данные.
-     * Оповещает о результатах loaderCallbacks.
      */
     void reloadData() {
-        if (!MainActivityLongTask.isActive()) {
-            if (mItemListFragment.getActivity().getSupportLoaderManager().getLoader(ITEM_LOADER_ID) != null) {
-                mItemListFragment.getActivity().getSupportLoaderManager().restartLoader(ITEM_LOADER_ID,
-                        null, mItemListFragment);
-            } else {
-                mItemListFragment.getActivity().getSupportLoaderManager()
-                        .initLoader(ItemListLoaderManager.ITEM_LOADER_ID, null, mItemListFragment);
-            }
+        if (mItemListFragment.getActivity().getSupportLoaderManager().getLoader(ITEM_LOADER_ID) != null) {
+            mItemListFragment.getActivity().getSupportLoaderManager().restartLoader(ITEM_LOADER_ID,
+                    null, mItemListFragment);
+        } else {
+            mItemListFragment.getActivity().getSupportLoaderManager()
+                    .initLoader(ItemListLoaderManager.ITEM_LOADER_ID, null, mItemListFragment);
         }
     }
 

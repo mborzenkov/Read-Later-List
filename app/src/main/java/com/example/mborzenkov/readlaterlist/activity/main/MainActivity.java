@@ -20,10 +20,13 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,9 +38,13 @@ import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
-import com.example.mborzenkov.readlaterlist.fragments.SyncFragment;
+import com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment;
+import com.example.mborzenkov.readlaterlist.fragments.sync.SyncFragment;
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
-import com.example.mborzenkov.readlaterlist.networking.CloudSyncTask;
+import com.example.mborzenkov.readlaterlist.fragments.sync.SyncAsyncTask;
+import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
+import com.example.mborzenkov.readlaterlist.utility.LongTaskNotifications;
+import com.example.mborzenkov.readlaterlist.utility.MainListBackupUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 
 import java.util.List;
@@ -45,9 +52,10 @@ import java.util.List;
 /** Главная Activity, представляющая собой список. */
 public class MainActivity extends AppCompatActivity implements
         SearchView.OnQueryTextListener,
-        CloudSyncTask.SyncCallback,
+        SyncAsyncTask.SyncCallback,
         ConflictsFragment.ConflictsCallback,
-        ItemListFragment.ItemListCallbacks {
+        ItemListFragment.ItemListCallbacks,
+        FilterDrawerFragment.DrawerCallbacks {
 
     // Константы
     /** ID контейнера для помещения фрагментов. */
@@ -63,12 +71,13 @@ public class MainActivity extends AppCompatActivity implements
 
     // Хэлперы
     private ItemListFragment mItemListFragment;
-    private MainListDrawerHelper mDrawerHelper;
+    private FilterDrawerFragment mFilterDrawerFragment;
     private SyncFragment mSyncFragment;
     private InternetBroadcastReceiver mInternetBroadcastReceiver;
     private IntentFilter mInternetChangedIntentFilter;
 
     // Элементы layout
+    private DrawerLayout mDrawerLayout;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private ProgressBar mLoadingIndicator;
     private FloatingActionButton mFloatingAddButton;
@@ -115,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements
         });
 
         // Инициализация объектов layout
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerlayout_mainlist);
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.fragmentcontainer_mainactivity);
         mSwipeRefreshLayout.setOnRefreshListener(this::toggleSync);
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_mainactivity_loading);
@@ -136,19 +146,38 @@ public class MainActivity extends AppCompatActivity implements
         mInternetChangedIntentFilter = new IntentFilter();
         mInternetChangedIntentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
 
-        // Инициализация Drawer Layout
-        mDrawerHelper = new MainListDrawerHelper(this);
+        // Инициализация Drawer Layout и обработчика открытия и закрытия Drawer
+        mFilterDrawerFragment = (FilterDrawerFragment) fragmentManager.findFragmentByTag(FilterDrawerFragment.TAG);
+        //
+        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+                R.string.mainlist_drawer_title, R.string.mainlist_drawer_title) {
 
-        // Загружает данные локальные в список, если еще не были загружены
-        if (!mItemListFragment.dataIsLoaded()) {
-            mItemListFragment.reloadData();
-        }
+            @Override
+            public void onDrawerClosed(View view) {
+                // При закрытии - устанавливаем фильтр
+                super.onDrawerClosed(view);
+                if (!MainActivityLongTask.isActive()) {
+                    mItemListFragment.reloadData();
+                }
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                //  При открытии - обновляем Drawer на основании фильтра
+                super.onDrawerOpened(drawerView);
+                mFilterDrawerFragment.reloadDataFromCurrentFilter();
+            }
+        };
+        mDrawerLayout.addDrawerListener(drawerToggle);
 
         // Проверяет, запущена ли длительная операция
         if (MainActivityLongTask.isActive()) {
             // Если запущена, нужно подменить на новую Activity
             MainActivityLongTask.swapActivity(this);
             showLoading();
+        } else if (!mItemListFragment.dataIsLoaded()) {
+            // Загружает данные локальные в список, если еще не были загружены
+            mItemListFragment.reloadData();
         }
 
     }
@@ -171,8 +200,8 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         MainActivityLongTask.swapActivity(null);
+        super.onDestroy();
     }
 
 
@@ -198,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.mainlist_settings:
-                mDrawerHelper.openDrawer();
+                mDrawerLayout.openDrawer(Gravity.END);
                 return true;
             case R.id.mainlist_action_refresh:
                 toggleSync();
@@ -216,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public boolean onQueryTextSubmit(@NonNull String query) {
-        if (mItemListFragment.isVisible()) {
+        if (mItemListFragment.isVisible() && !MainActivityLongTask.isActive()) {
             mItemListFragment.toggleSearch(query);
         }
         return false;
@@ -224,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public boolean onQueryTextChange(@NonNull String newText) {
-        if (mItemListFragment.isVisible()) {
+        if (mItemListFragment.isVisible() && !MainActivityLongTask.isActive()) {
             mItemListFragment.toggleSearch(newText);
         }
         return false;
@@ -254,7 +283,9 @@ public class MainActivity extends AppCompatActivity implements
                         new BackgroundTask().execute(
                                 () -> {
                                     ReadLaterDbUtils.insertItem(MainActivity.this, resultData);
-                                    runOnUiThread(mItemListFragment::reloadData);
+                                    if (!MainActivityLongTask.isActive()) {
+                                        runOnUiThread(mItemListFragment::reloadData);
+                                    }
                                 },
                                 null,
                                 null
@@ -271,7 +302,9 @@ public class MainActivity extends AppCompatActivity implements
                             new BackgroundTask().execute(
                                     () -> {
                                         ReadLaterDbUtils.deleteItem(this, uid);
-                                        runOnUiThread(mItemListFragment::reloadData);
+                                        if (!MainActivityLongTask.isActive()) {
+                                            runOnUiThread(mItemListFragment::reloadData);
+                                        }
                                     },
                                     null,
                                     null
@@ -283,7 +316,9 @@ public class MainActivity extends AppCompatActivity implements
                             new BackgroundTask().execute(
                                     () -> {
                                         ReadLaterDbUtils.updateItem(MainActivity.this, resultData, uid);
-                                        runOnUiThread(mItemListFragment::reloadData);
+                                        if (!MainActivityLongTask.isActive()) {
+                                            runOnUiThread(mItemListFragment::reloadData);
+                                        }
                                     },
                                     null,
                                     null
@@ -314,7 +349,7 @@ public class MainActivity extends AppCompatActivity implements
 
 
     /////////////////////////
-    // Колбеки CloudSyncTask
+    // Колбеки SyncAsyncTask
 
     @Override
     public long getLastSync() {
@@ -369,7 +404,7 @@ public class MainActivity extends AppCompatActivity implements
             int remoteId = item.getRemoteId();
             int userId = UserInfo.getCurentUser(this).getUserId();
             if (remoteId > 0) {
-                if (CloudSyncTask.updateItemOnServer(CloudSyncTask.prepareApi(), userId, remoteId, item)) {
+                if (SyncAsyncTask.updateItemOnServer(SyncAsyncTask.prepareApi(), userId, remoteId, item)) {
                     ReadLaterDbUtils.updateItemByRemoteId(this, userId, item, remoteId);
                 }
             }
@@ -385,6 +420,7 @@ public class MainActivity extends AppCompatActivity implements
 
     /////////////////////////
     // Колбеки ItemListFragment
+
     @Override
     public void onItemClick(@NonNull ReadLaterItem item, int localId) {
         mEditItemId = localId;
@@ -405,10 +441,62 @@ public class MainActivity extends AppCompatActivity implements
 
 
     /////////////////////////
+    // Колбеки FilterDrawerFragment
+
+    @Override
+    public void closeDrawer() {
+        mDrawerLayout.closeDrawer(Gravity.END);
+    }
+
+    @Override
+    public void onUserChanged() {
+        toggleSync();
+    }
+
+    @Override
+    public void onFillPlaceholdersChosen(int count) {
+        // Запускаем таск, показываем нотификейшены
+        if (MainActivityLongTask.startLongBackgroundTask(
+                () -> DebugUtils.addPlaceholdersToDatabase(this, count),
+                this)) {
+            showLoading();
+        }
+    }
+
+    @Override
+    public void onDeleteAllChosen() {
+        // Запускаем таск, показываем нотификейшены
+        if (MainActivityLongTask.startLongBackgroundTask(
+                () -> {
+                    ReadLaterDbUtils.deleteAll(this);
+                    LongTaskNotifications.cancelNotification();
+                },
+                this)) {
+            showLoading();
+        }
+    }
+
+    @Override
+    public void onBackupSaveChosen() {
+        handleBackupTask(true);
+    }
+
+    @Override
+    public void onBackupRestoreChosen() {
+        handleBackupTask(false);
+    }
+
+    @Override
+    public boolean isLongTaskActive() {
+        return MainActivityLongTask.isActive();
+    }
+
+
+    /////////////////////////
     // Методы синхронизации
 
     /** Вызывает начало синхронизации. */
-    void toggleSync() {
+    private void toggleSync() {
         mSwipeRefreshLayout.setRefreshing(true);
         mSyncFragment.startFullSync();
     }
@@ -428,40 +516,71 @@ public class MainActivity extends AppCompatActivity implements
     /** Завершает синхронизацию принудительно. */
     private void finishSync() {
         mSyncFragment.stopSync();
-        mItemListFragment.reloadData();
+        if (!MainActivityLongTask.isActive()) {
+            mItemListFragment.reloadData();
+        }
         mSwipeRefreshLayout.setRefreshing(false);
+    }
+
+
+    /////////////////////////
+    // Методы сохранения и восстановления из бэкапа
+    /** Выполняет сохранение или восстановление бэкапов в фоновом потоке.
+     *
+     * @param savingMode true - режим сохранения данных, false - режим восстановления
+     */
+    private void handleBackupTask(boolean savingMode) {
+
+        // Пробуем заблокировать интерфейс
+        if (!MainActivityLongTask.startAnotherLongTask()) {
+            return; // не удалось, что то уже происходит
+        }
+
+        // Запускаем поток
+        HandlerThread handlerThread = new HandlerThread("BackupHandlerThread");
+        handlerThread.start();
+        Looper looper = handlerThread.getLooper();
+        Handler handler = new Handler(looper);
+
+        // Выполняем работу
+        if (savingMode) {
+            handler.post(() -> {
+                MainListBackupUtils.saveEverythingAsJsonFile(this);
+                MainActivityLongTask.stopAnotherLongTask();
+            });
+        } else {
+            showLoading();
+            handler.post(() -> {
+                MainListBackupUtils.restoreEverythingFromJsonFile(this);
+                if (MainActivityLongTask.stopAnotherLongTask()) {
+                    runOnUiThread(mItemListFragment::reloadData);
+                }
+            });
+        }
+
     }
 
 
     /////////////////////////
     // Все остальное
 
+    /** Колбек для MainActivityLongTask об окончании работ. */
+    void onLongTaskFinished() {
+        mItemListFragment.reloadData();
+    }
+
     /** Показывает индикатор загрузки, скрывая все лишнее. */
-    void showLoading() {
+    private void showLoading() {
         getSupportFragmentManager().beginTransaction().hide(mItemListFragment).commit();
         mLoadingIndicator.setVisibility(View.VISIBLE);
         mSwipeRefreshLayout.setEnabled(false);
         mFloatingAddButton.setVisibility(View.INVISIBLE);
     }
 
-    // TODO: Убрать этот метод
-    @Deprecated
-    void reloadData() {
-        mItemListFragment.reloadData();
-    }
-
     /** Запускает AsyncTask для выполнения быстрого действия.
      * Действие не будет выполнено, если уже выполняется длительное действие (isInLoadingMode == true).
      */
     private class BackgroundTask extends AsyncTask<Runnable, Void, Void> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            if (!MainActivityLongTask.isActive()) {
-                showLoading();
-            }
-        }
 
         @Override
         protected Void doInBackground(@NonNull Runnable... backgroundTask) {

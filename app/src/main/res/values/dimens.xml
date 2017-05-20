@@ -18,7 +18,7 @@
 
     <!-- Общие элементы -->
     <dimen name="height_divider">1px</dimen>
-    <dimen name="width_drawer">240dp</dimen>
+    <dimen name="width_drawer">260dp</dimen>
     <dimen name="size_progressbar">42dp</dimen>
     <dimen name="size_fab">56dp</dimen>
     <dimen name="margin_fab">16dp</dimen>

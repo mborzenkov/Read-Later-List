@@ -64,7 +64,7 @@
         />
 
     <LinearLayout
-        android:id="@+id/linearlayout_drawermainlist_favorites"
+        android:id="@+id/linearlayout_filterdrawer_favorites"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -80,7 +80,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/marginvertical_small"
-        app:layout_constraintTop_toBottomOf="@+id/linearlayout_drawermainlist_favorites"
+        app:layout_constraintTop_toBottomOf="@+id/linearlayout_filterdrawer_favorites"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         android:text="@string/colorpicker_favorites_label"
