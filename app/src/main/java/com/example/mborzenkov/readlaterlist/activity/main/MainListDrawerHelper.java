@@ -4,6 +4,8 @@ import android.app.DatePickerDialog;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.text.InputFilter;
@@ -38,11 +40,16 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/** Класс помощник для DrawerLayout в MainActivity. */
+/** Класс помощник для DrawerLayout в MainActivity.
+ *  Инкапсулирует работу с Drawer для Activity.
+ */
 class MainListDrawerHelper implements View.OnClickListener {
 
+    /** Формат даты для вывода на формах Drawer. */
+    private static final String FORMAT_DATE = "dd/MM/yy";
+
     // Элементы Layout
-    private final MainListActivity mActivity;
+    private final @NonNull MainListActivity mActivity;
     private final DrawerLayout mDrawerLayout;
     private final LinearLayout mFavLinearLayout;
     private final Spinner mSavedFiltersSpinner;
@@ -56,20 +63,22 @@ class MainListDrawerHelper implements View.OnClickListener {
     private final TextView mCurrentUser;
 
     /** Адаптер для SavedFilters. */
-    private ArrayAdapter<String> mSavedFiltersAdapter = null;
+    private @Nullable ArrayAdapter<String> mSavedFiltersAdapter = null;
     /** Календарь для выбора. */
     private final Calendar mCalendar = Calendar.getInstance();
     /** Редактируемое поле даты. */
-    private EditText mDateEditor = null;
+    private @Nullable EditText mDateEditor = null;
     /** Оригинальные названия кнопок сортировки. */
     private final Map<MainListFilter.SortType, String> mSortButtonsNames = new HashMap<>();
     /** Добавляемый символ сортировки. */
     private final Map<MainListFilter.SortOrder, String> mSortOrderSymbols = new HashMap<>();
     /** Избранные цвета. */
-    private int[] favColors = null;
+    private @Nullable int[] favColors = null;
 
-
-    MainListDrawerHelper(MainListActivity activity) {
+    /** Создает и инициализирует новый объект MainListDrawerHelper.
+     *  Должен вызываться в onCreate у MainListActivity, но после super.onCreate().
+     */
+    MainListDrawerHelper(@NonNull MainListActivity activity) {
 
         mActivity = activity;
 
@@ -203,7 +212,7 @@ class MainListDrawerHelper implements View.OnClickListener {
     }
 
     @Override
-    public void onClick(View v) {
+    public void onClick(@NonNull View v) {
 
         switch (v.getId()) {
             case R.id.button_drawermainlist_sortname:
@@ -242,7 +251,7 @@ class MainListDrawerHelper implements View.OnClickListener {
      *
      * @param v view, на которую нажали
      */
-    private void clickOnActions(View v) {
+    private void clickOnActions(@NonNull View v) {
 
         if (MainListLongTask.isActive()) {
             // Если выполняется какая-то работа, кнопки не работают, показывается предупреждение.
@@ -336,7 +345,7 @@ class MainListDrawerHelper implements View.OnClickListener {
     private void handleBackupTask(boolean savingMode) {
 
         // Пробуем заблокировать интерфейс
-        if (!MainListLongTask.startAnotherLongTask(mActivity)) {
+        if (!MainListLongTask.startAnotherLongTask()) {
             return; // не удалось, что то уже происходит
         }
 
@@ -375,7 +384,7 @@ class MainListDrawerHelper implements View.OnClickListener {
     }
 
     /** Перезагружает адаптер списка сохраненных фильтров.
-     * Если адаптер еще не был создан, создает новый.
+     *  Если адаптер еще не был создан, создает новый.
      */
     private void reloadSavedFiltersList() {
         if (mSavedFiltersAdapter == null) {
@@ -471,12 +480,12 @@ class MainListDrawerHelper implements View.OnClickListener {
      * @param day день
      */
     @SuppressWarnings("UnusedParameters") // Используется как лямбда
-    private void setDate(DatePicker picker, int year, int month, int day) {
+    private void setDate(@Nullable DatePicker picker, int year, int month, int day) {
         if (mDateEditor != null) {
             mCalendar.set(Calendar.YEAR, year);
             mCalendar.set(Calendar.MONTH, month);
             mCalendar.set(Calendar.DAY_OF_MONTH, day);
-            SimpleDateFormat sdf = new SimpleDateFormat(MainListActivity.FORMAT_DATE, Locale.US);
+            SimpleDateFormat sdf = new SimpleDateFormat(FORMAT_DATE, Locale.US);
             mDateEditor.setText(sdf.format(mCalendar.getTime()));
             MainListFilter filter = MainListFilterUtils.getCurrentFilter();
             long date = mCalendar.getTimeInMillis();
@@ -499,7 +508,7 @@ class MainListDrawerHelper implements View.OnClickListener {
      *
      * @param v view, которая вызвала открытие диалога, должна быть EditText
      */
-    private void openDatePickerDialog(View v) {
+    private void openDatePickerDialog(@NonNull View v) {
 
         // Сохраняем view, который сейчас редактируем
         mDateEditor = (EditText) v;
@@ -551,7 +560,7 @@ class MainListDrawerHelper implements View.OnClickListener {
      *
      * @param input название для нового фильтра
      */
-    private void saveFilter(String input) {
+    private void saveFilter(@NonNull String input) {
         // pos
         if (!input.isEmpty()
                 && !input.equals(mActivity.getString(R.string.mainlist_drawer_filters_default))) {
@@ -613,12 +622,14 @@ class MainListDrawerHelper implements View.OnClickListener {
      * @param activate признак, включить или выключить фильтр
      */
     private void toggleColorFilter(int position, boolean activate) {
-        MainListFilter filter = MainListFilterUtils.getCurrentFilter();
-        int color = favColors[position];
-        if (activate) {
-            filter.addColorFilter(color);
-        } else {
-            filter.removeColorFilter(color);
+        if (favColors != null) {
+            MainListFilter filter = MainListFilterUtils.getCurrentFilter();
+            int color = favColors[position];
+            if (activate) {
+                filter.addColorFilter(color);
+            } else {
+                filter.removeColorFilter(color);
+            }
         }
     }
 

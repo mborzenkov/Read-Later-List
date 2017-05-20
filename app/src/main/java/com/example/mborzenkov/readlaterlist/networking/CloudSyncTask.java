@@ -68,7 +68,7 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
          *
          * @return контекст приложения
          */
-        Context getApplicationContext();
+        @NonNull Context getApplicationContext();
 
         /** Вызывается, если синхронизация завершилась с ошибкой. */
         void onSyncFailed();
@@ -84,7 +84,7 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
          * @param conflicts список конфликтов, каждый элемент состоит из 2 объектов ReadLaterItem
          * @param syncStartTime дата начала синхронизации для обновления даты последней синхронизации
          */
-        void onSyncWithConflicts(List<ReadLaterItem[]> conflicts, long syncStartTime);
+        void onSyncWithConflicts(@Nullable List<ReadLaterItem[]> conflicts, long syncStartTime);
     }
 
     /** Подготавливает API для синхронизации.

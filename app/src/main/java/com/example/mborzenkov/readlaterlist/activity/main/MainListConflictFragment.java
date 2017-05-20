@@ -13,13 +13,16 @@ import android.widget.Button;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/** Фрагмент для обработки конфликтов. */
+/** Фрагмент для обработки конфликтов.
+ *  Новый экземпляр обязательно должен создаваться через getInstance.
+ */
 public class MainListConflictFragment extends DialogFragment {
 
     /** Формат поля описания текущего конфликта (remoteId). */
@@ -30,18 +33,19 @@ public class MainListConflictFragment extends DialogFragment {
     private static String BUTTON_NEXT = null;
 
     /** Коллбэк для оповещения о результатах обработки конфликтов. */
-    public interface ConflictsCallback {
+    interface ConflictsCallback {
 
         /** Вызывается, когда пользователь выбрал вариант, который нужно сохранить.
          *
          * @param item вариант для сохранения, содержит remoteId
          */
-        void saveConflict(ReadLaterItem item);
+        void saveConflict(@NonNull ReadLaterItem item);
 
         /** Вызывается, когда пользователь разобрал все конфликты. */
         void onConflictsMerged();
     }
 
+    // TODO: issue #29
     /** Список конфликтов. */
     private @NonNull List<ReadLaterItem[]> mConflictsList = new ArrayList<>();
     /** Текущая редактируемая пара. */
@@ -58,9 +62,9 @@ public class MainListConflictFragment extends DialogFragment {
 
     /** Создает новый instance MainListConflictFragment.
      *
-     * @param conflicts список конфликтов, не null
+     * @param conflicts список конфликтов, не null и все элементы не null
      * @return всегда новый объект MainListConflictFragment
-     * @throws NullPointerException если conflicts - null
+     * @throws NullPointerException если conflicts - null или любой из элементов null
      */
     public static MainListConflictFragment getInstance(@NonNull List<ReadLaterItem[]> conflicts) {
         MainListConflictFragment conflictFragment = new MainListConflictFragment();
@@ -79,10 +83,21 @@ public class MainListConflictFragment extends DialogFragment {
         super.onDestroyView();
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        // Ленивая инициализация строк из ресурсов и спасает от лишней переменной с контекстом.
+        if (BUTTON_NEXT == null) {
+            BUTTON_SAVE = context.getString(R.string.mainlist_conflict_button_save);
+            BUTTON_NEXT = context.getString(R.string.mainlist_conflict_button_next);
+        }
+        mConflictsCallback = (ConflictsCallback) context;
+    }
+
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater,
-                             @Nullable ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @NonNull ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
         // Инфлейтим все элементы layout
@@ -105,17 +120,6 @@ public class MainListConflictFragment extends DialogFragment {
 
         return parentView;
 
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        // Ленивая инициализация строк из ресурсов и спасает от лишней переменной с контекстом.
-        if (BUTTON_NEXT == null) {
-            BUTTON_SAVE = context.getString(R.string.mainlist_conflict_button_save);
-            BUTTON_NEXT = context.getString(R.string.mainlist_conflict_button_next);
-        }
-        mConflictsCallback = (ConflictsCallback) context;
     }
 
     @Override
@@ -178,7 +182,7 @@ public class MainListConflictFragment extends DialogFragment {
      *
      * @param view вариант, на который кликнули: R.id.tv_conflict_item_(left или right)
      */
-    private void toggleSelection(View view) {
+    private void toggleSelection(@NonNull View view) {
         switch (view.getId()) {
             case R.id.tv_conflict_item_left:
                 mChosenOption.check(R.id.rb_conflict_item_left);

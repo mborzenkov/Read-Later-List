@@ -71,6 +71,10 @@ public class ReadLaterContentProvider extends ContentProvider {
         return null;
     }
 
+    /** {@inheritDoc}
+     *
+     * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     */
     @Override
     public Cursor query(@NonNull Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
@@ -112,6 +116,10 @@ public class ReadLaterContentProvider extends ContentProvider {
         return cursor;
     }
 
+    /** {@inheritDoc}
+     *
+     * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     */
     @Override
     public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
         // Обработчик запросов delete
@@ -148,6 +156,10 @@ public class ReadLaterContentProvider extends ContentProvider {
         return itemDeleted;
     }
 
+    /** {@inheritDoc}
+     *
+     * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     */
     @Override
     public Uri insert(@NonNull Uri uri, ContentValues values) {
         // Обработчик зарпосов insert
@@ -177,6 +189,10 @@ public class ReadLaterContentProvider extends ContentProvider {
         return returnUri;
     }
 
+    /** {@inheritDoc}
+     *
+     * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     */
     @Override
     public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
         // Обработчик зарпосов bullk insert
@@ -212,6 +228,10 @@ public class ReadLaterContentProvider extends ContentProvider {
         return inserted;
     }
 
+    /** {@inheritDoc}
+     *
+     * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     */
     @Override
     public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         // Обработчик запросов update

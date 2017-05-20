@@ -2,6 +2,7 @@ package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -16,7 +17,7 @@ public class MainListSyncFragment extends Fragment {
     private static final String TAG = "fragment_mainlist_sync";
 
     /** Признак запущенной ранее синхронизации. */
-    private Boolean syncInAction = false;
+    private @NonNull Boolean syncInAction = false;
 
     /** Колбек для оповещений о ходе синхронизации. */
     private @Nullable SyncCallback mSyncCallback = null;
@@ -29,7 +30,7 @@ public class MainListSyncFragment extends Fragment {
      * @param manager менеджер фрагментов
      * @return instance MainListSyncFragment
      */
-    public static MainListSyncFragment getInstance(FragmentManager manager) {
+    public static MainListSyncFragment getInstance(@NonNull FragmentManager manager) {
         MainListSyncFragment syncFragment = (MainListSyncFragment) manager.findFragmentByTag(TAG);
         if (syncFragment == null) {
             syncFragment = new MainListSyncFragment();
@@ -45,7 +46,7 @@ public class MainListSyncFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         mSyncCallback = (SyncCallback) context;
     }

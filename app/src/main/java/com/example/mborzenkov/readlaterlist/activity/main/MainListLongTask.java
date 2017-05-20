@@ -2,9 +2,10 @@ package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-/** Запускает AsyncTask для выполнения длительного действия.
+/** Запускает {@link AsyncTask} для выполнения длительного действия.
  * Показывает значок загрузки и устанавливает isActive = true, что должно блокировать все другие действия.
  * Показывает notification с прогрессом выполнения.
  * По окончанию разблокирует интерфейс и обновляет список.
@@ -30,7 +31,7 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
      *
      * @return true - если все прошло успешно и можно начинать работу, иначе false
      */
-    static synchronized boolean startAnotherLongTask(Context context) {
+    static synchronized boolean startAnotherLongTask() {
         if (isActive) {
             return false;
         }
@@ -59,8 +60,8 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
      * @param activity ссылка на MainListActivity, где нужно отображать процесс
      * @return true, если выполнение началось или false, если было отклонено
      */
-    static synchronized boolean startLongBackgroundTask(Runnable task,
-                                                        MainListActivity activity) {
+    static synchronized boolean startLongBackgroundTask(@NonNull Runnable task,
+                                                        @NonNull MainListActivity activity) {
 
         // Может выполняться только одно действие
         if (isActive) {
@@ -76,7 +77,7 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
 
     /** Меняет Activity у запущенного процесса.
      *
-     * @param activity новая Activity
+     * @param activity новая Activity или null, если нужно отписаться от AsyncTask.
      */
     static synchronized void swapActivity(@Nullable MainListActivity activity) {
         if (runningProcess != null) {
@@ -93,7 +94,7 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
 
     /** Устанавливает новую Activity у экземпляра.
      *
-     * @param activity новая Activity
+     * @param activity новая Activity, может быть null, тогда выполнение не будет отображаться
      */
     private void setActivity(@Nullable MainListActivity activity) {
         mActivity = activity;
@@ -110,7 +111,7 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
     }
 
     @Override
-    protected Void doInBackground(Runnable... backgroundTask) {
+    protected Void doInBackground(@NonNull Runnable... backgroundTask) {
         backgroundTask[0].run();
         return null;
     }

@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -49,7 +50,7 @@ public class MainListActivity extends AppCompatActivity implements
 
     // Константы
     /** Формат даты для вывода на формах редактирования дат. */
-    public static final String FORMAT_DATE = "dd/MM/yy";
+    private static final String FORMAT_DATE = "dd/MM/yy";
     /** Длительность показа значка синхронизации в мс. */
     private static final int SYNC_ICON_DURATION = 1000;
 
@@ -94,7 +95,7 @@ public class MainListActivity extends AppCompatActivity implements
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mainlist);
 
@@ -159,7 +160,7 @@ public class MainListActivity extends AppCompatActivity implements
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(@NonNull Menu menu) {
 
         getMenuInflater().inflate(R.menu.menu_mainlist, menu);
 
@@ -174,7 +175,7 @@ public class MainListActivity extends AppCompatActivity implements
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.mainlist_settings:
                 mDrawerHelper.openDrawer();
@@ -190,13 +191,13 @@ public class MainListActivity extends AppCompatActivity implements
     }
 
     @Override
-    public boolean onQueryTextSubmit(String query) {
+    public boolean onQueryTextSubmit(@NonNull String query) {
         mLoaderManager.setSearchQuery(query);
         return false;
     }
 
     @Override
-    public boolean onQueryTextChange(String newText) {
+    public boolean onQueryTextChange(@NonNull String newText) {
         mLoaderManager.setSearchQuery(newText);
         return false;
     }
@@ -217,7 +218,7 @@ public class MainListActivity extends AppCompatActivity implements
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
 
         // Каждый раз при окончании редактирования, сбрасываем переменную mEditItemId
         int uid = mEditItemId;
@@ -305,7 +306,7 @@ public class MainListActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onSyncWithConflicts(List<ReadLaterItem[]> conflicts, long syncStartTime) {
+    public void onSyncWithConflicts(@Nullable List<ReadLaterItem[]> conflicts, long syncStartTime) {
         mLastSync = syncStartTime;
         if (conflicts != null && !conflicts.isEmpty()) {
             MainListConflictFragment conflictFragment =
@@ -318,7 +319,7 @@ public class MainListActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void saveConflict(ReadLaterItem item) {
+    public void saveConflict(@NonNull ReadLaterItem item) {
         HandlerThread handlerThread = new HandlerThread("BackupHandlerThread");
         handlerThread.start();
         Looper looper = handlerThread.getLooper();
@@ -366,9 +367,7 @@ public class MainListActivity extends AppCompatActivity implements
 
     /** Завершает синхронизацию принудительно. */
     private void finishSync() {
-        if (mSyncFragment != null) {
-            mSyncFragment.stopSync();
-        }
+        mSyncFragment.stopSync();
         mLoaderManager.reloadData();
     }
 
@@ -408,7 +407,7 @@ public class MainListActivity extends AppCompatActivity implements
         }
 
         @Override
-        protected Void doInBackground(Runnable... backgroundTask) {
+        protected Void doInBackground(@NonNull Runnable... backgroundTask) {
             backgroundTask[0].run();
             return null;
         }

@@ -2,6 +2,7 @@ package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -16,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/** Главная Activity, представляющая собой список. */
+/** {@link LoaderManager} для MainListActivity. */
 class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
 
     /** ID Используемого LoadManager'а. */
@@ -50,12 +51,14 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
     // static final int INDEX_COLUMN_REMOTE_ID = 8;
 
     /** Ссылка на MainListActivity. */
-    private final MainListActivity mActivity;
+    private final @NonNull MainListActivity mActivity;
     /** Поисковый запрос. */
     private String mSearchQuery = "";
 
-
-    MainListLoaderManager(MainListActivity activity) {
+    /** Создает и инициализирует новый объект MainListLoaderManager.
+     *  Должен вызываться в onCreate у MainListActivity, но после super.onCreate().
+     */
+    MainListLoaderManager(@NonNull MainListActivity activity) {
         mActivity = activity;
     }
 
