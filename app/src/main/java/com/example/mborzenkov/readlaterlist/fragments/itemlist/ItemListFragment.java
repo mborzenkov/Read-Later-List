@@ -3,42 +3,77 @@ package com.example.mborzenkov.readlaterlist.fragments.itemlist;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
 import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.activity.main.MainActivityLongTask;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 
+/** Фрагмент со списком ReadLaterItem. */
 public class ItemListFragment extends Fragment implements
-        ItemListAdapter.ItemListAdapterOnClickHandler {
+        ItemListAdapter.ItemListAdapterOnClickHandler,
+        LoaderManager.LoaderCallbacks<Cursor> {
 
-    public static ItemListFragment newInstance() {
-        ItemListFragment itemListFragment = new ItemListFragment();
-        return itemListFragment;
+    /** TAG фрагмента для фрагмент менеджера. */
+    private static final String TAG = "fragment_itemlist";
+
+    /** Возвращает уже созданный ранее объект ItemListFragment или создает новый, если такого нет.
+     * Для создания объектов следует всегда использовать этот метод.
+     *
+     * @return новый объект ItemListFragment
+     */
+    public static ItemListFragment getInstance(FragmentManager fragmentManager, @IdRes int containerId) {
+
+        ItemListFragment fragment = (ItemListFragment) fragmentManager.findFragmentByTag(TAG);
+
+        if (fragment == null) {
+            fragment = new ItemListFragment();
+            fragmentManager.beginTransaction()
+                    .add(containerId, fragment, TAG).commit();
+        }
+
+        return fragment;
+
     }
 
-
+    /** Интерфейс для оповещений о событиях во фрагменте. */
     public interface ItemListCallbacks {
-        void onNewItemClick();
+
+        /** Вызывается при клике на элемент списка.
+         *
+         * @param item элемент списка в формате ReadLaterItem
+         * @param localId _id этого элемента
+         */
         void onItemClick(@NonNull ReadLaterItem item, int localId);
+
+        /** Вызывается, когда список список обновился.
+         * А именно, когда LoaderManager вернул onLoadFinished.
+         *
+         * @param isEmpty признак, пустой ли сейчас список
+         */
         void onItemListReloaded(boolean isEmpty);
     }
 
+    /** Объект для колбеков о событиях во фрагменте. */
     private @Nullable ItemListCallbacks mCallbacks;
 
     // Хэлперы
     private @Nullable ItemListAdapter mItemListAdapter;
     private @Nullable ItemListLoaderManager mLoaderManager;
-
-    // Элементы layout
-    private ListView mItemListView;
 
     @Override
     public void onAttach(Context context) {
@@ -53,18 +88,12 @@ public class ItemListFragment extends Fragment implements
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_itemlist, container, false);
 
-        // Инициализируем FloatingActionButton
-        FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab_item_add);
-        fab.setOnClickListener(view -> {
-            // Отправляем колбек нажатия на создание нового элемента
-            if (mCallbacks != null) {
-                mCallbacks.onNewItemClick();
-            }
-        });
-
         // Инициализируем элементы layout
-        mItemListView = (ListView) rootView.findViewById(R.id.listview_itemlist);
-        mItemListView.setAdapter(mItemListAdapter);
+        ListView itemListView = (ListView) rootView.findViewById(R.id.listview_itemlist);
+        itemListView.setAdapter(mItemListAdapter);
+
+        // Восстанавливает себя после поворота экрана
+        setRetainInstance(true);
 
         return rootView;
     }
@@ -93,7 +122,7 @@ public class ItemListFragment extends Fragment implements
         }
     }
 
-    /** Перезагружает данные. */
+    /** Перезагружает данные в списке. */
     public void reloadData() {
         if (mLoaderManager != null) {
             mLoaderManager.reloadData();
@@ -111,10 +140,49 @@ public class ItemListFragment extends Fragment implements
         }
     }
 
-    void onLoaderManagerFinishedLoading(@NonNull Cursor newData) {
-        if ((mCallbacks != null) && (mItemListAdapter != null)) {
-            mItemListAdapter.changeCursor(newData);
-            mCallbacks.onItemListReloaded(newData.getCount() == 0);
+
+    // Колбеки из ItemListLoaderManager
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int loaderId, final Bundle args) {
+        if (mLoaderManager != null) {
+            switch (loaderId) {
+                case ItemListLoaderManager.ITEM_LOADER_ID:
+                    // Создаем новый CursorLoader, нужно все имеющееся в базе данных
+                    return mLoaderManager.getNewCursorLoader();
+                default:
+                    throw new IllegalArgumentException("Loader Not Implemented: " + loaderId);
+            }
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, @Nullable Cursor data) {
+        // По завершению загрузки, подменяем Cursor в адаптере и показываем данные
+        if (!MainActivityLongTask.isActive()) {
+
+            Handler handler = new Handler() {
+                @Override
+                public void handleMessage(Message msg) {
+                    if (msg.what == 1) {
+                        if ((mCallbacks != null) && (mItemListAdapter != null)) {
+                            mItemListAdapter.changeCursor(data);
+                            mCallbacks.onItemListReloaded(data == null || data.getCount() == 0);
+                        }
+                    }
+                }
+            };
+            handler.sendEmptyMessage(1);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        // При сбросе загрузчика данных, сбрасываем данные
+        if (mItemListAdapter != null) {
+            mItemListAdapter.changeCursor(null);
         }
     }
 

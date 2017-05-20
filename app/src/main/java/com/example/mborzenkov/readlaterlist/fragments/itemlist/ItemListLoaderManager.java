@@ -1,5 +1,6 @@
 package com.example.mborzenkov.readlaterlist.fragments.itemlist;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,11 +21,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/** {@link LoaderManager} для ItemListFragment. */
-class ItemListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
+/** {@link LoaderManager} для {@link ItemListFragment}.
+ */
+class ItemListLoaderManager  {
 
     /** ID Используемого LoadManager'а. */
-    private static final int ITEM_LOADER_ID = 13;
+    static final int ITEM_LOADER_ID = 13;
     /** Запрос на заметки пользователя. */
     private static final String QUERY_USER_ID = String.format("%s = ?",
             ReadLaterContract.ReadLaterEntry.COLUMN_USER_ID);
@@ -53,36 +55,36 @@ class ItemListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
     // static final int INDEX_COLUMN_IMAGE_URL = 7;
     // static final int INDEX_COLUMN_REMOTE_ID = 8;
 
-    /** Ссылка на MainActivity. */
-    private final @NonNull
-    ItemListFragment mItemList;
+    /** Ссылка на ItemListFragment. */
+    private final @NonNull ItemListFragment mItemListFragment;
     /** Поисковый запрос. */
     private String mSearchQuery = "";
 
     /** Создает и инициализирует новый объект ItemListLoaderManager.
-     *  Должен вызываться в onCreate у MainActivity, но после super.onCreate().
+     *
+     *  @param itemListFragment ссылка на ItemListFragment для контекста, обращений к activity и колбеков
      */
-    ItemListLoaderManager(@NonNull ItemListFragment activity) {
-        mItemList = activity;
+    ItemListLoaderManager(@NonNull ItemListFragment itemListFragment) {
+        mItemListFragment   = itemListFragment;
     }
 
     /** Возвращает CursorLoader для указанного запроса, добавляя к нему поисковый запрос и фильтр, если имеются.
      *
      * @return новый CursorLoader
      */
-    private CursorLoader getNewCursorLoader() {
+    CursorLoader getNewCursorLoader() {
 
         MainListFilter filter = MainListFilterUtils.getCurrentFilter();
         StringBuilder selection = new StringBuilder(QUERY_USER_ID);
         List<String> selectionArgs = new ArrayList<>();
-        selectionArgs.add(String.valueOf(UserInfo.getCurentUser(mItemList.getContext()).getUserId()));
+        selectionArgs.add(String.valueOf(UserInfo.getCurentUser(mItemListFragment.getContext()).getUserId()));
         String sortOrder = "";
         if (filter != null) {
             sortOrder = filter.getSqlSortOrder();
-            String filterSelection = filter.getSqlSelection(mItemList.getContext());
+            String filterSelection = filter.getSqlSelection(mItemListFragment.getContext());
             if (!filterSelection.isEmpty()) {
                 selection.append(" AND ").append(filterSelection);
-                selectionArgs.addAll(Arrays.asList(filter.getSqlSelectionArgs(mItemList.getContext())));
+                selectionArgs.addAll(Arrays.asList(filter.getSqlSelectionArgs(mItemListFragment.getContext())));
             }
         }
         if (!mSearchQuery.isEmpty()) {
@@ -95,45 +97,11 @@ class ItemListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
         }
         Log.d("SELECTION", String.format("%s, %s", selection.toString(), Arrays.toString(selectionArgs.toArray())));
         Log.d("ORDERING", sortOrder);
-        return new CursorLoader(mItemList.getContext(),
+        return new CursorLoader(mItemListFragment.getContext(),
                 ReadLaterContract.ReadLaterEntry.CONTENT_URI, MAIN_LIST_PROJECTION,
                 selection.toString(),
                 selectionArgs.toArray(new String[selectionArgs.size()]),
                 sortOrder);
-    }
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int loaderId, final Bundle args) {
-        switch (loaderId) {
-            case ITEM_LOADER_ID:
-                // Создаем новый CursorLoader, нужно все имеющееся в базе данных
-                return getNewCursorLoader();
-            default:
-                throw new IllegalArgumentException("Loader Not Implemented: " + loaderId);
-        }
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        // По завершению загрузки, подменяем Cursor в адаптере и показываем данные
-        if (!MainActivityLongTask.isActive()) {
-
-            Handler handler = new Handler() {
-                @Override
-                public void handleMessage(Message msg) {
-                    if (msg.what == 1) {
-                        mItemList.onLoaderManagerFinishedLoading(data);
-                    }
-                }
-            };
-            handler.sendEmptyMessage(1);
-        }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        // При сбросе загрузчика данных, сбрасываем данные
-        // mItemList.changeCursorInAdapter(null);
     }
 
     /** Устанавливает поисковый запрос и применяет поиск.
@@ -148,14 +116,17 @@ class ItemListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
         }
     }
 
-    /** Обновляет данные. */
+    /** Обновляет данные.
+     * Оповещает о результатах loaderCallbacks.
+     */
     void reloadData() {
         if (!MainActivityLongTask.isActive()) {
-            if (mItemList.getActivity().getSupportLoaderManager().getLoader(ITEM_LOADER_ID) != null) {
-                mItemList.getActivity().getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, this);
+            if (mItemListFragment.getActivity().getSupportLoaderManager().getLoader(ITEM_LOADER_ID) != null) {
+                mItemListFragment.getActivity().getSupportLoaderManager().restartLoader(ITEM_LOADER_ID,
+                        null, mItemListFragment);
             } else {
-                mItemList.getActivity().getSupportLoaderManager().initLoader(ItemListLoaderManager.ITEM_LOADER_ID,
-                        null, this);
+                mItemListFragment.getActivity().getSupportLoaderManager().initLoader(ItemListLoaderManager.ITEM_LOADER_ID,
+                        null, mItemListFragment);
             }
         }
     }

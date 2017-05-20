@@ -13,11 +13,4 @@
             style="MainList.List"
             />
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab_item_add"
-            android:layout_gravity="bottom|end"
-            app:srcCompat="@drawable/ic_add_24dp"
-            style="@style/FAB"
-            />
-
 </FrameLayout>

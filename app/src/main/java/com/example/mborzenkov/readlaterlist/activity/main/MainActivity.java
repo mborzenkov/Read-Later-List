@@ -16,6 +16,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -32,6 +33,7 @@ import android.widget.ProgressBar;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
 import com.example.mborzenkov.readlaterlist.activity.EditItemActivity;
+import com.example.mborzenkov.readlaterlist.fragments.EmptyListFragment;
 import com.example.mborzenkov.readlaterlist.fragments.SyncFragment;
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
@@ -64,7 +66,8 @@ public class MainActivity extends AppCompatActivity implements
     private static final int ITEM_EDIT_REQUEST = 2;
 
     // Хэлперы
-    private ItemListFragment mItemListFragment;
+    private @Nullable ItemListFragment mItemListFragment;
+    private @Nullable EmptyListFragment mEmptyListFragment;
     private MainListDrawerHelper mDrawerHelper;
     private SyncFragment mSyncFragment;
     private InternetBroadcastReceiver mInternetBroadcastReceiver;
@@ -73,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements
     // Элементы layout
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private ProgressBar mLoadingIndicator;
-    private LinearLayout mEmptyList;
+    private FloatingActionButton mFloatingAddButton;
 
     /** ID текущего редактируемого элемента. */
     private int mEditItemId = UID_EMPTY;
@@ -99,9 +102,20 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
 
         // Инициализация Toolbar
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main_list);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_mainactivity);
         toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.icons));
         setSupportActionBar(toolbar);
+
+        // Инициализируем FloatingActionButton
+        mFloatingAddButton = (FloatingActionButton) findViewById(R.id.fab_item_add);
+        mFloatingAddButton.setOnClickListener(view -> {
+            if (mItemListFragment != null && mItemListFragment.isVisible()) {
+                Log.d("ITEMLIST", "Hiding ItemListFragment");
+                getSupportFragmentManager().beginTransaction().hide(mItemListFragment).commit();
+            }
+            Intent newItemIntent = new Intent(MainActivity.this, EditItemActivity.class);
+            startActivityForResult(newItemIntent, ITEM_ADD_NEW_REQUEST);
+        });
 
         // Инициализация объектов layout
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.fragmentcontainer_mainactivity);
@@ -109,14 +123,12 @@ public class MainActivity extends AppCompatActivity implements
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_mainactivity_loading);
 
         // Инициализациия ItemListFragment
-        if (savedInstanceState == null) {
-            mItemListFragment = ItemListFragment.newInstance();
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fragmentcontainer_mainactivity, mItemListFragment, "ItemListFragment").commit();
-        }
+        mItemListFragment = ItemListFragment.getInstance(
+                getSupportFragmentManager(), R.id.fragmentcontainer_mainactivity);
 
         // Инициализация EmptyListFragment
-        // mEmptyList = (LinearLayout) findViewById(R.id.linearLayout_emptylist);
+        mEmptyListFragment = EmptyListFragment.getInstance(
+                getSupportFragmentManager(), R.id.fragmentcontainer_mainactivity);
 
         // Инициализация SyncFragment
         mSyncFragment = SyncFragment.getInstance(getSupportFragmentManager());
@@ -200,14 +212,9 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onNewItemClick() {
-        Intent newItemIntent = new Intent(MainActivity.this, EditItemActivity.class);
-        startActivityForResult(newItemIntent, ITEM_ADD_NEW_REQUEST);
-    }
-
-    @Override
     public void onItemClick(@NonNull ReadLaterItem item, int localId) {
         mEditItemId = localId;
+        getSupportFragmentManager().beginTransaction().hide(mItemListFragment).commit();
         Intent editItemIntent = new Intent(MainActivity.this, EditItemActivity.class);
         editItemIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(item));
         startActivityForResult(editItemIntent, ITEM_EDIT_REQUEST);
@@ -217,15 +224,15 @@ public class MainActivity extends AppCompatActivity implements
     public void onItemListReloaded(boolean isEmpty) {
         // Показывает онбординг, если список пуст или список, если он не пуст.
         mLoadingIndicator.setVisibility(View.INVISIBLE);
+        mFloatingAddButton.setVisibility(View.VISIBLE);
         mSwipeRefreshLayout.setEnabled(true);
         if (isEmpty) {
             if (!mItemListFragment.isHidden()) {
                 getSupportFragmentManager().beginTransaction().hide(mItemListFragment).commit();
             }
-//            mEmptyList.setVisibility(View.VISIBLE);
+            // mEmptyList.setVisibility(View.VISIBLE);
         } else {
-//            mEmptyList.setVisibility(View.INVISIBLE);
-            Log.d("RELOAD", "Showing fragment... " + mItemListFragment.isHidden());
+            // mEmptyList.setVisibility(View.INVISIBLE);
             if (mItemListFragment.isHidden()) {
                 getSupportFragmentManager().beginTransaction().show(mItemListFragment).commit();
             }
@@ -297,13 +304,14 @@ public class MainActivity extends AppCompatActivity implements
             );
         }
 
+        reloadData();
+
     }
 
     /** Вызывает начало синхронизации. */
     void toggleSync() {
         mSwipeRefreshLayout.setRefreshing(true);
         mSyncFragment.startFullSync();
-        mSwipeRefreshLayout.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), SYNC_ICON_DURATION);
     }
 
     @Override
@@ -326,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements
         if (conflicts != null && !conflicts.isEmpty()) {
             ConflictsFragment conflictFragment =
                     ConflictsFragment.getInstance(conflicts);
-            conflictFragment.show(getSupportFragmentManager(), "dsds");
+            conflictFragment.show(getSupportFragmentManager(), "fragment_conflicts");
         } else {
             updateLastSyncDate(mLastSync);
             finishSync();
@@ -384,14 +392,16 @@ public class MainActivity extends AppCompatActivity implements
     private void finishSync() {
         mSyncFragment.stopSync();
         mItemListFragment.reloadData();
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     /** Показывает индикатор загрузки, скрывая все лишнее. */
     void showLoading() {
         getSupportFragmentManager().beginTransaction().hide(mItemListFragment).commit();
-//        mEmptyList.setVisibility(View.INVISIBLE);
+        // mEmptyList.setVisibility(View.INVISIBLE);
         mLoadingIndicator.setVisibility(View.VISIBLE);
         mSwipeRefreshLayout.setEnabled(false);
+        mFloatingAddButton.setVisibility(View.INVISIBLE);
     }
 
     void reloadData() {
@@ -407,7 +417,7 @@ public class MainActivity extends AppCompatActivity implements
         protected void onPreExecute() {
             super.onPreExecute();
             if (!MainActivityLongTask.isActive()) {
-                showLoading();
+                // showLoading();
             }
         }
 
