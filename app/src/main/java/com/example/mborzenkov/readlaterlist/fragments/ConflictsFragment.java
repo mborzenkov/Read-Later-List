@@ -37,7 +37,8 @@ public class ConflictsFragment extends DialogFragment {
     public interface ConflictsCallback {
 
         /** Вызывается, когда пользователь выбрал вариант, который нужно сохранить.
-         * Возвращает в точности тот объкт, который нужно сохранить. У него обновлена дата изменения.
+         * Возвращает в точности тот объкт, который нужно сохранить.
+         * У него обновлена дата изменения, выбрана максимальная из дат просмотра и минимальная из дат создания.
          *
          * @param item вариант для сохранения, содержит remoteId
          */
@@ -149,6 +150,7 @@ public class ConflictsFragment extends DialogFragment {
 
     /** Заполняет фрагмент данными из mCurrentConflict. */
     private void fillFragmentWithData() {
+
         // Если есть конфликты
         if (mConflictsList.isEmpty()) {
             this.dismiss();
@@ -177,14 +179,17 @@ public class ConflictsFragment extends DialogFragment {
     /** Сохраняет выбранный вариант. */
     private void saveSelectedData() {
         if (mConflictsCallback != null) {
-            ReadLaterItem savingItem;
+            ReadLaterItem chosenItem;
             if (mChosenOption.getCheckedRadioButtonId() == R.id.rb_conflict_item_left) {
-                savingItem = mCurrentConflict[0];
+                chosenItem = mCurrentConflict[0];
             } else {
-                savingItem = mCurrentConflict[1];
+                chosenItem = mCurrentConflict[1];
             }
-            savingItem = (new ReadLaterItem.Builder(savingItem).dateModified(System.currentTimeMillis())).build();
-            mConflictsCallback.saveConflict(savingItem);
+            ReadLaterItem.Builder savingItemBuilder = new ReadLaterItem.Builder(chosenItem)
+                    .dateModified(System.currentTimeMillis())
+                    .dateCreated(Math.min(mCurrentConflict[0].getDateCreated(), mCurrentConflict[1].getDateCreated()))
+                    .dateViewed(Math.max(mCurrentConflict[0].getDateViewed(), mCurrentConflict[1].getDateViewed()));
+            mConflictsCallback.saveConflict(savingItemBuilder.build());
             mConflictsList.remove(0);
             if (mConflictsList.isEmpty()) {
                 mConflictsCallback.onConflictsMerged();
