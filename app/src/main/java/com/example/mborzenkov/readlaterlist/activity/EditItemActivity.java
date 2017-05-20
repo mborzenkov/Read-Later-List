@@ -38,7 +38,7 @@ import java.util.Locale;
 // TODO: Еще немного и тут тоже понадобится ViewHolder
 
 /**
- * Activity для редактирования элемента MainListActivity
+ * Activity для редактирования элемента MainActivity
  * Использование:
  *      Чтобы заполнить Activity данными, передать в Intent объект ReadLaterItem с ключем ReadLaterItem.KEY_EXTRA
  *      При успешном редактировании возвращает новый объект ReadLaterItem в Intent под ключем ReadLaterItem.KEY_EXTRA

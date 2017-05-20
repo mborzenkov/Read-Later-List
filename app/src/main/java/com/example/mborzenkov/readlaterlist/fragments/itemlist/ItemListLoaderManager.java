@@ -1,13 +1,16 @@
-package com.example.mborzenkov.readlaterlist.activity.main;
+package com.example.mborzenkov.readlaterlist.fragments.itemlist;
 
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
 
+import com.example.mborzenkov.readlaterlist.activity.main.MainActivityLongTask;
 import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
@@ -17,8 +20,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/** {@link LoaderManager} для MainListActivity. */
-class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
+/** {@link LoaderManager} для ItemListFragment. */
+class ItemListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
 
     /** ID Используемого LoadManager'а. */
     private static final int ITEM_LOADER_ID = 13;
@@ -50,16 +53,17 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
     // static final int INDEX_COLUMN_IMAGE_URL = 7;
     // static final int INDEX_COLUMN_REMOTE_ID = 8;
 
-    /** Ссылка на MainListActivity. */
-    private final @NonNull MainListActivity mActivity;
+    /** Ссылка на MainActivity. */
+    private final @NonNull
+    ItemListFragment mItemList;
     /** Поисковый запрос. */
     private String mSearchQuery = "";
 
-    /** Создает и инициализирует новый объект MainListLoaderManager.
-     *  Должен вызываться в onCreate у MainListActivity, но после super.onCreate().
+    /** Создает и инициализирует новый объект ItemListLoaderManager.
+     *  Должен вызываться в onCreate у MainActivity, но после super.onCreate().
      */
-    MainListLoaderManager(@NonNull MainListActivity activity) {
-        mActivity = activity;
+    ItemListLoaderManager(@NonNull ItemListFragment activity) {
+        mItemList = activity;
     }
 
     /** Возвращает CursorLoader для указанного запроса, добавляя к нему поисковый запрос и фильтр, если имеются.
@@ -71,14 +75,14 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
         MainListFilter filter = MainListFilterUtils.getCurrentFilter();
         StringBuilder selection = new StringBuilder(QUERY_USER_ID);
         List<String> selectionArgs = new ArrayList<>();
-        selectionArgs.add(String.valueOf(UserInfo.getCurentUser(mActivity).getUserId()));
+        selectionArgs.add(String.valueOf(UserInfo.getCurentUser(mItemList.getContext()).getUserId()));
         String sortOrder = "";
         if (filter != null) {
             sortOrder = filter.getSqlSortOrder();
-            String filterSelection = filter.getSqlSelection(mActivity);
+            String filterSelection = filter.getSqlSelection(mItemList.getContext());
             if (!filterSelection.isEmpty()) {
                 selection.append(" AND ").append(filterSelection);
-                selectionArgs.addAll(Arrays.asList(filter.getSqlSelectionArgs(mActivity)));
+                selectionArgs.addAll(Arrays.asList(filter.getSqlSelectionArgs(mItemList.getContext())));
             }
         }
         if (!mSearchQuery.isEmpty()) {
@@ -91,8 +95,11 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
         }
         Log.d("SELECTION", String.format("%s, %s", selection.toString(), Arrays.toString(selectionArgs.toArray())));
         Log.d("ORDERING", sortOrder);
-        return new CursorLoader(mActivity, ReadLaterContract.ReadLaterEntry.CONTENT_URI, MAIN_LIST_PROJECTION,
-                selection.toString(), selectionArgs.toArray(new String[selectionArgs.size()]), sortOrder);
+        return new CursorLoader(mItemList.getContext(),
+                ReadLaterContract.ReadLaterEntry.CONTENT_URI, MAIN_LIST_PROJECTION,
+                selection.toString(),
+                selectionArgs.toArray(new String[selectionArgs.size()]),
+                sortOrder);
     }
 
     @Override
@@ -109,16 +116,24 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         // По завершению загрузки, подменяем Cursor в адаптере и показываем данные
-        mActivity.changeCursorInAdapter(data);
-        if (!MainListLongTask.isActive()) {
-            mActivity.showDataView();
+        if (!MainActivityLongTask.isActive()) {
+
+            Handler handler = new Handler() {
+                @Override
+                public void handleMessage(Message msg) {
+                    if (msg.what == 1) {
+                        mItemList.onLoaderManagerFinishedLoading(data);
+                    }
+                }
+            };
+            handler.sendEmptyMessage(1);
         }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         // При сбросе загрузчика данных, сбрасываем данные
-        mActivity.changeCursorInAdapter(null);
+        // mItemList.changeCursorInAdapter(null);
     }
 
     /** Устанавливает поисковый запрос и применяет поиск.
@@ -128,18 +143,19 @@ class MainListLoaderManager implements LoaderManager.LoaderCallbacks<Cursor> {
      */
     void setSearchQuery(String query) {
         mSearchQuery = query;
-        if (!MainListLongTask.isActive()) {
+        if (!MainActivityLongTask.isActive()) {
             reloadData();
         }
     }
 
     /** Обновляет данные. */
     void reloadData() {
-        if (!MainListLongTask.isActive()) {
-            if (mActivity.getSupportLoaderManager().getLoader(ITEM_LOADER_ID) != null) {
-                mActivity.getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, this);
+        if (!MainActivityLongTask.isActive()) {
+            if (mItemList.getActivity().getSupportLoaderManager().getLoader(ITEM_LOADER_ID) != null) {
+                mItemList.getActivity().getSupportLoaderManager().restartLoader(ITEM_LOADER_ID, null, this);
             } else {
-                mActivity.getSupportLoaderManager().initLoader(MainListLoaderManager.ITEM_LOADER_ID, null, this);
+                mItemList.getActivity().getSupportLoaderManager().initLoader(ItemListLoaderManager.ITEM_LOADER_ID,
+                        null, this);
             }
         }
     }

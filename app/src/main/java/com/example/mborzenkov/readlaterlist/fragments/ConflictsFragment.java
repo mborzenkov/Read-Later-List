@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.activity.main;
+package com.example.mborzenkov.readlaterlist.fragments;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -13,7 +13,6 @@ import android.widget.Button;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 
@@ -23,7 +22,7 @@ import java.util.List;
 /** Фрагмент для обработки конфликтов.
  *  Новый экземпляр обязательно должен создаваться через getInstance.
  */
-public class MainListConflictFragment extends DialogFragment {
+public class ConflictsFragment extends DialogFragment {
 
     /** Формат поля описания текущего конфликта (remoteId). */
     private static final String FORMAT_DESCRIPTION = "ID: %s";
@@ -33,7 +32,7 @@ public class MainListConflictFragment extends DialogFragment {
     private static String BUTTON_NEXT = null;
 
     /** Коллбэк для оповещения о результатах обработки конфликтов. */
-    interface ConflictsCallback {
+    public interface ConflictsCallback {
 
         /** Вызывается, когда пользователь выбрал вариант, который нужно сохранить.
          *
@@ -60,14 +59,14 @@ public class MainListConflictFragment extends DialogFragment {
     private TextView mConflictRightTextView;
     private Button mProceedButton;
 
-    /** Создает новый instance MainListConflictFragment.
+    /** Создает новый instance ConflictsFragment.
      *
      * @param conflicts список конфликтов, не null и все элементы не null
-     * @return всегда новый объект MainListConflictFragment
+     * @return всегда новый объект ConflictsFragment
      * @throws NullPointerException если conflicts - null или любой из элементов null
      */
-    public static MainListConflictFragment getInstance(@NonNull List<ReadLaterItem[]> conflicts) {
-        MainListConflictFragment conflictFragment = new MainListConflictFragment();
+    public static ConflictsFragment getInstance(@NonNull List<ReadLaterItem[]> conflicts) {
+        ConflictsFragment conflictFragment = new ConflictsFragment();
         conflictFragment.mConflictsList = conflicts;
         conflictFragment.mCurrentConflict = conflicts.get(0);
         return conflictFragment;

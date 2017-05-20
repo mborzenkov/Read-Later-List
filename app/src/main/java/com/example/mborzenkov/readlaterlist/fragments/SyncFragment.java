@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.activity.main;
+package com.example.mborzenkov.readlaterlist.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -11,10 +11,10 @@ import com.example.mborzenkov.readlaterlist.networking.CloudSyncTask;
 import com.example.mborzenkov.readlaterlist.networking.CloudSyncTask.SyncCallback;
 
 /** Фрагмент для фоновой синхронизации с Cloud API. */
-public class MainListSyncFragment extends Fragment {
+public class SyncFragment extends Fragment {
 
     /** Тэг для этого фрагмента. */
-    private static final String TAG = "fragment_mainlist_sync";
+    private static final String TAG = "fragment_sync";
 
     /** Признак запущенной ранее синхронизации. */
     private @NonNull Boolean syncInAction = false;
@@ -28,12 +28,12 @@ public class MainListSyncFragment extends Fragment {
      *  Если FragmentManager уже содержит подобный фрагмент, возвращает его, а не новый.
      *
      * @param manager менеджер фрагментов
-     * @return instance MainListSyncFragment
+     * @return instance SyncFragment
      */
-    public static MainListSyncFragment getInstance(@NonNull FragmentManager manager) {
-        MainListSyncFragment syncFragment = (MainListSyncFragment) manager.findFragmentByTag(TAG);
+    public static SyncFragment getInstance(@NonNull FragmentManager manager) {
+        SyncFragment syncFragment = (SyncFragment) manager.findFragmentByTag(TAG);
         if (syncFragment == null) {
-            syncFragment = new MainListSyncFragment();
+            syncFragment = new SyncFragment();
             manager.beginTransaction().add(syncFragment, TAG).commit();
         }
         return syncFragment;
@@ -64,7 +64,7 @@ public class MainListSyncFragment extends Fragment {
     }
 
     /** Принудительно останавливает синхронизацию. */
-    synchronized void stopSync() {
+    public synchronized void stopSync() {
         if (syncInAction) {
             if (mSyncTask != null) {
                 mSyncTask.cancel(true);
@@ -74,7 +74,7 @@ public class MainListSyncFragment extends Fragment {
     }
 
     /** Запускает полную синхронизацию. */
-    synchronized void startFullSync() {
+    public synchronized void startFullSync() {
 
         // Проверяем, что еще не запущена синхронизация
         if (syncInAction) {
