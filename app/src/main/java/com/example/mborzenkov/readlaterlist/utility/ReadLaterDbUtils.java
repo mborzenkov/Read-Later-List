@@ -64,7 +64,7 @@ public class ReadLaterDbUtils {
      * @return _id для заметки с указанным remoteId или -1, если у указанного пользователя нет заметки с указанным
      *                  remoteId
      */
-    public static int getItemLocalIdByRemoteId(Context context, int userId, int remoteId) {
+    private static int getItemLocalIdByRemoteId(Context context, int userId, int remoteId) {
         Cursor queryCursor = context.getContentResolver().query(
                 ReadLaterEntry.buildUriForRemoteId(remoteId),
                 null,
@@ -139,6 +139,7 @@ public class ReadLaterDbUtils {
      */
     public static boolean updateItemByRemoteId(Context context, int userId, ReadLaterItem item, int remoteId) {
         int localId = getItemLocalIdByRemoteId(context, userId, remoteId);
+        //noinspection SimplifiableIfStatement
         if (localId < 0) {
             return false;
         }

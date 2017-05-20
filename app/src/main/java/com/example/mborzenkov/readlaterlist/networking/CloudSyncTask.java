@@ -27,8 +27,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory;
 
 /** AsyncTask для выполнения фоновой синхронизации.
  *  Необходимо избегать вызова операций на основном потоке, если методы вызываются без AsyncTask.
- *
- *  @throws android.os.NetworkOnMainThreadException если вызвана операция на основном потоке
+ *  Методы могут вызывать NetworkOnMainThreadException если вызвана операция на основном потоке
  */
 public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResult> {
 
@@ -237,7 +236,7 @@ public class CloudSyncTask extends AsyncTask<Void, Void, CloudSyncTask.SyncResul
     }
 
     /** Callback для оповещений о результатах синхронизации. */
-    private @Nullable SyncCallback mSyncCallback;
+    private final @Nullable SyncCallback mSyncCallback;
     /** Дата последней синхронизации. */
     private long lastSync = 0;
     /** Дата начала синхронизации. */

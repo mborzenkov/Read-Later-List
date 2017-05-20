@@ -65,6 +65,7 @@ public interface CloudApiYufimtsev {
     /** Ответ сервера 200 OK. */
     int RESPONSE_CODE_SUCCESS = 200;
     /** Стандартный ответ сервера. */
+    @SuppressWarnings({"CanBeFinal", "unused"}) // Retrofit использует
     class DefaultResponse {
         /** Статус выполнения запроса, всегда присутствует и равен STATUS_SUCCESS или STATUS_ERROR. */
         public @RequestStatus String status;
@@ -73,18 +74,21 @@ public interface CloudApiYufimtsev {
     }
 
     /** Формат ответа сервера при запросе списка всех заметок. */
+    @SuppressWarnings({"CanBeFinal", "unused"}) // Retrofit использует
     class AllItemsResponse extends DefaultResponse {
         /** Если STATUS_SUCCESS, то содержит список заметок пользователя, иначе null. */
         public @Nullable List<ReadLaterItem> data;
     }
 
     /** Формат ответа сервера при запросе создания новой заметки. */
+    @SuppressWarnings({"CanBeFinal", "unused"}) // Retrofit использует
     class NewItemResponse extends DefaultResponse {
         /** Если STATUS_SUCCESS, то содержит присвоенный заметке id, иначе null. */
         public @Nullable Integer data;
     }
 
     /** Формат ответа сервера при запросе отдельной заметки. */
+    @SuppressWarnings({"CanBeFinal", "unused"}) // Retrofit использует
     class SingleItemResponse extends DefaultResponse {
         /** Если STATUS_SUCCESS, то содержит запрошенную заметку, иначе null. */
         public @Nullable ReadLaterItem data;

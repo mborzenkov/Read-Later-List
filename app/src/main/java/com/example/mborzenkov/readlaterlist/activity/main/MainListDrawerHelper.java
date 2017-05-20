@@ -49,8 +49,7 @@ class MainListDrawerHelper implements View.OnClickListener {
     private static final String FORMAT_DATE = "dd/MM/yy";
 
     // Элементы Layout
-    private final @NonNull
-    MainActivity mActivity;
+    private final @NonNull MainActivity mActivity;
     private final DrawerLayout mDrawerLayout;
     private final LinearLayout mFavLinearLayout;
     private final Spinner mSavedFiltersSpinner;
@@ -145,7 +144,6 @@ class MainListDrawerHelper implements View.OnClickListener {
         mDrawerLayout.addDrawerListener(drawerToggle);
 
         // Устанавливаем текущего пользователя
-        boolean appStart = UserInfo.userInfoNotSet();
         mCurrentUser.setText(String.valueOf(UserInfo.getCurentUser(mActivity).getUserId()));
 
         // Заполняем варианты запомненных фильтров

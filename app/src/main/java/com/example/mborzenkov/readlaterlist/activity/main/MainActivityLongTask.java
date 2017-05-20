@@ -14,8 +14,7 @@ public class MainActivityLongTask extends AsyncTask<Runnable, Integer, Void>  {
     /** Признак, есть ли запущенные длительные процессы. */
     private static boolean isActive = false;
     /** Запущенный процесс. */
-    private static @Nullable
-    MainActivityLongTask runningProcess = null;
+    private static @Nullable MainActivityLongTask runningProcess = null;
 
 
     /** Проверяет, выполняется ли сейчас длительное действие.
@@ -87,8 +86,7 @@ public class MainActivityLongTask extends AsyncTask<Runnable, Integer, Void>  {
 
 
     /** Activity, в которой нужно отображать выполнение. */
-    private @Nullable
-    MainActivity mActivity = null;
+    private @Nullable MainActivity mActivity = null;
 
     /** Создает новый экземпляр класса. */
     private MainActivityLongTask() { }
@@ -106,7 +104,7 @@ public class MainActivityLongTask extends AsyncTask<Runnable, Integer, Void>  {
         // Лок от изменений mActivity на null
         synchronized (MainActivityLongTask.class) {
             if (mActivity != null) {
-                // mActivity.showLoading(); TODO: [v.0.7.0-MainListFragment] Show loading
+                mActivity.showLoading();
             }
         }
     }
@@ -122,7 +120,7 @@ public class MainActivityLongTask extends AsyncTask<Runnable, Integer, Void>  {
         synchronized (MainActivityLongTask.class) {
             isActive = false;
             if (mActivity != null) {
-               //  mActivity.reloadData(); TODO: [v.0.7.0-MainListFragment] Show loading
+                mActivity.reloadData();
             }
         }
         // покажет данные по окончанию

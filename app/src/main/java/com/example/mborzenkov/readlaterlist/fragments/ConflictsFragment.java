@@ -96,8 +96,13 @@ public class ConflictsFragment extends DialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
-                             @NonNull ViewGroup container,
+                             @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
+        if (container == null) {
+            dismiss();
+            return null;
+        }
 
         // Инфлейтим все элементы layout
         View parentView = inflater.inflate(R.layout.fragment_conflict, container, false);

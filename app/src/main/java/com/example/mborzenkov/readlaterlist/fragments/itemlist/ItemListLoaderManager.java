@@ -1,14 +1,8 @@
 package com.example.mborzenkov.readlaterlist.fragments.itemlist;
 
-import android.content.Context;
-import android.database.Cursor;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.activity.main.MainActivityLongTask;
@@ -125,8 +119,8 @@ class ItemListLoaderManager  {
                 mItemListFragment.getActivity().getSupportLoaderManager().restartLoader(ITEM_LOADER_ID,
                         null, mItemListFragment);
             } else {
-                mItemListFragment.getActivity().getSupportLoaderManager().initLoader(ItemListLoaderManager.ITEM_LOADER_ID,
-                        null, mItemListFragment);
+                mItemListFragment.getActivity().getSupportLoaderManager()
+                        .initLoader(ItemListLoaderManager.ITEM_LOADER_ID, null, mItemListFragment);
             }
         }
     }

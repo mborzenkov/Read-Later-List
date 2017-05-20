@@ -24,20 +24,19 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 
 import com.example.mborzenkov.readlaterlist.R;
-import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
 import com.example.mborzenkov.readlaterlist.activity.EditItemActivity;
-import com.example.mborzenkov.readlaterlist.fragments.SyncFragment;
-import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
+import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
+import com.example.mborzenkov.readlaterlist.fragments.SyncFragment;
+import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
 import com.example.mborzenkov.readlaterlist.networking.CloudSyncTask;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 
@@ -51,10 +50,6 @@ public class MainActivity extends AppCompatActivity implements
         ItemListFragment.ItemListCallbacks {
 
     // Константы
-    /** Формат даты для вывода на формах редактирования дат. */
-    private static final String FORMAT_DATE = "dd/MM/yy";
-    /** Длительность показа значка синхронизации в мс. */
-    private static final int SYNC_ICON_DURATION = 1000;
     /** ID контейнера для помещения фрагментов. */
     private static final @IdRes int FRAGMENT_CONTAINER = R.id.fragmentcontainer_mainactivity;
 
@@ -276,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements
                             new BackgroundTask().execute(
                                     () -> {
                                         ReadLaterDbUtils.deleteItem(this, uid);
-                                        runOnUiThread(mItemListFragment::reloadData);;
+                                        runOnUiThread(mItemListFragment::reloadData);
                                     },
                                     null,
                                     null
@@ -464,7 +459,7 @@ public class MainActivity extends AppCompatActivity implements
         protected void onPreExecute() {
             super.onPreExecute();
             if (!MainActivityLongTask.isActive()) {
-                // showLoading();
+                showLoading();
             }
         }
 
