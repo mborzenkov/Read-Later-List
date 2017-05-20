@@ -13,9 +13,11 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.example.mborzenkov.readlaterlist.R;
@@ -29,21 +31,22 @@ public class ItemListFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<Cursor> {
 
     /** TAG фрагмента для фрагмент менеджера. */
-    private static final String TAG = "fragment_itemlist";
+    public static final String TAG = "fragment_itemlist";
 
     /** Возвращает уже созданный ранее объект ItemListFragment или создает новый, если такого нет.
      * Для создания объектов следует всегда использовать этот метод.
+     * Не помещает объектво FragmentManager.
+     * При помещении объекта в FragmentManager, следует использовать тэг TAG.
      *
+     * @param fragmentManager менеджер для поиска фрагментов по тэгу
      * @return новый объект ItemListFragment
      */
-    public static ItemListFragment getInstance(FragmentManager fragmentManager, @IdRes int containerId) {
+    public static ItemListFragment getInstance(FragmentManager fragmentManager) {
 
         ItemListFragment fragment = (ItemListFragment) fragmentManager.findFragmentByTag(TAG);
 
         if (fragment == null) {
             fragment = new ItemListFragment();
-            fragmentManager.beginTransaction()
-                    .add(containerId, fragment, TAG).commit();
         }
 
         return fragment;
@@ -75,6 +78,10 @@ public class ItemListFragment extends Fragment implements
     private @Nullable ItemListAdapter mItemListAdapter;
     private @Nullable ItemListLoaderManager mLoaderManager;
 
+    // Объекты layout
+    private ListView mItemsListView;
+    private LinearLayout mEmptyListView;
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -89,8 +96,9 @@ public class ItemListFragment extends Fragment implements
         View rootView = inflater.inflate(R.layout.fragment_itemlist, container, false);
 
         // Инициализируем элементы layout
-        ListView itemListView = (ListView) rootView.findViewById(R.id.listview_itemlist);
-        itemListView.setAdapter(mItemListAdapter);
+        mItemsListView = (ListView) rootView.findViewById(R.id.listview_itemlist);
+        mItemsListView.setAdapter(mItemListAdapter);
+        mEmptyListView = (LinearLayout) rootView.findViewById(R.id.linearLayout_emptylist);
 
         // Восстанавливает себя после поворота экрана
         setRetainInstance(true);
@@ -100,6 +108,7 @@ public class ItemListFragment extends Fragment implements
 
     @Override
     public void onDetach() {
+        Log.d("FRAGMENT", "ItemList.onDetach()");
         super.onDetach();
         mCallbacks = null;
         mItemListAdapter = null;
@@ -169,7 +178,15 @@ public class ItemListFragment extends Fragment implements
                     if (msg.what == 1) {
                         if ((mCallbacks != null) && (mItemListAdapter != null)) {
                             mItemListAdapter.changeCursor(data);
-                            mCallbacks.onItemListReloaded(data == null || data.getCount() == 0);
+                            boolean listIsEmpty = data == null || data.getCount() == 0;
+                            if (listIsEmpty) {
+                                mItemsListView.setVisibility(View.INVISIBLE);
+                                mEmptyListView.setVisibility(View.VISIBLE);
+                            } else {
+                                mEmptyListView.setVisibility(View.INVISIBLE);
+                                mItemsListView.setVisibility(View.VISIBLE);
+                            }
+                            mCallbacks.onItemListReloaded(listIsEmpty);
                         }
                     }
                 }
@@ -184,6 +201,16 @@ public class ItemListFragment extends Fragment implements
         if (mItemListAdapter != null) {
             mItemListAdapter.changeCursor(null);
         }
+    }
+
+    /** Проверяет, загружены ли данные в список.
+     * Получает Cursor у адаптера и проверяет, что он не null.
+     * Если данные загружены, но список пуст, то результат будет true.
+     *
+     * @return true, если данные загружены, иначе false
+     */
+    public boolean dataIsLoaded() {
+        return (mItemListAdapter != null) && (mItemListAdapter.getCursor() != null);
     }
 
 }

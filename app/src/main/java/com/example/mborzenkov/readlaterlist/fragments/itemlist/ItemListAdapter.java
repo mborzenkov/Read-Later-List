@@ -42,7 +42,7 @@ class ItemListAdapter extends ResourceCursorAdapter {
      * @param clickHandler интерфейс для колбеков
      */
     ItemListAdapter(@NonNull Context context, @NonNull ItemListAdapterOnClickHandler clickHandler) {
-        super(context, R.layout.content_mainlist_item, null, 0);
+        super(context, R.layout.content_itemlist_item, null, 0);
         mContext = context;
         mClickHandler = clickHandler;
     }
@@ -91,7 +91,7 @@ class ItemListAdapter extends ResourceCursorAdapter {
 
     @Override
     public View newView(@NonNull Context context, @NonNull Cursor cursor, @NonNull ViewGroup parent) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.content_mainlist_item, parent, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.content_itemlist_item, parent, false);
         ItemListViewHolder viewHolder = new ItemListViewHolder(view);
         view.setTag(viewHolder);
         return view;

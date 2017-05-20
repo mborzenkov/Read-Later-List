@@ -13,4 +13,6 @@
             style="MainList.List"
             />
 
+        <include layout="@layout/content_itemlist_empty"/>
+
 </FrameLayout>

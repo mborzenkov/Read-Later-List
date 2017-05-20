@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -14,10 +13,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -27,13 +28,11 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
 import com.example.mborzenkov.readlaterlist.activity.EditItemActivity;
-import com.example.mborzenkov.readlaterlist.fragments.EmptyListFragment;
 import com.example.mborzenkov.readlaterlist.fragments.SyncFragment;
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
@@ -56,6 +55,8 @@ public class MainActivity extends AppCompatActivity implements
     private static final String FORMAT_DATE = "dd/MM/yy";
     /** Длительность показа значка синхронизации в мс. */
     private static final int SYNC_ICON_DURATION = 1000;
+    /** ID контейнера для помещения фрагментов. */
+    private static final @IdRes int FRAGMENT_CONTAINER = R.id.fragmentcontainer_mainactivity;
 
     // Intent
     /** Константа, обозначающая пустой UID. */
@@ -66,8 +67,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final int ITEM_EDIT_REQUEST = 2;
 
     // Хэлперы
-    private @Nullable ItemListFragment mItemListFragment;
-    private @Nullable EmptyListFragment mEmptyListFragment;
+    private ItemListFragment mItemListFragment;
     private MainListDrawerHelper mDrawerHelper;
     private SyncFragment mSyncFragment;
     private InternetBroadcastReceiver mInternetBroadcastReceiver;
@@ -90,14 +90,19 @@ public class MainActivity extends AppCompatActivity implements
     private class InternetBroadcastReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (isNetworkConnected()) {
+            if (isNetworkConnected() && !MainActivityLongTask.isActive()) {
                 toggleSync();
             }
         }
     }
 
+
+    /////////////////////////
+    // Колбеки Activity
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -109,10 +114,7 @@ public class MainActivity extends AppCompatActivity implements
         // Инициализируем FloatingActionButton
         mFloatingAddButton = (FloatingActionButton) findViewById(R.id.fab_item_add);
         mFloatingAddButton.setOnClickListener(view -> {
-            if (mItemListFragment != null && mItemListFragment.isVisible()) {
-                Log.d("ITEMLIST", "Hiding ItemListFragment");
-                getSupportFragmentManager().beginTransaction().hide(mItemListFragment).commit();
-            }
+            getSupportFragmentManager().beginTransaction().hide(mItemListFragment).commit();
             Intent newItemIntent = new Intent(MainActivity.this, EditItemActivity.class);
             startActivityForResult(newItemIntent, ITEM_ADD_NEW_REQUEST);
         });
@@ -123,15 +125,16 @@ public class MainActivity extends AppCompatActivity implements
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_mainactivity_loading);
 
         // Инициализациия ItemListFragment
-        mItemListFragment = ItemListFragment.getInstance(
-                getSupportFragmentManager(), R.id.fragmentcontainer_mainactivity);
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        mItemListFragment = ItemListFragment.getInstance(fragmentManager);
 
-        // Инициализация EmptyListFragment
-        mEmptyListFragment = EmptyListFragment.getInstance(
-                getSupportFragmentManager(), R.id.fragmentcontainer_mainactivity);
+        if (savedInstanceState == null) {
+            fragmentManager.beginTransaction()
+                    .add(FRAGMENT_CONTAINER, mItemListFragment, ItemListFragment.TAG).commit();
+        }
 
         // Инициализация SyncFragment
-        mSyncFragment = SyncFragment.getInstance(getSupportFragmentManager());
+        mSyncFragment = SyncFragment.getInstance(fragmentManager);
 
         // Инициализация BroadcastReceiver
         mInternetBroadcastReceiver = new InternetBroadcastReceiver();
@@ -141,8 +144,14 @@ public class MainActivity extends AppCompatActivity implements
         // Инициализация Drawer Layout
         mDrawerHelper = new MainListDrawerHelper(this);
 
-        // Перезагружаем данные
+        // Загружает данные локальные в список, если еще не были загружены
+        if (!mItemListFragment.dataIsLoaded()) {
+            mItemListFragment.reloadData();
+        }
+
+        // Проверяет, запущена ли длительная операция
         if (MainActivityLongTask.isActive()) {
+            // Если запущена, нужно подменить на новую Activity
             MainActivityLongTask.swapActivity(this);
             showLoading();
         }
@@ -152,7 +161,10 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        toggleSync();
+        if (!MainActivityLongTask.isActive()) {
+            // Вызывает синхронизацию данных с сервером, которая по окончанию вызовет обновление списка.
+            toggleSync();
+        }
         registerReceiver(mInternetBroadcastReceiver, mInternetChangedIntentFilter);
     }
 
@@ -167,6 +179,10 @@ public class MainActivity extends AppCompatActivity implements
         super.onDestroy();
         MainActivityLongTask.swapActivity(null);
     }
+
+
+    /////////////////////////
+    // Колбеки Menu
 
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu) {
@@ -199,45 +215,29 @@ public class MainActivity extends AppCompatActivity implements
         return super.onOptionsItemSelected(item);
     }
 
+
+    /////////////////////////
+    // Колбеки ввода текста (search)
+
     @Override
     public boolean onQueryTextSubmit(@NonNull String query) {
-        mItemListFragment.toggleSearch(query);
+        if (mItemListFragment.isVisible()) {
+            mItemListFragment.toggleSearch(query);
+        }
         return false;
     }
 
     @Override
     public boolean onQueryTextChange(@NonNull String newText) {
-        mItemListFragment.toggleSearch(newText);
+        if (mItemListFragment.isVisible()) {
+            mItemListFragment.toggleSearch(newText);
+        }
         return false;
     }
 
-    @Override
-    public void onItemClick(@NonNull ReadLaterItem item, int localId) {
-        mEditItemId = localId;
-        getSupportFragmentManager().beginTransaction().hide(mItemListFragment).commit();
-        Intent editItemIntent = new Intent(MainActivity.this, EditItemActivity.class);
-        editItemIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(item));
-        startActivityForResult(editItemIntent, ITEM_EDIT_REQUEST);
-    }
 
-    @Override
-    public void onItemListReloaded(boolean isEmpty) {
-        // Показывает онбординг, если список пуст или список, если он не пуст.
-        mLoadingIndicator.setVisibility(View.INVISIBLE);
-        mFloatingAddButton.setVisibility(View.VISIBLE);
-        mSwipeRefreshLayout.setEnabled(true);
-        if (isEmpty) {
-            if (!mItemListFragment.isHidden()) {
-                getSupportFragmentManager().beginTransaction().hide(mItemListFragment).commit();
-            }
-            // mEmptyList.setVisibility(View.VISIBLE);
-        } else {
-            // mEmptyList.setVisibility(View.INVISIBLE);
-            if (mItemListFragment.isHidden()) {
-                getSupportFragmentManager().beginTransaction().show(mItemListFragment).commit();
-            }
-        }
-    }
+    /////////////////////////
+    // Колбеки Intent
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -257,7 +257,10 @@ public class MainActivity extends AppCompatActivity implements
                     if (resultData != null) {
                         // Добавляет новый элемент в базу, показывает снэкбар
                         new BackgroundTask().execute(
-                                () -> ReadLaterDbUtils.insertItem(MainActivity.this, resultData),
+                                () -> {
+                                    ReadLaterDbUtils.insertItem(MainActivity.this, resultData);
+                                    runOnUiThread(mItemListFragment::reloadData);
+                                },
                                 null,
                                 null
                         );
@@ -271,7 +274,10 @@ public class MainActivity extends AppCompatActivity implements
                         if (resultData == null) {
                             // Удаляет элемент, показывает снэкбар
                             new BackgroundTask().execute(
-                                    () -> ReadLaterDbUtils.deleteItem(this, uid),
+                                    () -> {
+                                        ReadLaterDbUtils.deleteItem(this, uid);
+                                        runOnUiThread(mItemListFragment::reloadData);;
+                                    },
                                     null,
                                     null
                             );
@@ -280,7 +286,10 @@ public class MainActivity extends AppCompatActivity implements
                         } else {
                             // Изменяет элемент
                             new BackgroundTask().execute(
-                                    () -> ReadLaterDbUtils.updateItem(MainActivity.this, resultData, uid),
+                                    () -> {
+                                        ReadLaterDbUtils.updateItem(MainActivity.this, resultData, uid);
+                                        runOnUiThread(mItemListFragment::reloadData);
+                                    },
                                     null,
                                     null
                             );
@@ -304,15 +313,13 @@ public class MainActivity extends AppCompatActivity implements
             );
         }
 
-        reloadData();
+        // В случае, если ничего не изменилось, список сразу не перезагружается.
 
     }
 
-    /** Вызывает начало синхронизации. */
-    void toggleSync() {
-        mSwipeRefreshLayout.setRefreshing(true);
-        mSyncFragment.startFullSync();
-    }
+
+    /////////////////////////
+    // Колбеки CloudSyncTask
 
     @Override
     public long getLastSync() {
@@ -342,6 +349,22 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    public void onSyncFailed() {
+        finishSync();
+    }
+
+    @Override
+    public void onSyncSuccess(long syncStartTime) {
+        mLastSync = syncStartTime;
+        updateLastSyncDate(mLastSync);
+        finishSync();
+    }
+
+
+    /////////////////////////
+    // Колбеки ConflictsFragment
+
+    @Override
     public void saveConflict(@NonNull ReadLaterItem item) {
         HandlerThread handlerThread = new HandlerThread("BackupHandlerThread");
         handlerThread.start();
@@ -364,16 +387,35 @@ public class MainActivity extends AppCompatActivity implements
         finishSync();
     }
 
+
+    /////////////////////////
+    // Колбеки ItemListFragment
     @Override
-    public void onSyncFailed() {
-        finishSync();
+    public void onItemClick(@NonNull ReadLaterItem item, int localId) {
+        mEditItemId = localId;
+        getSupportFragmentManager().beginTransaction().hide(mItemListFragment).commit();
+        Intent editItemIntent = new Intent(MainActivity.this, EditItemActivity.class);
+        editItemIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(item));
+        startActivityForResult(editItemIntent, ITEM_EDIT_REQUEST);
     }
 
     @Override
-    public void onSyncSuccess(long syncStartTime) {
-        mLastSync = syncStartTime;
-        updateLastSyncDate(mLastSync);
-        finishSync();
+    public void onItemListReloaded(boolean isEmpty) {
+        // Показывает онбординг, если список пуст или список, если он не пуст.
+        mLoadingIndicator.setVisibility(View.INVISIBLE);
+        mFloatingAddButton.setVisibility(View.VISIBLE);
+        mSwipeRefreshLayout.setEnabled(true);
+        getSupportFragmentManager().beginTransaction().show(mItemListFragment).commit();
+    }
+
+
+    /////////////////////////
+    // Методы синхронизации
+
+    /** Вызывает начало синхронизации. */
+    void toggleSync() {
+        mSwipeRefreshLayout.setRefreshing(true);
+        mSyncFragment.startFullSync();
     }
 
     /** Обновляет дату последней синхронизации в SharedPreferences.
@@ -395,15 +437,20 @@ public class MainActivity extends AppCompatActivity implements
         mSwipeRefreshLayout.setRefreshing(false);
     }
 
+
+    /////////////////////////
+    // Все остальное
+
     /** Показывает индикатор загрузки, скрывая все лишнее. */
     void showLoading() {
         getSupportFragmentManager().beginTransaction().hide(mItemListFragment).commit();
-        // mEmptyList.setVisibility(View.INVISIBLE);
         mLoadingIndicator.setVisibility(View.VISIBLE);
         mSwipeRefreshLayout.setEnabled(false);
         mFloatingAddButton.setVisibility(View.INVISIBLE);
     }
 
+    // TODO: Убрать этот метод
+    @Deprecated
     void reloadData() {
         mItemListFragment.reloadData();
     }
