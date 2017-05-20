@@ -4,7 +4,7 @@
     <string name="title_activity_edit_item">Edit Item</string>
     <string name="title_activity_colorpicker">Choose color</string>
 
-    <!-- MainListActivity -->
+    <!-- MainActivity -->
         <!-- Онбординг для пустого списка -->
         <string name="mainlist_empty_label">List is empty</string>
         <string name="mainlist_empty_description">Add something to list with button on bottom right corner.</string>

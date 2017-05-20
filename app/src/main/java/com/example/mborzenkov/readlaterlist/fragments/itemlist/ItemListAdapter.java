@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.activity.main;
+package com.example.mborzenkov.readlaterlist.fragments.itemlist;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -16,12 +16,12 @@ import com.example.mborzenkov.readlaterlist.R;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-/** Адаптер для MainListActivity (очень простой).
+/** Адаптер для MainActivity (очень простой).
  *      Этот адаптер имеет смысл переписать на RecyclerView
  *      Но так как по заданию было запрещено пользоваться RecyclerView, этого сделано не было
  *      // TODO: Переписать адаптер на RecyclerView
  */
-class MainListAdapter extends ResourceCursorAdapter {
+class ItemListAdapter extends ResourceCursorAdapter {
 
     /** Формат выводимых дат. */
     private static final String FORMAT_DATE = "dd.MM.yy HH:mm";
@@ -36,13 +36,13 @@ class MainListAdapter extends ResourceCursorAdapter {
         void onClick(int position);
     }
 
-    /** Создает новый объект MainListAdapter для указанного контекста и с указанным ClickHandler'ом.
+    /** Создает новый объект ItemListAdapter для указанного контекста и с указанным ClickHandler'ом.
      *
      * @param context контекст (activity)
      * @param clickHandler интерфейс для колбеков
      */
-    MainListAdapter(@NonNull Context context, @NonNull ItemListAdapterOnClickHandler clickHandler) {
-        super(context, R.layout.content_mainlist_item, null, 0);
+    ItemListAdapter(@NonNull Context context, @NonNull ItemListAdapterOnClickHandler clickHandler) {
+        super(context, R.layout.content_itemlist_item, null, 0);
         mContext = context;
         mClickHandler = clickHandler;
     }
@@ -79,11 +79,11 @@ class MainListAdapter extends ResourceCursorAdapter {
     @Override
     public void bindView(@NonNull View view, @NonNull Context context, @NonNull Cursor cursor) {
         ItemListViewHolder viewHolder = (ItemListViewHolder) view.getTag();
-        viewHolder.labelTextView.setText(cursor.getString(MainListLoaderManager.INDEX_COLUMN_LABEL));
-        viewHolder.descriptionTextView.setText(cursor.getString(MainListLoaderManager.INDEX_COLUMN_DESCRIPTION));
+        viewHolder.labelTextView.setText(cursor.getString(ItemListLoaderManager.INDEX_COLUMN_LABEL));
+        viewHolder.descriptionTextView.setText(cursor.getString(ItemListLoaderManager.INDEX_COLUMN_DESCRIPTION));
         ((GradientDrawable) viewHolder.colorImageView.getBackground())
-                .setColor(cursor.getInt(MainListLoaderManager.INDEX_COLUMN_COLOR));
-        long date = cursor.getLong(MainListLoaderManager.INDEX_COLUMN_DATE_LAST_MODIFIED);
+                .setColor(cursor.getInt(ItemListLoaderManager.INDEX_COLUMN_COLOR));
+        long date = cursor.getLong(ItemListLoaderManager.INDEX_COLUMN_DATE_LAST_MODIFIED);
         SimpleDateFormat sdf = new SimpleDateFormat(FORMAT_DATE, Locale.US);
         viewHolder.dateTextView.setText(sdf.format(date));
         viewHolder.position = cursor.getPosition();
@@ -91,7 +91,7 @@ class MainListAdapter extends ResourceCursorAdapter {
 
     @Override
     public View newView(@NonNull Context context, @NonNull Cursor cursor, @NonNull ViewGroup parent) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.content_mainlist_item, parent, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.content_itemlist_item, parent, false);
         ItemListViewHolder viewHolder = new ItemListViewHolder(view);
         view.setTag(viewHolder);
         return view;

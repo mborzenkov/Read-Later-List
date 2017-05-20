@@ -49,7 +49,7 @@ class MainListDrawerHelper implements View.OnClickListener {
     private static final String FORMAT_DATE = "dd/MM/yy";
 
     // Элементы Layout
-    private final @NonNull MainListActivity mActivity;
+    private final @NonNull MainActivity mActivity;
     private final DrawerLayout mDrawerLayout;
     private final LinearLayout mFavLinearLayout;
     private final Spinner mSavedFiltersSpinner;
@@ -76,9 +76,9 @@ class MainListDrawerHelper implements View.OnClickListener {
     private @Nullable int[] favColors = null;
 
     /** Создает и инициализирует новый объект MainListDrawerHelper.
-     *  Должен вызываться в onCreate у MainListActivity, но после super.onCreate().
+     *  Должен вызываться в onCreate у MainActivity, но после super.onCreate().
      */
-    MainListDrawerHelper(@NonNull MainListActivity activity) {
+    MainListDrawerHelper(@NonNull MainActivity activity) {
 
         mActivity = activity;
 
@@ -144,7 +144,6 @@ class MainListDrawerHelper implements View.OnClickListener {
         mDrawerLayout.addDrawerListener(drawerToggle);
 
         // Устанавливаем текущего пользователя
-        boolean appStart = UserInfo.userInfoNotSet();
         mCurrentUser.setText(String.valueOf(UserInfo.getCurentUser(mActivity).getUserId()));
 
         // Заполняем варианты запомненных фильтров
@@ -253,7 +252,7 @@ class MainListDrawerHelper implements View.OnClickListener {
      */
     private void clickOnActions(@NonNull View v) {
 
-        if (MainListLongTask.isActive()) {
+        if (MainActivityLongTask.isActive()) {
             // Если выполняется какая-то работа, кнопки не работают, показывается предупреждение.
             ActivityUtils.showAlertDialog(mActivity,
                     mActivity.getString(R.string.mainlist_longloading_title),
@@ -298,7 +297,7 @@ class MainListDrawerHelper implements View.OnClickListener {
                             try {
                                 // Смотрим введенное значение
                                 int number = Integer.parseInt(input);
-                                MainListLongTask.startLongBackgroundTask(
+                                MainActivityLongTask.startLongBackgroundTask(
                                     () -> DebugUtils.addPlaceholdersToDatabase(mActivity, number),
                                         mActivity
                                 );
@@ -319,7 +318,7 @@ class MainListDrawerHelper implements View.OnClickListener {
                         mActivity.getString(R.string.mainlist_menu_delete_all_question_text),
                         () -> {
                             // Запускаем таск, показываем нотификейшены
-                            MainListLongTask.startLongBackgroundTask(
+                            MainActivityLongTask.startLongBackgroundTask(
                                 () -> {
                                     ReadLaterDbUtils.deleteAll(mActivity);
                                     LongTaskNotifications.cancelNotification();
@@ -345,12 +344,9 @@ class MainListDrawerHelper implements View.OnClickListener {
     private void handleBackupTask(boolean savingMode) {
 
         // Пробуем заблокировать интерфейс
-        if (!MainListLongTask.startAnotherLongTask()) {
+        if (!MainActivityLongTask.startAnotherLongTask()) {
             return; // не удалось, что то уже происходит
         }
-
-        // Показываем индикатор загрузки
-        mActivity.runOnUiThread(mActivity::showLoading);
 
         // Запускаем поток
         /* Имя хэндлер треда для бэкапа. */
@@ -363,14 +359,13 @@ class MainListDrawerHelper implements View.OnClickListener {
         if (savingMode) {
             handler.post(() -> {
                 MainListBackupUtils.saveEverythingAsJsonFile(mActivity);
-                if (MainListLongTask.stopAnotherLongTask()) {
-                    mActivity.runOnUiThread(mActivity::showDataView);
-                }
+                MainActivityLongTask.stopAnotherLongTask();
             });
         } else {
+            mActivity.runOnUiThread(mActivity::showLoading);
             handler.post(() -> {
                 MainListBackupUtils.restoreEverythingFromJsonFile(mActivity);
-                if (MainListLongTask.stopAnotherLongTask()) {
+                if (MainActivityLongTask.stopAnotherLongTask()) {
                     mActivity.runOnUiThread(mActivity::reloadData);
                 }
             });

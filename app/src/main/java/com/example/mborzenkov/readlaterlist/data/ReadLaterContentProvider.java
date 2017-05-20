@@ -149,9 +149,9 @@ public class ReadLaterContentProvider extends ContentProvider {
                 throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
-        if (itemDeleted != 0) {
-            // mContext.getContentResolver().notifyChange(uri, null);
-        }
+        //        if (itemDeleted != 0) {
+        //             mContext.getContentResolver().notifyChange(uri, null);
+        //        }
 
         return itemDeleted;
     }
@@ -264,9 +264,9 @@ public class ReadLaterContentProvider extends ContentProvider {
                 throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
-        if (itemUpdated != 0) {
-           // mContext.getContentResolver().notifyChange(uri, null);
-        }
+        //        if (itemUpdated != 0) {
+        //           mContext.getContentResolver().notifyChange(uri, null);
+        //        }
 
         return itemUpdated;
     }

@@ -17,15 +17,17 @@ public class UserInfo {
     /** Текущий пользователь. */
     private static UserInfo curentUser = null;
 
-    /** Проверяет, был ли уже установлен текущий пользователь.
-     *  Текущий пользователь устанавливается при первом доступе к getCurrentUser, по этому если он не установлен, то
-     *      это почти наверняка запуск приложения.
-     *
-     * @return true - если был, иначе false
-     */
-    public static boolean userInfoNotSet() {
-        return curentUser == null;
-    }
+    // --Commented out by Inspection START (20.05.17, 21:49):
+    //    /** Проверяет, был ли уже установлен текущий пользователь.
+    //     *  Текущий пользователь устанавливается при первом доступе к getCurrentUser, по этому если он не установлен,
+    //     *      то это почти наверняка запуск приложения.
+    //     *
+    //     * @return true - если был, иначе false
+    //     */
+    //    public static boolean userInfoNotSet() {
+    //        return curentUser == null;
+    //    }
+    // --Commented out by Inspection STOP (20.05.17, 21:49)
 
     /** Возвращает текущего выбранного пользователя.
      *  Если пользователь еще не был установлен, читает его из SharedPreferences и устанавливает как currentUser.

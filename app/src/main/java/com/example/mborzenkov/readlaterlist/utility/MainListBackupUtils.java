@@ -202,6 +202,7 @@ public class MainListBackupUtils {
         File[] backupFiles = getBackupFolder().listFiles(FILENAME_FILTER);
         for (File file : backupFiles) {
             if (file.exists()) {
+                //noinspection ResultOfMethodCallIgnored
                 file.delete();
             }
         }
