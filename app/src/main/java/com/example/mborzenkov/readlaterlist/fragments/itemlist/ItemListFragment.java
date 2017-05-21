@@ -390,4 +390,13 @@ public class ItemListFragment extends Fragment implements
         }
     }
 
+    /** Метод для оповещения об изменениях данных.
+     * Перезагружает лоадер менеджер.
+     */
+    public void onDataChanged() {
+        if (mLoaderManager != null) {
+            mLoaderManager.restartLoader();
+        }
+    }
+
 }

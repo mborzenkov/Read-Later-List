@@ -9,11 +9,13 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.PersistableBundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.IdRes;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.Size;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -24,6 +26,7 @@ import android.text.InputFilter;
 import android.text.InputType;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
@@ -33,7 +36,6 @@ import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
-import com.example.mborzenkov.readlaterlist.fragments.ColorPickerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
 import com.example.mborzenkov.readlaterlist.fragments.EditItemFragment;
 import com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment;
@@ -46,7 +48,6 @@ import com.example.mborzenkov.readlaterlist.utility.LongTaskNotifications;
 import com.example.mborzenkov.readlaterlist.utility.MainListBackupUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /** Главная Activity, представляющая собой список. */
@@ -57,10 +58,6 @@ public class MainActivity extends AppCompatActivity implements
         EditItemFragment.EditItemCallbacks,
         FilterDrawerFragment.DrawerCallbacks {
 
-    // [DrawerFragment]
-    // TODO: Conflicts fragment - открыть, закрыть и тд
-    // TODO: Не выдавать Conflicts, если изменились только даты
-
     // [v.0.7.0]
     // TODO: Проверить все на выполнение не на UI Thread (missing frames - причина виртуалки или где-то косяки?)
     // TODO: Проверить алгоритм синхронизации:
@@ -69,14 +66,17 @@ public class MainActivity extends AppCompatActivity implements
     // TODO: Fatal Exception SQLiteQuery при редактировании и обратно и особенно при конфликтах
     //          SELECT _id, label, description, color, created, last_modify, last_view,
     //          image_url, remote_id FROM items WHERE user_id = ? ORDER BY last_modify DESC
-    // TODO: Сохранение конфликта не обновляет его на другом устройстве (проверить даты)
     // TODO: Serch работает только на 23
+    // TODO: Исключить обращение к synchronized методам из MainThread
 
     /////////////////////////
     // Константы
 
     /** ID контейнера для помещения фрагментов. */
     private static final @IdRes int FRAGMENT_CONTAINER = R.id.fragmentcontainer_mainactivity;
+
+    /** Тэг для HandlerThread. */
+    private static final String HANDLERTHREAD_TAG = "mainactivity_handlerthread";
 
 
     /////////////////////////
@@ -86,6 +86,8 @@ public class MainActivity extends AppCompatActivity implements
     private SyncFragment mSyncFragment;
     private InternetBroadcastReceiver mInternetBroadcastReceiver;
     private IntentFilter mInternetChangedIntentFilter;
+    private HandlerThread mHandlerThread;
+    private Handler mHandlerThreadHandler;
 
     // Элементы layout
     private FrameLayout mFragmentContainer;
@@ -132,6 +134,12 @@ public class MainActivity extends AppCompatActivity implements
         mInternetBroadcastReceiver = new InternetBroadcastReceiver();
         mInternetChangedIntentFilter = new IntentFilter();
         mInternetChangedIntentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+
+        // Инициализация полезного HandlerThread
+        mHandlerThread = new HandlerThread(HANDLERTHREAD_TAG);
+        mHandlerThread.start();
+        mHandlerThreadHandler = new Handler(mHandlerThread.getLooper());
+
 
         // Проверяет, запущена ли длительная операция
         if (MainActivityLongTask.isActive()) {
@@ -199,6 +207,7 @@ public class MainActivity extends AppCompatActivity implements
     protected void onDestroy() {
         super.onDestroy();
         MainActivityLongTask.swapActivity(null);
+        mHandlerThread.quit();
     }
 
 
@@ -220,30 +229,22 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onSyncWithConflicts(@Nullable List<ReadLaterItem[]> conflicts, long syncStartTime) {
-        Log.d("SYNC", "WithConflicts");
+    public void onSyncWithConflicts(@NonNull @Size(min = 1) List<ReadLaterItem[]> conflicts, long syncStartTime) {
         mLastSync = syncStartTime;
-        if (conflicts != null && !conflicts.isEmpty()) {
-            ConflictsFragment conflictFragment =
-                    ConflictsFragment.getInstance(conflicts);
-            conflictFragment.show(getSupportFragmentManager(), "fragment_conflicts");
-        } else {
-            updateLastSyncDate(mLastSync);
-            finishSync();
-        }
+        ConflictsFragment conflictFragment =
+                ConflictsFragment.getInstance(conflicts);
+        conflictFragment.show(getSupportFragmentManager(), "fragment_conflicts");
     }
 
     @Override
     public void onSyncFailed() {
-        Log.d("SYNC", "Failed");
         finishSync();
     }
 
     @Override
     public void onSyncSuccess(long syncStartTime) {
-        Log.d("SYNC", "Success");
         mLastSync = syncStartTime;
-        updateLastSyncDate(mLastSync);
+        mHandlerThreadHandler.post(() -> updateLastSyncDate(mLastSync));
         finishSync();
     }
 
@@ -253,26 +254,20 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void saveConflict(@NonNull ReadLaterItem item) {
-        Log.e("SYNC", item.toString());
         final int remoteId = item.getRemoteId();
         if (remoteId > 0) {
-            new BackgroundTask().execute(
-                    () -> {
-                        final int userId = UserInfo.getCurentUser(MainActivity.this).getUserId();
-                        if (mSyncFragment.updateOneItem(item, userId, remoteId)) {
-                            ReadLaterDbUtils.updateItemByRemoteId(this, userId, item, remoteId);
-                        }
-                    },
-                    null,
-                    null
-            );
+            mHandlerThreadHandler.post(() -> {
+                final int userId = UserInfo.getCurentUser(MainActivity.this).getUserId();
+                if (mSyncFragment.updateOneItem(item, userId, remoteId)) {
+                    ReadLaterDbUtils.updateItem(this, item, userId, remoteId);
+                }
+            });
         }
     }
 
     @Override
     public void onConflictsMerged() {
-        updateLastSyncDate(mLastSync);
-        finishSync();
+        onSyncSuccess(mLastSync);
     }
 
 
@@ -436,34 +431,22 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onCreateNewItem(@NonNull ReadLaterItem item) {
-        new BackgroundTask().execute(
-                () -> ReadLaterDbUtils.insertItem(MainActivity.this, item),
-                null,
-                null
-        );
-        getSupportFragmentManager().popBackStack();
+        mHandlerThreadHandler.post(() -> ReadLaterDbUtils.insertItem(MainActivity.this, item));
+        popFragmentFromBackstack();
         Snackbar.make(mFragmentContainer, getString(R.string.snackbar_item_added), Snackbar.LENGTH_LONG).show();
     }
 
     @Override
     public void onSaveItem(@NonNull ReadLaterItem item, @IntRange(from = 0) int localId) {
-        new BackgroundTask().execute(
-                () -> ReadLaterDbUtils.updateItem(MainActivity.this, item, localId),
-                null,
-                null
-        );
-        getSupportFragmentManager().popBackStack();
+        mHandlerThreadHandler.post(() -> ReadLaterDbUtils.updateItem(MainActivity.this, item, localId));
+        popFragmentFromBackstack();
         Snackbar.make(mFragmentContainer, getString(R.string.snackbar_item_edited), Snackbar.LENGTH_LONG).show();
     }
 
     @Override
     public void onDeleteItem(@IntRange(from = 0) int localId) {
-        new BackgroundTask().execute(
-                () -> ReadLaterDbUtils.deleteItem(this, localId),
-                null,
-                null
-        );
-        getSupportFragmentManager().popBackStack();
+        mHandlerThreadHandler.post(() -> ReadLaterDbUtils.deleteItem(this, localId));
+        popFragmentFromBackstack();
         Snackbar.make(mFragmentContainer, getString(R.string.snackbar_item_removed), Snackbar.LENGTH_LONG).show();
     }
 
@@ -473,14 +456,9 @@ public class MainActivity extends AppCompatActivity implements
 
         if (item != null) {
             // Этот блок вызывается при простом просмотре без изменений
-            new BackgroundTask().execute(
-                    () -> ReadLaterDbUtils.updateItemViewDate(MainActivity.this, localId),
-                    null,
-                    null
-            );
+            mHandlerThreadHandler.post(() -> ReadLaterDbUtils.updateItemViewDate(MainActivity.this, localId));
         }
-
-        getSupportFragmentManager().popBackStack();
+        popFragmentFromBackstack();
 
     }
 
@@ -517,13 +495,15 @@ public class MainActivity extends AppCompatActivity implements
 
     /** Завершает синхронизацию. */
     private void finishSync() {
-        Log.d("SYNC", "Finished");
         mSyncFragment.stopSync();
         ItemListFragment itemListFragment =
                 (ItemListFragment) getSupportFragmentManager().findFragmentByTag(ItemListFragment.TAG);
         if ((itemListFragment != null) && itemListFragment.isVisible()) {
             itemListFragment.setRefreshing(false);
-            getContentResolver().notifyChange(ReadLaterContract.ReadLaterEntry.CONTENT_URI, null);
+            // Оповещаем itemListFragment об изменениях, если не запущен лонг таск
+            if (!MainActivityLongTask.isActive()) {
+                itemListFragment.onDataChanged();
+            }
         }
     }
 
@@ -533,7 +513,13 @@ public class MainActivity extends AppCompatActivity implements
 
     /** Колбек для MainActivityLongTask об окончании работ. */
     void onLongTaskFinished() {
-        getContentResolver().notifyChange(ReadLaterContract.ReadLaterEntry.CONTENT_URI, null);
+        ItemListFragment itemListFragment =
+                (ItemListFragment) getSupportFragmentManager().findFragmentByTag(ItemListFragment.TAG);
+        if (itemListFragment != null) {
+            // Оповещаем itemListFragment об изменениях
+            itemListFragment.onDataChanged();
+        }
+        showData();
     }
 
 
@@ -548,25 +534,22 @@ public class MainActivity extends AppCompatActivity implements
         mLoadingIndicator.setVisibility(View.VISIBLE);
     }
 
-    /** Запускает AsyncTask для выполнения быстрого действия.
-     * По окончанию выполняет перезагрузку данных, если не выполняется длительного действия.
-     */
-    private class BackgroundTask extends AsyncTask<Runnable, Void, Void> {
+    /** Показывает данные. */
+    private void showData() {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment currentFragment = fragmentManager.findFragmentById(FRAGMENT_CONTAINER);
+        getSupportFragmentManager().beginTransaction().show(currentFragment).commit();
+        mLoadingIndicator.setVisibility(View.INVISIBLE);
+    }
 
-        @Override
-        protected Void doInBackground(@NonNull Runnable... backgroundTask) {
-            backgroundTask[0].run();
-            return null;
+    /** Убирает последний фрагмент из бэкстака и скрывает клавиатуру. */
+    private void popFragmentFromBackstack() {
+        View focus = getCurrentFocus();
+        if (focus != null) {
+            InputMethodManager mgr = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            mgr.hideSoftInputFromWindow(focus.getWindowToken(), 0);
         }
-
-        @Override
-        protected void onPostExecute(Void taskResult) {
-            super.onPostExecute(taskResult);
-            if (!MainActivityLongTask.isActive()) {
-                getContentResolver().notifyChange(ReadLaterContract.ReadLaterEntry.CONTENT_URI, null);
-            }
-        }
-
+        getSupportFragmentManager().popBackStack();
     }
 
 }
