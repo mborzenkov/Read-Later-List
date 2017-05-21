@@ -27,6 +27,8 @@
         <!-- Пользователи -->
         <string name="mainlist_user_title">User:</string>
         <string name="mainlist_user_change">(change)</string>
+        <string name="mainlist_user_change_question_title">Change user</string>
+        <string name="mainlist_user_change_question_text">Please type ID of user:</string>
         <!-- Фильтр -->
         <string name="mainlist_drawer_title">Settings</string>
         <string name="mainlist_drawer_filters_title">Filter by</string>

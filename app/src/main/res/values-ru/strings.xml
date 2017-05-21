@@ -79,4 +79,6 @@
     <string name="mainlist_conflict_button_next">Далее</string>
     <string name="mainlist_conflict_button_save">Сохранить</string>
     <string name="mainlist_conflict_title">Выберите версию для сохранения</string>
+    <string name="mainlist_user_change_question_text">Пожалуйста введите ID пользователя:</string>
+    <string name="mainlist_user_change_question_title">Смена пользователя</string>
 </resources>
