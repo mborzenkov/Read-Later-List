@@ -11,6 +11,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
@@ -55,12 +56,18 @@ public class SyncFragment extends Fragment {
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         mSyncCallback = (SyncCallback) context;
+        if (mSyncTask != null) {
+            mSyncTask.setCallback(mSyncCallback);
+        }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         mSyncCallback = null;
+        if (mSyncTask != null) {
+            mSyncTask.setCallback(null);
+        }
     }
 
     @Override

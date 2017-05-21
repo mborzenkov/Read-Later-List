@@ -385,7 +385,9 @@ public class ItemListFragment extends Fragment implements
      */
     public void setRefreshing(boolean refreshing) {
         mSwipeRefreshLayout.setRefreshing(refreshing);
-        mSwipeRefreshLayout.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), SYNC_ICON_MAX_DURATION);
+        if (refreshing) {
+            mSwipeRefreshLayout.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), SYNC_ICON_MAX_DURATION);
+        }
     }
 
 }

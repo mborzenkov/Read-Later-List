@@ -85,6 +85,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
          * @param syncStartTime дата начала синхронизации для обновления даты последней синхронизации
          */
         void onSyncWithConflicts(@Nullable List<ReadLaterItem[]> conflicts, long syncStartTime);
+
     }
 
 
@@ -244,13 +245,21 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
     // AsyncTask
 
     /** Callback для оповещений о результатах синхронизации. */
-    private final @Nullable SyncCallback mSyncCallback;
+    private @Nullable SyncCallback mSyncCallback;
     /** Дата последней синхронизации. */
     private long lastSync = 0;
     /** Дата начала синхронизации. */
     private long syncStartTime = 0;
 
     SyncAsyncTask(@Nullable SyncCallback callback) {
+        mSyncCallback = callback;
+    }
+
+    /** Устанавливает колбек для этого таска.
+     *
+     * @param callback новый колбек, может быть null, если нужно отписаться
+     */
+    void setCallback(@Nullable SyncCallback callback) {
         mSyncCallback = callback;
     }
 

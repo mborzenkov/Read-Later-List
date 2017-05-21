@@ -275,12 +275,6 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        Log.d("TEST", "Drawer.onDestroyView()");
-    }
-
-    @Override
     public void onDetach() {
         super.onDetach();
         mCallbacks = null;

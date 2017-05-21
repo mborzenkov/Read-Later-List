@@ -15,6 +15,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -60,9 +61,14 @@ public class EditItemFragment extends Fragment implements
     /** Константа, обозначающая пустой UID. */
     public static final int UID_EMPTY = -1;
 
-    /** Ключ для Bundle редактируемого объекта ReadLaterItem. */
+    // Ключи для Bundle редактируемого объекта ReadLaterItem.
     private static final String BUNDLE_ITEM_KEY = "item";
     private static final String BUNDLE_ITEMID_KEY = "item_id";
+
+    // Ключи для SavedInstanceState
+    private static final String SAVEDINSTANCE_COLOR_KEY = "edititem_color";
+    private static final String SAVEDINSTANCE_DATECREATED_KEY = "edititem_datecreated";
+    private static final String SAVEDINSTANCE_DATEMODIFIED_KEY = "edititem_datemodified";
 
     /** Формат дат. */
     private static final String FORMAT_DATE = "dd.MM.yy HH:mm";
@@ -261,44 +267,63 @@ public class EditItemFragment extends Fragment implements
         });
 
         // Заполнение данными
-        String actionBarTitle = getString(R.string.edititem_title_add);
-        if (mFromItem != null) {
+        if (savedInstanceState == null) {
 
-            // Редактирование элемента
-            final SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
-            mLabelEditText.setText(mFromItem.getLabel());
-            mDescriptionEditText.setText(mFromItem.getDescription());
-            ((TextView) rootView.findViewById(R.id.tv_edititem_created_value))
-                    .setText(dateFormatter.format(mFromItem.getDateCreated()));
-            ((TextView) rootView.findViewById(R.id.tv_edititem_modified_value))
-                    .setText(dateFormatter.format(mFromItem.getDateModified()));
-            setColor(mFromItem.getColor());
-            String imageUrl = mFromItem.getImageUrl();
-            if (!imageUrl.isEmpty()) {
-                mImageUrlEditText.setText(imageUrl);
-                reloadImage();
+            if (mFromItem != null) {
+
+                // Редактирование элемента
+                final SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
+                mLabelEditText.setText(mFromItem.getLabel());
+                mDescriptionEditText.setText(mFromItem.getDescription());
+                setColor(mFromItem.getColor());
+                ((TextView) rootView.findViewById(R.id.tv_edititem_created_value))
+                        .setText(dateFormatter.format(mFromItem.getDateCreated()));
+                ((TextView) rootView.findViewById(R.id.tv_edititem_modified_value))
+                        .setText(dateFormatter.format(mFromItem.getDateModified()));
+                String imageUrl = mFromItem.getImageUrl();
+                if (!imageUrl.isEmpty()) {
+                    mImageUrlEditText.setText(imageUrl);
+                    reloadImage();
+                }
+                fab.setImageResource(R.drawable.ic_edit_24dp);
+
+            } else {
+
+                // Создание нового элемента
+                setColor(ContextCompat.getColor(getContext(), R.color.item_default_color));
+                fab.setImageResource(R.drawable.ic_add_24dp);
+
             }
-            actionBarTitle = getString(R.string.edititem_title_edit);
-            fab.setImageResource(R.drawable.ic_edit_24dp);
+
+            // Устанавливаем фокус и открываем клавиатуру на редактирование Label, чтобы все было красиво и удобно
+            if (mLabelEditText.requestFocus()) {
+                getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            }
 
         } else {
-
-            // Создание нового элемента
-            setColor(ContextCompat.getColor(getContext(), R.color.item_default_color));
-
+            setColor(savedInstanceState.getInt(SAVEDINSTANCE_COLOR_KEY,
+                    ContextCompat.getColor(getContext(), R.color.item_default_color)));
+            ((TextView) rootView.findViewById(R.id.tv_edititem_created_value))
+                    .setText(savedInstanceState.getString(SAVEDINSTANCE_DATECREATED_KEY, ""));
+            ((TextView) rootView.findViewById(R.id.tv_edititem_modified_value))
+                    .setText(savedInstanceState.getString(SAVEDINSTANCE_DATEMODIFIED_KEY, ""));
+            if (mFromItem == null) {
+                fab.setImageResource(R.drawable.ic_edit_24dp);
+            } else {
+                fab.setImageResource(R.drawable.ic_add_24dp);
+            }
         }
-        // Устанавливаем фокус и открываем клавиатуру на редактирование Label, чтобы все было красиво и удобно
-        if (mLabelEditText.requestFocus()) {
-            getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-        }
-
-        // Инициализация Toolbar
-        Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar_edititem);
-        toolbar.setTitleTextColor(ContextCompat.getColor(getContext(), R.color.icons));
 
         // Объекты и действия, имеющие смысл только при наличии колбеков
         if (mCallbacks != null) {
+
+            // Инициализация Toolbar
+            String actionBarTitle = mFromItem == null
+                    ? getString(R.string.edititem_title_add) : getString(R.string.edititem_title_edit);
+            Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar_edititem);
+            toolbar.setTitleTextColor(ContextCompat.getColor(getContext(), R.color.icons));
             mCallbacks.setNewToolbar(toolbar, actionBarTitle);
+
         }
 
         // Есть меню
@@ -306,6 +331,19 @@ public class EditItemFragment extends Fragment implements
 
         return rootView;
 
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(SAVEDINSTANCE_COLOR_KEY, mChosenColor);
+        if (getView() != null) {
+            outState.putString(SAVEDINSTANCE_DATECREATED_KEY,
+                    ((TextView) getView().findViewById(R.id.tv_edititem_created_value)).getText().toString());
+            outState.putString(SAVEDINSTANCE_DATEMODIFIED_KEY,
+                    ((TextView) getView().findViewById(R.id.tv_edititem_modified_value)).getText().toString());
+        }
+        // А все остальное сохраняется само по себе
     }
 
     @Override

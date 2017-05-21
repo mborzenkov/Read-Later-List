@@ -9,6 +9,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
@@ -57,9 +58,8 @@ public class MainActivity extends AppCompatActivity implements
         FilterDrawerFragment.DrawerCallbacks {
 
     // [DrawerFragment]
-    // TODO: Повороты экрана (детачится ли все)
-    // TODO: Sync в onPause и конфликт
-    // TODO: savedInstanceState и повороты экрана
+    // TODO: Conflicts fragment - открыть, закрыть и тд
+    // TODO: Не выдавать Conflicts, если изменились только даты
 
     // [v.0.7.0]
     // TODO: Проверить все на выполнение не на UI Thread (missing frames - причина виртуалки или где-то косяки?)
@@ -124,9 +124,6 @@ public class MainActivity extends AppCompatActivity implements
         // Инициализациия ItemListFragment
         FragmentManager fragmentManager = getSupportFragmentManager();
         ItemListFragment itemListFragment = ItemListFragment.getInstance(fragmentManager);
-        fragmentManager.beginTransaction()
-                .add(FRAGMENT_CONTAINER, itemListFragment, ItemListFragment.TAG)
-                .commit();
 
         // Инициализация SyncFragment
         mSyncFragment = SyncFragment.getInstance(fragmentManager);
@@ -141,6 +138,13 @@ public class MainActivity extends AppCompatActivity implements
             // Если запущена, нужно подменить на новую Activity
             MainActivityLongTask.swapActivity(this);
             showLoading();
+        }
+
+        // Если это запуск с 0, добавляем itemlistFragment и синхронизируем activity
+        if (savedInstanceState == null) {
+            fragmentManager.beginTransaction()
+                    .add(FRAGMENT_CONTAINER, itemListFragment, ItemListFragment.TAG)
+                    .commit();
         }
 
     }
@@ -178,9 +182,16 @@ public class MainActivity extends AppCompatActivity implements
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mInternetBroadcastReceiver);
-        // Синхронизируемся на всякий случай
-        if (!MainActivityLongTask.isActive()) {
-            toggleSync();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Синхронизируемся на всякий случай, но не при смене ориентации (там синхронизируемся в onResume)
+        if (!isChangingConfigurations()) {
+            if (!MainActivityLongTask.isActive()) {
+                toggleSync();
+            }
         }
     }
 
@@ -210,6 +221,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onSyncWithConflicts(@Nullable List<ReadLaterItem[]> conflicts, long syncStartTime) {
+        Log.d("SYNC", "WithConflicts");
         mLastSync = syncStartTime;
         if (conflicts != null && !conflicts.isEmpty()) {
             ConflictsFragment conflictFragment =
@@ -223,11 +235,13 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onSyncFailed() {
+        Log.d("SYNC", "Failed");
         finishSync();
     }
 
     @Override
     public void onSyncSuccess(long syncStartTime) {
+        Log.d("SYNC", "Success");
         mLastSync = syncStartTime;
         updateLastSyncDate(mLastSync);
         finishSync();
@@ -503,6 +517,7 @@ public class MainActivity extends AppCompatActivity implements
 
     /** Завершает синхронизацию. */
     private void finishSync() {
+        Log.d("SYNC", "Finished");
         mSyncFragment.stopSync();
         ItemListFragment itemListFragment =
                 (ItemListFragment) getSupportFragmentManager().findFragmentByTag(ItemListFragment.TAG);
