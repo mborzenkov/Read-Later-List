@@ -25,16 +25,19 @@ import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
 import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.fragments.ColorPickerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.EditItemFragment;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
+import com.example.mborzenkov.readlaterlist.fragments.OnBackPressedListener;
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncAsyncTask;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncFragment;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /** Главная Activity, представляющая собой список. */
@@ -153,6 +156,25 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    public void onBackPressed() {
+
+        boolean backHandled = false;
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        EditItemFragment editItemFragment =
+                (EditItemFragment) fragmentManager.findFragmentByTag(EditItemFragment.TAG);
+        if ((editItemFragment != null) && editItemFragment.isVisible()) {
+            editItemFragment.onBackPressed();
+            backHandled = true;
+        }
+
+        if (!backHandled) {
+            super.onBackPressed();
+        }
+
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mInternetBroadcastReceiver);
@@ -164,10 +186,6 @@ public class MainActivity extends AppCompatActivity implements
         MainActivityLongTask.swapActivity(null);
     }
 
-    @Override
-    public void onBackPressed() {
-        getSupportFragmentManager().popBackStack();
-    }
 
     /////////////////////////
     // Колбеки SyncAsyncTask
@@ -252,6 +270,9 @@ public class MainActivity extends AppCompatActivity implements
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setTitle(title);
+            if (getSupportFragmentManager().getBackStackEntryCount() != 0) {
+                actionBar.setDisplayHomeAsUpEnabled(true);
+            }
         }
         invalidateOptionsMenu();
     }
@@ -260,7 +281,6 @@ public class MainActivity extends AppCompatActivity implements
     public boolean isLongTaskActive() {
         return MainActivityLongTask.isActive();
     }
-
 
     /////////////////////////
     // Колбеки ItemListFragment
@@ -304,11 +324,6 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onDeleteItem(@IntRange(from = 1) int localId) {
-
-    }
-
-    @Override
-    public void onChooseColorToggled(int color) {
 
     }
 

@@ -16,6 +16,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -47,24 +48,14 @@ import java.util.Locale;
  *      При успешном редактировании возвращает новый объект ReadLaterItem в Intent под ключем ReadLaterItem.KEY_EXTRA
  *      При выборе удаления элемента, возвращает null в Intent под ключем ReadLaterItem.KEY_EXTRA
  */
-public class EditItemFragment extends Fragment implements View.OnClickListener {
+public class EditItemFragment extends Fragment implements
+        View.OnClickListener,
+        OnBackPressedListener {
 
     /** ID для открытия ColorPickerFragment на редактирование цвета. */
     private static final int ITEM_EDIT_COLOR_REQUEST = 11;
 
     private static final String checkNull = String.format("HI, %s", null);
-
-    // TODO: Back Pressed
-
-    //        if (isModified()) {
-//            ActivityUtils.showAlertDialog(EditItemFragment.this,
-//                    getString(R.string.edititem_menu_back_question_title),
-//                    getString(R.string.edititem_menu_back_question_text),
-//                    super::onBackPressed,
-//                    null);
-//        } else {
-//            super.onBackPressed();
-//        }
 
 
     /////////////////////////
@@ -154,13 +145,6 @@ public class EditItemFragment extends Fragment implements View.OnClickListener {
          * @param localId внутренний идентификатор объекта, всегда больше 1
          */
         void onDeleteItem(@IntRange(from = 1) int localId);
-
-        /** Вызывается при нажатии на выбор цвета.
-         * После окончания выбора цвета необходимо вызвать setColor().
-         *
-         * @param color цвет, который нужно установить изначально
-         */
-        void onChooseColorToggled(int color);
 
     }
 
@@ -307,6 +291,7 @@ public class EditItemFragment extends Fragment implements View.OnClickListener {
             mCallbacks.setNewToolbar(toolbar, actionBarTitle);
         }
 
+        // Есть меню
         setHasOptionsMenu(true);
 
         return rootView;
@@ -349,7 +334,7 @@ public class EditItemFragment extends Fragment implements View.OnClickListener {
                             if (mFromItemLocalId > 0) {
                                 mCallbacks.onDeleteItem(mFromItemLocalId);
                             } else {
-                                // onBackPressed();
+                                getFragmentManager().popBackStack();
                             }
                         }
                     },
@@ -359,7 +344,7 @@ public class EditItemFragment extends Fragment implements View.OnClickListener {
                 closeWithSaving();
                 return true;
             case android.R.id.home:
-                // onBackPressed();
+                onExitAttempt();
                 return true;
             default:
                 break;
@@ -377,9 +362,7 @@ public class EditItemFragment extends Fragment implements View.OnClickListener {
         switch (id) {
             case R.id.ib_edit_item_color:
                 if (view.getId() == R.id.ib_edit_item_color) {
-                    if (mCallbacks != null) {
-                        mCallbacks.onChooseColorToggled(mChosenColor);
-                    }
+                    openColorPicker();
                 }
                 break;
             case R.id.fab_edititem_save:
@@ -393,6 +376,14 @@ public class EditItemFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    /////////////////////////
+    // Колбеки OnBackPressedListener
+
+    @Override
+    public void onBackPressed() {
+        onExitAttempt();
+    }
+
 
     /////////////////////////
     // Методы при заершении редактирования
@@ -400,7 +391,7 @@ public class EditItemFragment extends Fragment implements View.OnClickListener {
     /** Выполняет закрытие фрагмента с сохранением. */
     private void closeWithSaving() {
         if (!isModified()) {
-            // onBackPressed();
+            getFragmentManager().popBackStack();
             return;
         }
         // packInputData возвращает null, если что-то не так
@@ -413,6 +404,20 @@ public class EditItemFragment extends Fragment implements View.OnClickListener {
                 //noinspection Range
                 mCallbacks.onSaveItem(resultData, mFromItemLocalId);
             }
+        }
+    }
+
+    /** Вызывается при попытке выйти из фрагмента без сохранения. */
+    private void onExitAttempt() {
+        if (isModified()) {
+            ActivityUtils.showAlertDialog(
+                    getContext(),
+                    getString(R.string.edititem_menu_back_question_title),
+                    getString(R.string.edititem_menu_back_question_text),
+                    getFragmentManager()::popBackStack,
+                    null);
+        } else {
+            getFragmentManager().popBackStack();
         }
     }
 
@@ -509,6 +514,11 @@ public class EditItemFragment extends Fragment implements View.OnClickListener {
             mLabelInputLayout.setError(getString(R.string.edititem_error_title_empty));
             return null;
         }
+    }
+
+    /** Открывает фрагмент для выбора цвета и устанавливает в нем mChosenColor по умолчанию. */
+    private void openColorPicker() {
+        // TODO: [v.0.7.0] ColorPickerFragment
     }
 
 }

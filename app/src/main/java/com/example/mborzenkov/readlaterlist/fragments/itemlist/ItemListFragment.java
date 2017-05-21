@@ -364,6 +364,8 @@ public class ItemListFragment extends Fragment implements
     @Override
     public void onActionToggled(FilterDrawerFragment.DrawerActions action) {
 
+        // TODO: Возможно убрать isLongTaskActive
+
         // Если выполняется какая-то работа, кнопки не работают, показывается предупреждение.
         if (mCallbacks != null && mCallbacks.isLongTaskActive()) {
             ActivityUtils.showAlertDialog(getContext(),
