@@ -59,6 +59,16 @@ public class MainActivity extends AppCompatActivity implements
         ItemListFragment.ItemListCallbacks,
         FilterDrawerFragment.DrawerCallbacks {
 
+    // [v.0.7.0]
+    // TODO: Проверить все на выполнение не на UI Thread (missing frames - причина виртуалки или где-то косяки?)
+    // TODO: Проверить алгоритм синхронизации:
+    //          Есть явные проблемы, если нет доступа к интернету - не вызовется finishSync и не вызовется reload.
+    //          Они должны быть независимыми друг от друга (reload вызывать несколько раз видимо).
+    // TODO: Fatal Exception SQLiteQuery при редактировании и обратно и особенно при конфликтах
+    //          SELECT _id, label, description, color, created, last_modify, last_view,
+    //          image_url, remote_id FROM items WHERE user_id = ? ORDER BY last_modify DESC
+    // TODO: Сохранение конфликта не обновляет его на другом устройстве (проверить даты)
+
     // Константы
     /** ID контейнера для помещения фрагментов. */
     private static final @IdRes int FRAGMENT_CONTAINER = R.id.fragmentcontainer_mainactivity;
@@ -285,9 +295,6 @@ public class MainActivity extends AppCompatActivity implements
                         new BackgroundTask().execute(
                                 () -> {
                                     ReadLaterDbUtils.insertItem(MainActivity.this, resultData);
-                                    if (!MainActivityLongTask.isActive()) {
-                                        runOnUiThread(mItemListFragment::reloadData);
-                                    }
                                 },
                                 null,
                                 null
@@ -304,9 +311,6 @@ public class MainActivity extends AppCompatActivity implements
                             new BackgroundTask().execute(
                                     () -> {
                                         ReadLaterDbUtils.deleteItem(this, uid);
-                                        if (!MainActivityLongTask.isActive()) {
-                                            runOnUiThread(mItemListFragment::reloadData);
-                                        }
                                     },
                                     null,
                                     null
@@ -318,9 +322,6 @@ public class MainActivity extends AppCompatActivity implements
                             new BackgroundTask().execute(
                                     () -> {
                                         ReadLaterDbUtils.updateItem(MainActivity.this, resultData, uid);
-                                        if (!MainActivityLongTask.isActive()) {
-                                            runOnUiThread(mItemListFragment::reloadData);
-                                        }
                                     },
                                     null,
                                     null
