@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.activity;
+package com.example.mborzenkov.readlaterlist.fragments;
 
 import android.content.Context;
 import android.content.Intent;
@@ -39,11 +39,11 @@ import java.util.Locale;
  * Activity для выбора цвета с помощью палитры
  * Использование:
  *      Для установки выбранного цвета при открытии необходимо передать int
- *              в Intent с ключем ColorPickerActivity.CHOSEN_KEY
+ *              в Intent с ключем ColorPickerFragment.CHOSEN_KEY
  *      При выборе цвета (нажатии на выбранный цвет) возвращает его как int
- *              в Intent с ключем  ColorPickerActivity.CHOSEN_KEY
+ *              в Intent с ключем  ColorPickerFragment.CHOSEN_KEY
  */
-public class ColorPickerActivity extends AppCompatActivity implements View.OnTouchListener, View.OnLongClickListener {
+public class ColorPickerFragment extends AppCompatActivity implements View.OnTouchListener, View.OnLongClickListener {
 
     // Объявляем все переменные
     /** Константа для использования в качестве ключа при сохранении массива Favorites. */

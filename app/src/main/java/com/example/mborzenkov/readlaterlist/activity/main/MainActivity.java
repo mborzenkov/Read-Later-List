@@ -10,10 +10,13 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -22,10 +25,10 @@ import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
 import com.example.mborzenkov.readlaterlist.R;
-import com.example.mborzenkov.readlaterlist.activity.EditItemActivity;
+import com.example.mborzenkov.readlaterlist.fragments.EditItemFragment;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
-import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncAsyncTask;
@@ -38,7 +41,16 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements
         SyncAsyncTask.SyncCallback,
         ConflictsFragment.ConflictsCallback,
-        ItemListFragment.ItemListCallbacks {
+        ItemListFragment.ItemListCallbacks,
+        EditItemFragment.EditItemCallbacks {
+
+    // [DrawerFragment]
+    // TODO: Перезагрузка данных в правильных местах
+    // TODO: Обработчик new item click
+    // TODO: Вызов toggle sync при событиях в ItemListFragment
+    // TODO: Првоерить SwipeRefreshLayout не будет активен, если нет колбеков (и кнопка невидимая)
+    // TODO: Переделать бэкап таски и наполнение
+    // TODO: Id может быть 0, надо поменять на -1 спец значение
 
     // [v.0.7.0]
     // TODO: Проверить все на выполнение не на UI Thread (missing frames - причина виртуалки или где-то косяки?)
@@ -60,17 +72,12 @@ public class MainActivity extends AppCompatActivity implements
     // Intent
     /** Константа, обозначающая пустой UID. */
     private static final int UID_EMPTY = -1;
-    /** ID запроса для создания нового элемента. */
-    private static final int ITEM_ADD_NEW_REQUEST = 1;
-    /** ID запроса для редактирования элемента. */
-    private static final int ITEM_EDIT_REQUEST = 2;
 
 
     /////////////////////////
     // Поля объекта
 
     // Хэлперы
-    private ItemListFragment mItemListFragment;
     private SyncFragment mSyncFragment;
     private InternetBroadcastReceiver mInternetBroadcastReceiver;
     private IntentFilter mInternetChangedIntentFilter;
@@ -79,8 +86,6 @@ public class MainActivity extends AppCompatActivity implements
     private FrameLayout mFragmentContainer;
     private ProgressBar mLoadingIndicator;
 
-    /** ID текущего редактируемого элемента. */
-    private int mEditItemId = UID_EMPTY;
     /** Дата последней синхронизации. */
     private long mLastSync;
 
@@ -113,12 +118,12 @@ public class MainActivity extends AppCompatActivity implements
 
         // Инициализациия ItemListFragment
         FragmentManager fragmentManager = getSupportFragmentManager();
-        mItemListFragment = ItemListFragment.getInstance(fragmentManager);
+        ItemListFragment itemListFragment = ItemListFragment.getInstance(fragmentManager);
+        fragmentManager.beginTransaction()
+                .add(FRAGMENT_CONTAINER, itemListFragment, ItemListFragment.TAG)
+                .commit();
 
-        if (savedInstanceState == null) {
-            fragmentManager.beginTransaction()
-                    .add(FRAGMENT_CONTAINER, mItemListFragment, ItemListFragment.TAG).commit();
-        }
+        // TODO: savedInstanceState
 
         // Инициализация SyncFragment
         mSyncFragment = SyncFragment.getInstance(fragmentManager);
@@ -133,9 +138,6 @@ public class MainActivity extends AppCompatActivity implements
             // Если запущена, нужно подменить на новую Activity
             MainActivityLongTask.swapActivity(this);
             showLoading();
-        } else if (!mItemListFragment.dataIsLoaded()) {
-            // Загружает данные локальные в список, если еще не были загружены
-            mItemListFragment.reloadData();
         }
 
     }
@@ -158,82 +160,14 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     protected void onDestroy() {
-        MainActivityLongTask.swapActivity(null);
         super.onDestroy();
+        MainActivityLongTask.swapActivity(null);
     }
-
-
-    /////////////////////////
-    // Колбеки Intent
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-
-        // Каждый раз при окончании редактирования, сбрасываем переменную mEditItemId
-        int uid = mEditItemId;
-        mEditItemId = UID_EMPTY;
-
-        // Обрабатывает возврат от EditItemActivity
-        if (resultCode == RESULT_OK && data != null && data.hasExtra(ReadLaterItemParcelable.KEY_EXTRA)) {
-            // Возвращенные данные в формате ReadLaterItem
-            ReadLaterItemParcelable parcelableData = data.getParcelableExtra(ReadLaterItemParcelable.KEY_EXTRA);
-            ReadLaterItem resultData = parcelableData == null ? null : parcelableData.getItem();
-            switch (requestCode) {
-                case ITEM_ADD_NEW_REQUEST:
-                    if (resultData != null) {
-                        // Добавляет новый элемент в базу, показывает снэкбар
-                        new BackgroundTask().execute(
-                                () -> ReadLaterDbUtils.insertItem(MainActivity.this, resultData),
-                                null,
-                                null
-                        );
-                        Snackbar.make(mFragmentContainer, getString(R.string.snackbar_item_added),
-                                Snackbar.LENGTH_LONG).show();
-                        return;
-                    }
-                    break;
-                case ITEM_EDIT_REQUEST:
-                    if (uid != UID_EMPTY) {
-                        if (resultData == null) {
-                            // Удаляет элемент, показывает снэкбар
-                            new BackgroundTask().execute(
-                                    () -> ReadLaterDbUtils.deleteItem(this, uid),
-                                    null,
-                                    null
-                            );
-                            Snackbar.make(mFragmentContainer,
-                                        getString(R.string.snackbar_item_removed), Snackbar.LENGTH_LONG).show();
-                        } else {
-                            // Изменяет элемент
-                            new BackgroundTask().execute(
-                                    () -> ReadLaterDbUtils.updateItem(MainActivity.this, resultData, uid),
-                                    null,
-                                    null
-                            );
-                            Snackbar.make(mFragmentContainer,
-                                        getString(R.string.snackbar_item_edited), Snackbar.LENGTH_LONG).show();
-                        }
-                        return;
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        // Этот блок вызывается при простом просмотре, тк при успешном случае с ADD_NEW или EDIT, уже был вызван return
-        if (uid != UID_EMPTY) {
-            new BackgroundTask().execute(
-                    () -> ReadLaterDbUtils.updateItemViewDate(MainActivity.this, uid),
-                    null,
-                    null
-            );
-        }
-
-        // В случае, если ничего не изменилось, список сразу не перезагружается.
-
+    public void onBackPressed() {
+        getSupportFragmentManager().popBackStack();
     }
-
 
     /////////////////////////
     // Колбеки SyncAsyncTask
@@ -293,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements
                             ReadLaterDbUtils.updateItemByRemoteId(this, userId, item, remoteId);
                         }
                         if (!MainActivityLongTask.isActive()) {
-                            runOnUiThread(mItemListFragment::reloadData);
+                            // runOnUiThread(mItemListFragment::reloadData);
                         }
                     },
                     null,
@@ -313,8 +247,13 @@ public class MainActivity extends AppCompatActivity implements
     // Колбеки BasicFragmentCallbacks
 
     @Override
-    public void setNewToolbar(@NonNull Toolbar toolbar) {
+    public void setNewToolbar(@NonNull Toolbar toolbar, @NonNull String title) {
         setSupportActionBar(toolbar);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle(title);
+        }
+        invalidateOptionsMenu();
     }
 
     @Override
@@ -330,18 +269,18 @@ public class MainActivity extends AppCompatActivity implements
     public void onNewItemClick() {
         /*
                 getSupportFragmentManager().beginTransaction().hide(mItemListFragment).commit();
-                Intent newItemIntent = new Intent(MainActivity.this, EditItemActivity.class);
+                Intent newItemIntent = new Intent(MainActivity.this, EditItemFragment.class);
                 startActivityForResult(newItemIntent, ITEM_ADD_NEW_REQUEST);
          */
     }
 
     @Override
     public void onItemClick(@NonNull ReadLaterItem item, int localId) {
-        mEditItemId = localId;
-        getSupportFragmentManager().beginTransaction().hide(mItemListFragment).commit();
-        Intent editItemIntent = new Intent(MainActivity.this, EditItemActivity.class);
-        editItemIntent.putExtra(ReadLaterItemParcelable.KEY_EXTRA, new ReadLaterItemParcelable(item));
-        startActivityForResult(editItemIntent, ITEM_EDIT_REQUEST);
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        EditItemFragment editItemFragment = EditItemFragment.getInstance(fragmentManager, item, localId);
+        fragmentManager.beginTransaction()
+                .replace(FRAGMENT_CONTAINER, editItemFragment, EditItemFragment.TAG)
+                .addToBackStack(null).commit();
     }
 
     @Override
@@ -349,21 +288,105 @@ public class MainActivity extends AppCompatActivity implements
         toggleSync();
     }
 
+
+    /////////////////////////
+    // Колбеки EditItemFragment
+
     @Override
-    public void onItemListReloaded(boolean isEmpty) {
-        // Показывает онбординг, если список пуст или список, если он не пуст.
-        mLoadingIndicator.setVisibility(View.INVISIBLE);
-        getSupportFragmentManager().beginTransaction().show(mItemListFragment).commit();
+    public void onCreateNewItem(@NonNull ReadLaterItem item) {
+
     }
 
+    @Override
+    public void onSaveItem(@NonNull ReadLaterItem item, @IntRange(from = 1) int localId) {
+
+    }
+
+    @Override
+    public void onDeleteItem(@IntRange(from = 1) int localId) {
+
+    }
+
+    @Override
+    public void onChooseColorToggled(int color) {
+
+    }
+
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+//
+//        // Каждый раз при окончании редактирования, сбрасываем переменную mEditItemId
+//        int uid = mEditItemId;
+//        mEditItemId = UID_EMPTY;
+//
+//        // Обрабатывает возврат от EditItemFragment
+//        if (resultCode == RESULT_OK && data != null && data.hasExtra(ReadLaterItemParcelable.KEY_EXTRA)) {
+//            // Возвращенные данные в формате ReadLaterItem
+//            ReadLaterItemParcelable parcelableData = data.getParcelableExtra(ReadLaterItemParcelable.KEY_EXTRA);
+//            ReadLaterItem resultData = parcelableData == null ? null : parcelableData.getItem();
+//            switch (requestCode) {
+//                case ITEM_ADD_NEW_REQUEST:
+//                    if (resultData != null) {
+//                        // Добавляет новый элемент в базу, показывает снэкбар
+//                        new BackgroundTask().execute(
+//                                () -> ReadLaterDbUtils.insertItem(MainActivity.this, resultData),
+//                                null,
+//                                null
+//                        );
+//                        Snackbar.make(mFragmentContainer, getString(R.string.snackbar_item_added),
+//                                Snackbar.LENGTH_LONG).show();
+//                        return;
+//                    }
+//                    break;
+//                case ITEM_EDIT_REQUEST:
+//                    if (uid != UID_EMPTY) {
+//                        if (resultData == null) {
+//                            // Удаляет элемент, показывает снэкбар
+//                            new BackgroundTask().execute(
+//                                    () -> ReadLaterDbUtils.deleteItem(this, uid),
+//                                    null,
+//                                    null
+//                            );
+//                            Snackbar.make(mFragmentContainer,
+//                                    getString(R.string.snackbar_item_removed), Snackbar.LENGTH_LONG).show();
+//                        } else {
+//                            // Изменяет элемент
+//                            new BackgroundTask().execute(
+//                                    () -> ReadLaterDbUtils.updateItem(MainActivity.this, resultData, uid),
+//                                    null,
+//                                    null
+//                            );
+//                            Snackbar.make(mFragmentContainer,
+//                                    getString(R.string.snackbar_item_edited), Snackbar.LENGTH_LONG).show();
+//                        }
+//                        return;
+//                    }
+//                    break;
+//                default:
+//                    break;
+//            }
+//        }
+//
+//        // Этот блок вызывается при простом просмотре, тк при успешном случае с ADD_NEW или EDIT, уже был вызван return
+//        if (uid != UID_EMPTY) {
+//            new BackgroundTask().execute(
+//                    () -> ReadLaterDbUtils.updateItemViewDate(MainActivity.this, uid),
+//                    null,
+//                    null
+//            );
+//        }
+//
+//        // В случае, если ничего не изменилось, список сразу не перезагружается.
+//
+//    }
 
     /////////////////////////
     // Методы синхронизации
 
     /** Вызывает начало синхронизации. */
     private void toggleSync() {
-        mItemListFragment.setRefreshing(true);
-        mSyncFragment.startFullSync();
+//        mItemListFragment.setRefreshing(true);
+//        mSyncFragment.startFullSync();
     }
 
     /** Обновляет дату последней синхронизации в SharedPreferences.
@@ -381,10 +404,8 @@ public class MainActivity extends AppCompatActivity implements
     /** Завершает синхронизацию принудительно. */
     private void finishSync() {
         mSyncFragment.stopSync();
-        if (!MainActivityLongTask.isActive()) {
-            mItemListFragment.reloadData();
-        }
-        mItemListFragment.setRefreshing(false);
+        getContentResolver().notifyChange(ReadLaterContract.ReadLaterEntry.CONTENT_URI, null);
+//        mItemListFragment.setRefreshing(false);
     }
 
 
@@ -393,7 +414,7 @@ public class MainActivity extends AppCompatActivity implements
 
     /** Колбек для MainActivityLongTask об окончании работ. */
     void onLongTaskFinished() {
-        mItemListFragment.reloadData();
+        // mItemListFragment.reloadData();
     }
 
 
@@ -402,7 +423,9 @@ public class MainActivity extends AppCompatActivity implements
 
     /** Показывает индикатор загрузки, скрывая все лишнее. */
     private void showLoading() {
-        getSupportFragmentManager().beginTransaction().hide(mItemListFragment).commit();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment currentFragment = fragmentManager.findFragmentById(FRAGMENT_CONTAINER);
+        getSupportFragmentManager().beginTransaction().hide(currentFragment).commit();
         mLoadingIndicator.setVisibility(View.VISIBLE);
     }
 
@@ -421,7 +444,7 @@ public class MainActivity extends AppCompatActivity implements
         protected void onPostExecute(Void taskResult) {
             super.onPostExecute(taskResult);
             if (!MainActivityLongTask.isActive()) {
-                mItemListFragment.reloadData();
+                // mItemListFragment.reloadData();
             }
         }
 

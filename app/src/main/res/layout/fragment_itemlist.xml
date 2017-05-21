@@ -54,20 +54,11 @@
     </FrameLayout>
 
     <ScrollView
+        android:id="@+id/drawerfragmentcontainer_itemlist"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="end"
         style="@style/MainList.Drawer.Layout"
-        >
-
-        <fragment
-            android:name="com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment"
-            android:tag="fragment_drawer_filter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            tools:layout="@layout/fragment_drawer_filter"
-            />
-
-    </ScrollView>
+        />
 
 </android.support.v4.widget.DrawerLayout>

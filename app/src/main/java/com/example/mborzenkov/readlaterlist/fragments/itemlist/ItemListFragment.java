@@ -10,6 +10,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.support.annotation.IdRes;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -37,7 +39,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.example.mborzenkov.readlaterlist.R;
-import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.fragments.BasicFragmentCallbacks;
@@ -61,13 +62,16 @@ public class ItemListFragment extends Fragment implements
     /** TAG фрагмента для фрагмент менеджера. */
     public static final String TAG = "fragment_itemlist";
 
+    /** ID контейнера для Drawer. */
+    public static final @IdRes int DRAWER_CONTAINER = R.id.drawerfragmentcontainer_itemlist;
+
 
     /////////////////////////
     // Static
 
     /** Возвращает уже созданный ранее объект ItemListFragment или создает новый, если такого нет.
      * Для создания объектов следует всегда использовать этот метод.
-     * Не помещает объектво FragmentManager.
+     * Не помещает объект в FragmentManager.
      * При помещении объекта в FragmentManager, следует использовать тэг TAG.
      *
      * @param fragmentManager менеджер для поиска фрагментов по тэгу
@@ -94,19 +98,13 @@ public class ItemListFragment extends Fragment implements
         /** Вызывается при клике на элемент списка.
          *
          * @param item элемент списка в формате ReadLaterItem
-         * @param localId _id этого элемента
+         * @param localId _id этого элемента, > 0
          */
-        void onItemClick(@NonNull ReadLaterItem item, int localId);
+        void onItemClick(@NonNull ReadLaterItem item, @IntRange(from = 0) int localId);
 
         /** Вызывается при потягивании SwipeRefreshLayout или нажатии на кнопку Refresh. */
         void onRefreshToggled();
 
-        /** Вызывается, когда список список обновился.
-         * А именно, когда LoaderManager вернул onLoadFinished.
-         *
-         * @param isEmpty признак, пустой ли сейчас список
-         */
-        void onItemListReloaded(boolean isEmpty);
     }
 
 
@@ -157,10 +155,11 @@ public class ItemListFragment extends Fragment implements
         mEmptyListView = (LinearLayout) rootView.findViewById(R.id.linearLayout_emptylist);
 
         // Инициализация Drawer Layout и обработчика открытия и закрытия Drawer
-        mFilterDrawerFragment = (FilterDrawerFragment) getFragmentManager().findFragmentByTag(FilterDrawerFragment.TAG);
-        if (mFilterDrawerFragment != null) {
-
-            ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(getActivity(), mDrawerLayout,
+        FragmentManager fragmentManager = getChildFragmentManager();
+        mFilterDrawerFragment = FilterDrawerFragment.getInstance(fragmentManager);
+        fragmentManager.beginTransaction().replace(DRAWER_CONTAINER, mFilterDrawerFragment, FilterDrawerFragment.TAG)
+                .commit();
+        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(getActivity(), mDrawerLayout,
                     R.string.mainlist_drawer_title, R.string.mainlist_drawer_title) {
 
                 @Override
@@ -168,7 +167,9 @@ public class ItemListFragment extends Fragment implements
                     // При закрытии - устанавливаем фильтр
                     super.onDrawerClosed(view);
                     Log.d("ITEMLIST", "Drawer closed");
-                    reloadData();
+                    if (mLoaderManager != null) {
+                        mLoaderManager.restartLoader();
+                    }
                 }
 
                 @Override
@@ -180,14 +181,14 @@ public class ItemListFragment extends Fragment implements
 
             };
             mDrawerLayout.addDrawerListener(drawerToggle);
-        }
+
+        // Инициализация Toolbar
+        Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar_itemlist);
+        toolbar.setTitleTextColor(ContextCompat.getColor(getContext(), R.color.icons));
 
         // Объекты и действия, имеющие смысл только при наличии колбеков
         if (mCallbacks != null) {
-            // Инициализация Toolbar
-            Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar_itemlist);
-            toolbar.setTitleTextColor(ContextCompat.getColor(getContext(), R.color.icons));
-            mCallbacks.setNewToolbar(toolbar);
+            mCallbacks.setNewToolbar(toolbar, getString(R.string.app_name));
 
             // Инициализируем FloatingActionButton
             FloatingActionButton floatingAddButton = (FloatingActionButton) rootView.findViewById(R.id.fab_item_add);
@@ -210,6 +211,8 @@ public class ItemListFragment extends Fragment implements
             });
         }
 
+        setHasOptionsMenu(true);
+
         return rootView;
 
     }
@@ -217,7 +220,9 @@ public class ItemListFragment extends Fragment implements
     @Override
     public void onResume() {
         super.onResume();
-        reloadData();
+        if (mLoaderManager != null) {
+            mLoaderManager.restartLoader();
+        }
     }
 
     @Override
@@ -246,7 +251,6 @@ public class ItemListFragment extends Fragment implements
             searchView.setOnQueryTextListener(this);
         }
 
-        // TODO: Check it && swipe refresh layout
         if (mCallbacks == null) {
             menu.findItem(R.id.mainlist_action_refresh).setVisible(false);
         }
@@ -342,9 +346,6 @@ public class ItemListFragment extends Fragment implements
                 mEmptyListView.setVisibility(View.INVISIBLE);
                 mItemsListView.setVisibility(View.VISIBLE);
             }
-        }
-        if (mCallbacks != null) {
-            mCallbacks.onItemListReloaded(listIsEmpty);
         }
     }
 
@@ -499,13 +500,6 @@ public class ItemListFragment extends Fragment implements
 
     /////////////////////////
     // Все остальное
-
-    /** Перезагружает данные в списке. */
-    public void reloadData() {
-        if (mLoaderManager != null) {
-            mLoaderManager.reloadData();
-        }
-    }
 
     /** Проверяет, загружены ли данные в список.
      * Получает Cursor у адаптера и проверяет, что он не null.

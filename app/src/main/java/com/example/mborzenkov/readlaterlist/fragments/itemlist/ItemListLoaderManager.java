@@ -104,12 +104,12 @@ class ItemListLoaderManager  {
      */
     void setSearchQuery(String query) {
         mSearchQuery = query;
-        reloadData();
+        restartLoader();
     }
 
     /** Обновляет данные.
      */
-    void reloadData() {
+    void restartLoader() {
         if (mItemListFragment.getActivity().getSupportLoaderManager().getLoader(ITEM_LOADER_ID) != null) {
             mItemListFragment.getActivity().getSupportLoaderManager().restartLoader(ITEM_LOADER_ID,
                     null, mItemListFragment);

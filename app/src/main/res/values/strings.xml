@@ -75,7 +75,7 @@
         <string name="notification_backup_save_title">Saving backup</string>
         <string name="notification_backup_restore_title">Restoring from backup</string>
 
-    <!-- EditItemActivity -->
+    <!-- EditItemFragment -->
         <!-- Заголовки -->
         <string name="edititem_title_add">New item</string>
         <string name="edititem_title_edit">Edit item</string>
@@ -101,7 +101,7 @@
         <!-- Список -->
         <!--<string name="edititem_icon_contentdescription">Color</string>-->
 
-    <!-- ColorPickerActivity -->
+    <!-- ColorPickerFragment -->
     <string name="colorpicker_chosen_label">Choose color</string>
     <string name="colorpicker_favorites_label">Favorite colors</string>
     <string name="colorpicker_RGB" translatable="false">RGB</string>

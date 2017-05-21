@@ -6,8 +6,6 @@
     android:layout_height="match_parent"
     >
 
-    <include layout="@layout/fragment_itemlist"/>
-
     <ProgressBar
         android:id="@+id/pb_mainactivity_loading"
         android:layout_gravity="center"
