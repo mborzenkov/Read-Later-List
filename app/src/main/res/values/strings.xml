@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">Read Later</string>
     <string name="content_authority" translatable="false">com.example.mborzenkov.readlaterlist</string>
-    <string name="title_activity_edit_item">Edit Item</string>
     <string name="title_activity_colorpicker">Choose color</string>
 
     <!-- MainActivity -->
@@ -27,6 +26,8 @@
         <!-- Пользователи -->
         <string name="mainlist_user_title">User:</string>
         <string name="mainlist_user_change">(change)</string>
+        <string name="mainlist_user_change_question_title">Change user</string>
+        <string name="mainlist_user_change_question_text">Please type ID of user:</string>
         <!-- Фильтр -->
         <string name="mainlist_drawer_title">Settings</string>
         <string name="mainlist_drawer_filters_title">Filter by</string>
@@ -73,7 +74,7 @@
         <string name="notification_backup_save_title">Saving backup</string>
         <string name="notification_backup_restore_title">Restoring from backup</string>
 
-    <!-- EditItemActivity -->
+    <!-- EditItemFragment -->
         <!-- Заголовки -->
         <string name="edititem_title_add">New item</string>
         <string name="edititem_title_edit">Edit item</string>
@@ -99,7 +100,7 @@
         <!-- Список -->
         <!--<string name="edititem_icon_contentdescription">Color</string>-->
 
-    <!-- ColorPickerActivity -->
+    <!-- ColorPickerFragment -->
     <string name="colorpicker_chosen_label">Choose color</string>
     <string name="colorpicker_favorites_label">Favorite colors</string>
     <string name="colorpicker_RGB" translatable="false">RGB</string>

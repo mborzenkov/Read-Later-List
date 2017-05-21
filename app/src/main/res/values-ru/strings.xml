@@ -25,7 +25,6 @@
     <string name="snackbar_item_edited">Запись изменена</string>
     <string name="snackbar_item_removed">Запись удалена</string>
     <string name="title_activity_colorpicker">Выбор цвета</string>
-    <string name="title_activity_edit_item">Редактирование записи</string>
     <string name="edititem_menu_save">Сохранить</string>
     <string name="mainlist_icon_contentdescription">Цвет элемента</string>
     <!--<string name="edititem_icon_contentdescription">Цвет элемента</string>-->
@@ -79,4 +78,6 @@
     <string name="mainlist_conflict_button_next">Далее</string>
     <string name="mainlist_conflict_button_save">Сохранить</string>
     <string name="mainlist_conflict_title">Выберите версию для сохранения</string>
+    <string name="mainlist_user_change_question_text">Пожалуйста введите ID пользователя:</string>
+    <string name="mainlist_user_change_question_title">Смена пользователя</string>
 </resources>

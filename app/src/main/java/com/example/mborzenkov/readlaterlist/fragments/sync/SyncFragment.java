@@ -2,9 +2,6 @@ package com.example.mborzenkov.readlaterlist.fragments.sync;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.support.annotation.IntDef;
 import android.support.annotation.IntRange;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
@@ -13,7 +10,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
-import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncAsyncTask.SyncCallback;
 
 /** Фрагмент для фоновой синхронизации с Cloud API. */
@@ -55,12 +51,18 @@ public class SyncFragment extends Fragment {
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         mSyncCallback = (SyncCallback) context;
+        if (mSyncTask != null) {
+            mSyncTask.setCallback(mSyncCallback);
+        }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         mSyncCallback = null;
+        if (mSyncTask != null) {
+            mSyncTask.setCallback(null);
+        }
     }
 
     @Override
@@ -73,8 +75,8 @@ public class SyncFragment extends Fragment {
      * Выполняет работу в том же потоке, в котором вызван метод, поэтому должен быть вызван не в основном потоке.
      *
      * @param item запись для обновления. item.getRemoteId() должен быть > 0.
-     * @param userId
-     * @param remoteId
+     * @param userId идентификатор пользователя
+     * @param remoteId внешний идентификатор элемента
      *
      * @return true, если обновление прошло успешно, иначе false
      *
@@ -94,18 +96,17 @@ public class SyncFragment extends Fragment {
 
     }
 
-    /** Принудительно останавливает синхронизацию. */
-    public synchronized void stopSync() {
-        if (syncInAction) {
-            if (mSyncTask != null) {
-                mSyncTask.cancel(true);
-            }
-        }
-        syncInAction = false;
+    /** Проверяет, запущена ли синхронизация.
+     *
+     * @return true - если запущена, иначе false
+     */
+    public synchronized boolean isSyncActive() {
+        return syncInAction;
     }
 
     /** Запускает полную синхронизацию.
      * Синхронизация выполняется в AsyncTask, поэтому startFullSync должен быть запущен в UI Thread.
+     * Новая синхронизация не будет запущена, если предыдущая еще не завершилась.
      */
     @MainThread
     public synchronized void startFullSync() {
@@ -120,6 +121,16 @@ public class SyncFragment extends Fragment {
         mSyncTask = new SyncAsyncTask(mSyncCallback);
         mSyncTask.execute();
 
+    }
+
+    /** Принудительно останавливает синхронизацию. */
+    public synchronized void stopSync() {
+        if (syncInAction) {
+            if (mSyncTask != null) {
+                mSyncTask.cancel(true);
+            }
+        }
+        syncInAction = false;
     }
 
 }

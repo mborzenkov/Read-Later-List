@@ -6,10 +6,10 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,44 +36,84 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/** Фрагмент, представляющий собой Drawer с фильтрами. */
+/** Фрагмент, представляющий собой Drawer с фильтрами.
+ * Оповещает о выборе нового пользователя и о нажатиях на кнопки.
+ */
 public class FilterDrawerFragment extends Fragment implements View.OnClickListener {
 
-    /** TAG фрагмента для фрагмент менеджера, должен совпадать с тем, что задан в layout. */
+    /////////////////////////
+    // Константы
+
+    /** TAG фрагмента для фрагмент менеджера. */
     public static final String TAG = "fragment_drawer_filter";
     /** Формат даты для вывода на формах Drawer. */
     private static final String FORMAT_DATE = "dd/MM/yy";
 
 
-    /** Интерфейс для оповещений о событиях в Drawer. */
-    public interface DrawerCallbacks {
+    /////////////////////////
+    // Static
 
-        /** Вызывается, когда Drawer нужно закрыть. */
-        void closeDrawer();
+    /** Возвращает уже созданный ранее объект FilterDrawerFragment или создает новый, если такого нет.
+     * Для создания объектов следует всегда использовать этот метод.
+     * Не помещает объект в FragmentManager.
+     * При помещении объекта в FragmentManager, следует использовать тэг TAG.
+     *
+     * @param fragmentManager менеджер для поиска фрагментов по тэгу
+     * @return новый объект FilterDrawerFragment
+     */
+    public static FilterDrawerFragment getInstance(FragmentManager fragmentManager) {
 
-        /** Вызывается, когда выбран новый пользователь. */
-        void onUserChanged();
+        FilterDrawerFragment fragment = (FilterDrawerFragment) fragmentManager.findFragmentByTag(TAG);
 
-        /** Вызывается, когда выбран вариант "Заполнить данными".
-         *
-         * @param count введенное пользователем количество
-         */
-        void onFillPlaceholdersChosen(int count);
+        if (fragment == null) {
+            fragment = new FilterDrawerFragment();
+        }
 
-        /** Вызывается, когда выбран вариант "Удалить все". */
-        void onDeleteAllChosen();
-
-        /** Вызывается, когда выбран вариант "Сохранить бэкап". */
-        void onBackupSaveChosen();
-
-        /** Вызывается, когда выбран вариант "Восстановить из бэкапа". */
-        void onBackupRestoreChosen();
-
-        /** Определяет, нужно ли заблокировать кнопки. */
-        boolean isLongTaskActive();
+        return fragment;
 
     }
 
+    /** Интерфейс для оповещений о событиях в Drawer. */
+    public interface DrawerCallbacks {
+
+        /** Вызывается, когда выбран новый пользователь.
+         * Если выбран тот же самый пользователь, не вызывается.
+         */
+        void onUserChanged();
+
+        /** Вызывается при нажатии на одну из кнопок действий.
+         * Нажатие на кнопки только вызывает этот колбек, не показывает окон и не закрывает Drawer.
+         *
+          * @param action действие
+         */
+        void onActionToggled(DrawerActions action);
+
+    }
+
+    /** Перечисление действий в Drawer. */
+    public enum DrawerActions {
+
+        BACKUP_SAVE("Save backup"),
+        BACKUP_RESTORE("Restore from backup"),
+        FILL_PLACEHOLDERS("Fill with placeholders"),
+        DELETE_ALL("Delete all");
+
+        private final String title;
+
+        DrawerActions(String title) {
+            this.title = title;
+        }
+
+        @Override
+        public String toString() {
+            return title;
+        }
+
+    }
+
+
+    /////////////////////////
+    // Поля объекта
 
     /** Объект для колбеков о событиях во фрагменте. */
     private @Nullable DrawerCallbacks mCallbacks = null;
@@ -90,15 +130,13 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
     private Button mSortByDateViewedButton;
     private TextView mCurrentUser;
 
-
     // Хэлперы
     /** Адаптер для SavedFilters. */
     private @Nullable ArrayAdapter<String> mSavedFiltersAdapter = null;
     /** Календарь для выбора. */
     private final Calendar mCalendar = Calendar.getInstance();
     /** Редактируемое поле даты. */
-    private @Nullable
-    EditText mDateEditor = null;
+    private @Nullable EditText mDateEditor = null;
     /** Оригинальные названия кнопок сортировки. */
     private final Map<MainListFilter.SortType, String> mSortButtonsNames = new HashMap<>();
     /** Добавляемый символ сортировки. */
@@ -149,21 +187,23 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
             ActivityUtils.showInputTextDialog(
                     getContext(),
                     inputNumber,
-                    getString(R.string.mainlist_menu_add_placeholders_question_title),
-                    getString(R.string.mainlist_menu_add_placeholders_question_text),
-                    (input) -> {
-                        try {
-                            // Смотрим введенное значение
-                            int number = Integer.parseInt(input);
+                    getString(R.string.mainlist_user_change_question_title),
+                    getString(R.string.mainlist_user_change_question_text),
+                (input) -> {
+                    try {
+                        // Смотрим введенное значение
+                        int number = Integer.parseInt(input);
+                        if (number != UserInfo.getCurentUser(getContext()).getUserId()) {
                             UserInfo.changeCurrentUser(getContext(), number);
                             mCurrentUser.setText(String.valueOf(UserInfo.getCurentUser(getContext()).getUserId()));
                             if (mCallbacks != null) {
                                 mCallbacks.onUserChanged();
                             }
-                        } catch (ClassCastException e) {
-                            Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
                         }
-                    },
+                    } catch (ClassCastException e) {
+                        Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
+                    }
+                },
                     null);
         });
 
@@ -204,30 +244,29 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
         mSortByDateViewedButton.setOnClickListener(this);
         mSortButtonsNames.put(MainListFilter.SortType.DATE_VIEWED, mSortByDateViewedButton.getText().toString());
 
-        mSortOrderSymbols.put(MainListFilter.SortOrder.ASC,
-                getString(R.string.mainlist_drawer_sort_symb_asc));
-        mSortOrderSymbols.put(MainListFilter.SortOrder.DESC,
-                getString(R.string.mainlist_drawer_sort_symb_desc));
+        mSortOrderSymbols.put(MainListFilter.SortOrder.ASC, getString(R.string.mainlist_drawer_sort_symb_asc));
+        mSortOrderSymbols.put(MainListFilter.SortOrder.DESC, getString(R.string.mainlist_drawer_sort_symb_desc));
 
-        // Ставим клик листенер на кнопки бэкап
-        rootView.findViewById(R.id.button_filterdrawer_backupsave).setOnClickListener(this);
-        rootView.findViewById(R.id.button_filterdrawer_backuprestore).setOnClickListener(this);
+        // Ставим клик листенер и таги на кнопки бэкап
+        Button backupSaveButton = (Button) rootView.findViewById(R.id.button_filterdrawer_backupsave);
+        backupSaveButton.setOnClickListener(this);
+        backupSaveButton.setTag(DrawerActions.BACKUP_SAVE);
+        Button backupRestoreButton = (Button) rootView.findViewById(R.id.button_filterdrawer_backuprestore);
+        backupRestoreButton.setOnClickListener(this);
+        backupRestoreButton.setTag(DrawerActions.BACKUP_RESTORE);
 
-        // Специальные возможности создаются только в DEBUG
-        Button fillPlaceholdersButton =
-                (Button) rootView.findViewById(R.id.button_filterdrawer_fillplaceholders);
-        Button deleteAllButton =
-                (Button) rootView.findViewById(R.id.button_filterdrawer_deleteall);
+        // Специальные возможности создаются только в DEBUG, ставим клик листенеры и таги
+        Button fillPlaceholdersButton = (Button) rootView.findViewById(R.id.button_filterdrawer_fillplaceholders);
         fillPlaceholdersButton.setOnClickListener(this);
+        fillPlaceholdersButton.setTag(DrawerActions.FILL_PLACEHOLDERS);
+        Button deleteAllButton = (Button) rootView.findViewById(R.id.button_filterdrawer_deleteall);
         deleteAllButton.setOnClickListener(this);
+        deleteAllButton.setTag(DrawerActions.DELETE_ALL);
         if (!BuildConfig.DEBUG) {
             rootView.findViewById(R.id.textview_filterdrawer_debug).setVisibility(View.INVISIBLE);
             fillPlaceholdersButton.setVisibility(View.INVISIBLE);
             deleteAllButton.setVisibility(View.INVISIBLE);
         }
-
-        // Восстанавливает себя после поворота экрана
-        setRetainInstance(true);
 
         return rootView;
 
@@ -241,7 +280,152 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
 
 
     /////////////////////////
-    // Колбеки View.onClickListener
+    // Методы для перезагрузки данных в layout
+
+    /** Обновляет Drawer в соответствии с выбранным фильтром. */
+    public void reloadDataFromCurrentFilter() {
+        MainListFilter currentFilter = MainListFilterUtils.getCurrentFilter();
+        mDateFiltersSpinner.setSelection(currentFilter.getSelection().getPosition());
+        mDateFromEditText.setText(currentFilter.getDateFrom());
+        mDateToEditText.setText(currentFilter.getDateTo());
+        favColors = FavoriteColorsUtils.updateFavLayoutFromSharedPreferences(getContext(), mFavLinearLayout, null,
+                this, currentFilter.getColorFilter());
+        resetButtons();
+        Button selectedSortButton = null;
+        switch (currentFilter.getSortType()) {
+            case LABEL:
+                selectedSortButton = mSortByLabelButton;
+                break;
+            case DATE_CREATED:
+                selectedSortButton = mSortByDateCreatedButton;
+                break;
+            case DATE_MODIFIED:
+                selectedSortButton = mSortByDateModifiedButton;
+                break;
+            case DATE_VIEWED:
+                selectedSortButton = mSortByDateViewedButton;
+                break;
+            default:
+                break;
+        }
+        if (selectedSortButton != null) {
+            selectedSortButton.setActivated(true);
+            selectedSortButton.setText(selectedSortButton.getText().toString()
+                    + " " + mSortOrderSymbols.get(currentFilter.getSortOrder()));
+        }
+    }
+
+    /** Перезагружает адаптер списка сохраненных фильтров.
+     *  Если адаптер еще не был создан, создает новый.
+     */
+    private void reloadSavedFiltersList() {
+
+        if (mSavedFiltersAdapter == null) {
+            mSavedFiltersAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item);
+            mSavedFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            mSavedFiltersSpinner.setAdapter(mSavedFiltersAdapter);
+
+            // Устанавливаем онклик слушатель
+            mSavedFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                    int indexSavedAdd = MainListFilterUtils.getIndexSavedAdd();
+                    int indexSavedDelete = MainListFilterUtils.getIndexSavedDelete();
+                    if (position == indexSavedAdd) {
+                        // Вариант 1: Клик на кнопку "+ Добавить"
+                        // Показываем окно ввода текста, сохраняем при успешном вводе
+                        final EditText editText = new EditText(getContext());
+                        ActivityUtils.showInputTextDialog(
+                                getContext(),
+                                editText,
+                                getString(R.string.mainlist_drawer_filters_save_question_title),
+                                null,
+                            (String input) -> saveFilter(input),
+                            () -> resetSavedFilterSelection());
+
+                    } else if (position == indexSavedDelete) {
+                        // Вариант 2: Клик на кнопку "- Удалить"
+                        // Показываем окно подтверждения, удаляем при положительном ответе
+                        final int currentIndex = MainListFilterUtils.getIndexSavedCurrent();
+                        if (currentIndex == MainListFilterUtils.INDEX_SAVED_DEFAULT) {
+                            mSavedFiltersSpinner.setSelection(currentIndex);
+                            return;
+                        }
+                        ActivityUtils.showAlertDialog(
+                                getContext(),
+                                getString(R.string.mainlist_drawer_filters_remove_question_title),
+                                getString(R.string.mainlist_drawer_filters_remove_question_text),
+                            () -> removeSavedFilter(),
+                            () -> resetSavedFilterSelection());
+                    } else {
+                        // Остальные варианты - выбираем
+                        MainListFilterUtils.clickOnSavedFilter(position);
+                        reloadDataFromCurrentFilter();
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) { }
+            });
+        }
+
+        mSavedFiltersAdapter.clear();
+        mSavedFiltersAdapter.addAll(MainListFilterUtils.getSavedFiltersList(getContext()));
+        mSavedFiltersAdapter.notifyDataSetChanged();
+
+    }
+
+    /** Перезагружает адаптер списка фильтров по датам.
+     * Всегда создает новый адаптер.
+     */
+    private void reloadDateFiltersList() {
+
+        ArrayAdapter<String> dateFiltersAdapter =
+                new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item);
+        dateFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        dateFiltersAdapter.addAll(MainListFilterUtils.getsDateFiltersList(getContext()));
+        mDateFiltersSpinner.setAdapter(dateFiltersAdapter);
+
+        // Устанавливаем онклик слушатель
+        mDateFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                // Скрываем или показываем поле выбора дат
+                MainListFilter filter = MainListFilterUtils.getCurrentFilter();
+                filter.setSelection(MainListFilterUtils.getDateFilterSelection(position));
+                switch (position) {
+                    case MainListFilterUtils.INDEX_DATE_ALL:
+                        mDateFromEditText.setVisibility(View.GONE);
+                        mDateToEditText.setVisibility(View.GONE);
+                        break;
+                    default:
+                        mDateFromEditText.setVisibility(View.VISIBLE);
+                        mDateToEditText.setVisibility(View.VISIBLE);
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) { }
+        });
+
+    }
+
+    /** Сбрасывает все кнопки SortBy. */
+    private void resetButtons() {
+        mSortByLabelButton.setActivated(false);
+        mSortByLabelButton.setText(mSortButtonsNames.get(MainListFilter.SortType.LABEL));
+        mSortByDateCreatedButton.setActivated(false);
+        mSortByDateCreatedButton.setText(mSortButtonsNames.get(MainListFilter.SortType.DATE_CREATED));
+        mSortByDateModifiedButton.setActivated(false);
+        mSortByDateModifiedButton.setText(mSortButtonsNames.get(MainListFilter.SortType.DATE_MODIFIED));
+        mSortByDateViewedButton.setActivated(false);
+        mSortByDateViewedButton.setText(mSortButtonsNames.get(MainListFilter.SortType.DATE_VIEWED));
+    }
+
+
+    /////////////////////////
+    // Колбеки View.onClickListener и обработчики нажатий на различные кнопки
 
     @Override
     public void onClick(@NonNull View v) {
@@ -271,205 +455,34 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                 toggleColorFilter((int) v.getTag(), v.isActivated());
                 break;
             default:
-                // Нажатия на кнопки действий обрабатываются другой функцией
-                clickOnActions(v);
+                if ((mCallbacks != null) && (v.getTag() instanceof DrawerActions)) {
+                    mCallbacks.onActionToggled((DrawerActions) v.getTag());
+                }
                 break;
         }
 
+    }
+
+    /** Включает или выключает фильтр по цвету из списка любимых.
+     *
+     * @param position позиция в списке любимых
+     * @param activate признак, включить или выключить фильтр
+     */
+    private void toggleColorFilter(int position, boolean activate) {
+        if (favColors != null) {
+            MainListFilter filter = MainListFilterUtils.getCurrentFilter();
+            int color = favColors[position];
+            if (activate) {
+                filter.addColorFilter(color);
+            } else {
+                filter.removeColorFilter(color);
+            }
+        }
     }
 
 
     /////////////////////////
-    // Колбеки Fragment
-
-    /** Обрабатывает нажатия на кнопки действий.
-     * Управление передается из onClick, если onClick ничего не удалось обработать.
-     *
-     * @param v view, на которую нажали
-     */
-    private void clickOnActions(@NonNull View v) {
-
-        if ((mCallbacks != null) && (mCallbacks.isLongTaskActive())) {
-            // Если выполняется какая-то работа, кнопки не работают, показывается предупреждение.
-            ActivityUtils.showAlertDialog(getContext(),
-                    getString(R.string.mainlist_longloading_title),
-                    getString(R.string.mainlist_longloading_text),
-                    null,
-                    null);
-            return;
-        }
-
-        switch (v.getId()) {
-            case R.id.button_filterdrawer_backupsave:
-                // Действие "Сохранить бэкап" открывает окно подтверждения и по положительному ответу
-                // вызывает функцию для сохранения
-                ActivityUtils.showAlertDialog(getContext(),
-                        getString(R.string.mainlist_drawer_backup_save_question_title),
-                        getString(R.string.mainlist_drawer_backup_save_question_text),
-                        () -> {
-                            if (mCallbacks != null) {
-                                mCallbacks.onBackupSaveChosen();
-                            }
-                        },
-                        null);
-                break;
-            case R.id.button_filterdrawer_backuprestore:
-                // Действие "Восстановить из бэкапа" открывает окно подтверждения и по положительному ответу
-                // вызывает функцию для восстановления
-                ActivityUtils.showAlertDialog(getContext(),
-                        getString(R.string.mainlist_drawer_backup_restore_question_title),
-                        getString(R.string.mainlist_drawer_backup_restore_question_text),
-                        () -> {
-                            if (mCallbacks != null) {
-                                mCallbacks.onBackupRestoreChosen();
-                            }
-                        },
-                        null);
-                break;
-            case R.id.button_filterdrawer_fillplaceholders:
-                // Действие "Заполнить данными" открывает окно подтверждения и по положительному ответу
-                // вызывает функцию для заполнения
-                if (BuildConfig.DEBUG) {
-                    EditText inputNumber = new EditText(getContext());
-                    inputNumber.setInputType(InputType.TYPE_CLASS_NUMBER);
-                    inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(1)}); // Не более 9
-                    ActivityUtils.showInputTextDialog(
-                            getContext(),
-                            inputNumber,
-                            getString(R.string.mainlist_menu_add_placeholders_question_title),
-                            getString(R.string.mainlist_menu_add_placeholders_question_text),
-                            (input) -> {
-                                try {
-                                    if (mCallbacks != null) {
-                                        // Смотрим введенное значение
-                                        int number = Integer.parseInt(input);
-                                        mCallbacks.onFillPlaceholdersChosen(number);
-                                    }
-                                } catch (NumberFormatException e) {
-                                    Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
-                                }
-                            },
-                            null);
-                }
-                break;
-            case R.id.button_filterdrawer_deleteall:
-                // Действие "Удалить все" открывает окно подтверждения и по положительному ответу
-                // вызывает функцию для очистки
-                if (BuildConfig.DEBUG) {
-                    ActivityUtils.showAlertDialog(
-                            getContext(),
-                            getString(R.string.mainlist_menu_delete_all_question_title),
-                            getString(R.string.mainlist_menu_delete_all_question_text),
-                            () -> {
-                                if (mCallbacks != null) {
-                                    mCallbacks.onDeleteAllChosen();
-                                }
-                            },
-                            null);
-                }
-                break;
-            default:
-                break;
-        }
-        if (mCallbacks != null) {
-            mCallbacks.closeDrawer();
-        }
-    }
-
-    /** Перезагружает адаптер списка сохраненных фильтров.
-     *  Если адаптер еще не был создан, создает новый.
-     */
-    private void reloadSavedFiltersList() {
-
-        if (mSavedFiltersAdapter == null) {
-            mSavedFiltersAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item);
-            mSavedFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            mSavedFiltersSpinner.setAdapter(mSavedFiltersAdapter);
-
-            // Устанавливаем онклик слушатель
-            mSavedFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
-                    int indexSavedAdd = MainListFilterUtils.getIndexSavedAdd();
-                    int indexSavedDelete = MainListFilterUtils.getIndexSavedDelete();
-                    if (position == indexSavedAdd) {
-                        // Вариант 1: Клик на кнопку "+ Добавить"
-                        // Показываем окно ввода текста, сохраняем при успешном вводе
-                        final EditText editText = new EditText(getContext());
-                        ActivityUtils.showInputTextDialog(
-                                getContext(),
-                                editText,
-                                getString(R.string.mainlist_drawer_filters_save_question_title),
-                                null,
-                                (String input) -> saveFilter(input),
-                                () -> resetSavedFilterSelection());
-
-                    } else if (position == indexSavedDelete) {
-                        // Вариант 2: Клик на кнопку "- Удалить"
-                        // Показываем окно подтверждения, удаляем при положительном ответе
-                        final int currentIndex = MainListFilterUtils.getIndexSavedCurrent();
-                        if (currentIndex == MainListFilterUtils.INDEX_SAVED_DEFAULT) {
-                            mSavedFiltersSpinner.setSelection(currentIndex);
-                            return;
-                        }
-                        ActivityUtils.showAlertDialog(
-                                getContext(),
-                                getString(R.string.mainlist_drawer_filters_remove_question_title),
-                                getString(R.string.mainlist_drawer_filters_remove_question_text),
-                                () -> removeSavedFilter(),
-                                () -> resetSavedFilterSelection());
-                    } else {
-                        // Остальные варианты - выбираем
-                        MainListFilterUtils.clickOnSavedFilter(position);
-                        reloadDataFromCurrentFilter();
-                    }
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> adapterView) { }
-            });
-        }
-
-        mSavedFiltersAdapter.clear();
-        mSavedFiltersAdapter.addAll(MainListFilterUtils.getSavedFiltersList(getContext()));
-        mSavedFiltersAdapter.notifyDataSetChanged();
-
-    }
-
-    /** Перезагружает адаптер списка фильтров по датам.
-     * Всегда создает новый адаптер.
-     */
-    private void reloadDateFiltersList() {
-
-        ArrayAdapter<String> dateFiltersAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item);
-        dateFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        dateFiltersAdapter.addAll(MainListFilterUtils.getsDateFiltersList(getContext()));
-        mDateFiltersSpinner.setAdapter(dateFiltersAdapter);
-
-        // Устанавливаем онклик слушатель
-        mDateFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
-                // Скрываем или показываем поле выбора дат
-                MainListFilter filter = MainListFilterUtils.getCurrentFilter();
-                filter.setSelection(MainListFilterUtils.getDateFilterSelection(position));
-                switch (position) {
-                    case MainListFilterUtils.INDEX_DATE_ALL:
-                        mDateFromEditText.setVisibility(View.GONE);
-                        mDateToEditText.setVisibility(View.GONE);
-                        break;
-                    default:
-                        mDateFromEditText.setVisibility(View.VISIBLE);
-                        mDateToEditText.setVisibility(View.VISIBLE);
-                        break;
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) { }
-        });
-
-    }
+    // Вспомогательные методы для выбора дат
 
     /** Устанавливает в mDateEditor выбраную дату.
      *
@@ -543,6 +556,10 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
 
     }
 
+
+    /////////////////////////
+    // Вспомогательные методы для работы с предопределенными фильтрами
+
     /** Удаляет текущий выбранный фильтр из списка сохраненных. */
     private void removeSavedFilter() {
         MainListFilterUtils.removeCurrentFilter(getContext());
@@ -569,68 +586,5 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
         }
         resetSavedFilterSelection();
     }
-
-    /** Обновляет Drawer в соответствии с выбранным фильтром. */
-    public void reloadDataFromCurrentFilter() {
-        MainListFilter currentFilter = MainListFilterUtils.getCurrentFilter();
-        mDateFiltersSpinner.setSelection(currentFilter.getSelection().getPosition());
-        mDateFromEditText.setText(currentFilter.getDateFrom());
-        mDateToEditText.setText(currentFilter.getDateTo());
-        favColors = FavoriteColorsUtils.updateFavLayoutFromSharedPreferences(getContext(), mFavLinearLayout, null,
-                this, currentFilter.getColorFilter());
-        resetButtons();
-        Button selectedSortButton = null;
-        switch (currentFilter.getSortType()) {
-            case LABEL:
-                selectedSortButton = mSortByLabelButton;
-                break;
-            case DATE_CREATED:
-                selectedSortButton = mSortByDateCreatedButton;
-                break;
-            case DATE_MODIFIED:
-                selectedSortButton = mSortByDateModifiedButton;
-                break;
-            case DATE_VIEWED:
-                selectedSortButton = mSortByDateViewedButton;
-                break;
-            default:
-                break;
-        }
-        if (selectedSortButton != null) {
-            selectedSortButton.setActivated(true);
-            selectedSortButton.setText(selectedSortButton.getText().toString()
-                    + " " + mSortOrderSymbols.get(currentFilter.getSortOrder()));
-        }
-    }
-
-    /** Сбрасывает все кнопки SortBy. */
-    private void resetButtons() {
-        mSortByLabelButton.setActivated(false);
-        mSortByLabelButton.setText(mSortButtonsNames.get(MainListFilter.SortType.LABEL));
-        mSortByDateCreatedButton.setActivated(false);
-        mSortByDateCreatedButton.setText(mSortButtonsNames.get(MainListFilter.SortType.DATE_CREATED));
-        mSortByDateModifiedButton.setActivated(false);
-        mSortByDateModifiedButton.setText(mSortButtonsNames.get(MainListFilter.SortType.DATE_MODIFIED));
-        mSortByDateViewedButton.setActivated(false);
-        mSortByDateViewedButton.setText(mSortButtonsNames.get(MainListFilter.SortType.DATE_VIEWED));
-    }
-
-    /** Включает или выключает фильтр по цвету из списка любимых.
-     *
-     * @param position позиция в списке любимых
-     * @param activate признак, включить или выключить фильтр
-     */
-    private void toggleColorFilter(int position, boolean activate) {
-        if (favColors != null) {
-            MainListFilter filter = MainListFilterUtils.getCurrentFilter();
-            int color = favColors[position];
-            if (activate) {
-                filter.addColorFilter(color);
-            } else {
-                filter.removeColorFilter(color);
-            }
-        }
-    }
-
 
 }

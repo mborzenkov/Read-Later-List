@@ -197,14 +197,14 @@ public class ReadLaterItem {
     private final @NonNull String description;
     /** Цвет. */
     private final int color;
+    /** URL картинки. */
+    private final @Nullable URL imageUrl;
     /** Дата создания. */
     private final long dateCreated;
     /** Дата изменения. */
     private final long dateModified;
     /** Дата просмотра. */
     private final long dateViewed;
-    /** URL картинки. */
-    private final @Nullable URL imageUrl;
     /** Внешний идентификатор элемента. */
     private final int remoteId;
 
@@ -322,6 +322,21 @@ public class ReadLaterItem {
         return remoteId;
     }
 
+    /** Сравнивает содержательную часть двух объектов ReadLaterItem.
+     * Объекты равны содержательно, если у них равен цвет, заголовок, описание и ссылка.
+     *
+     * @param item объект для сравнения
+     * @return true, если объекты равны содержательно, иначе false
+     */
+    public boolean equalsByContent(@Nullable ReadLaterItem item) {
+        return (item != null)
+                && (color == item.color)
+                && label.equals(item.label)
+                && description.equals(item.description)
+                && (((imageUrl != null) && imageUrl.equals(item.imageUrl)) // Не null и equals
+                    || (imageUrl == item.imageUrl));                       // null и равны
+    }
+
     /** Два объекта ReadLaterItem равны, если у них одинаковые заголовок, описание, цвет и даты создания, изменения,
      * просмотра, ссылка на картинку и внешний идентификатор.
      *
@@ -329,7 +344,7 @@ public class ReadLaterItem {
      * @return True, если равны; False в противном случае
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (!(obj instanceof ReadLaterItem)) {
             return false;
         }

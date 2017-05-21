@@ -103,7 +103,7 @@ public class FavoriteColorsUtils {
             View favCircle = layout.getChildAt(i).findViewById(R.id.imageButton_favorite_color);
             if (savedColor != Color.TRANSPARENT) {
                 Drawable[] children = ((DrawableContainer.DrawableContainerState) (
-                        (StateListDrawable) favCircle.getBackground()).getConstantState()).getChildren();
+                        favCircle.getBackground()).getConstantState()).getChildren();
                 ((GradientDrawable) children[0]).setColor(savedColor);
                 ((GradientDrawable) children[1]).setColor(savedColor);
                 ((GradientDrawable) children[2]).setColor(savedColor);

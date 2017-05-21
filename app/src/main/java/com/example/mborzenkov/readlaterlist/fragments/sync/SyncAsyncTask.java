@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.Size;
 import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
@@ -18,8 +19,11 @@ import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 import com.squareup.moshi.Moshi;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -84,7 +88,8 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
          * @param conflicts список конфликтов, каждый элемент состоит из 2 объектов ReadLaterItem
          * @param syncStartTime дата начала синхронизации для обновления даты последней синхронизации
          */
-        void onSyncWithConflicts(@Nullable List<ReadLaterItem[]> conflicts, long syncStartTime);
+        void onSyncWithConflicts(@NonNull @Size(min = 1) List<ReadLaterItem[]> conflicts, long syncStartTime);
+
     }
 
 
@@ -244,7 +249,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
     // AsyncTask
 
     /** Callback для оповещений о результатах синхронизации. */
-    private final @Nullable SyncCallback mSyncCallback;
+    private @Nullable SyncCallback mSyncCallback;
     /** Дата последней синхронизации. */
     private long lastSync = 0;
     /** Дата начала синхронизации. */
@@ -254,27 +259,34 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
         mSyncCallback = callback;
     }
 
+    /** Устанавливает колбек для этого таска.
+     *
+     * @param callback новый колбек, может быть null, если нужно отписаться
+     */
+    void setCallback(@Nullable SyncCallback callback) {
+        mSyncCallback = callback;
+    }
+
     /** Объект для передачи данных из doInBackground в onPostExecute. */
     class SyncResult {
 
         /** Признак успешности синхронизации. */
         private final boolean isSuccessful;
-        /** Список конфликтов, каждый элемент состоит из 2 объектов ReadLaterItem.
-         *  Может быть null, если isSuccessful == false.
-         */
-        private final @Nullable List<ReadLaterItem[]> conflicts;
+
+        /** Список конфликтов, каждый элемент состоит из 2 объектов ReadLaterItem. */
+        private final @NonNull List<ReadLaterItem[]> conflicts;
 
         /** Создает новый объект SyncResult с ошибкой. */
         private SyncResult() {
             this.isSuccessful = false;
-            this.conflicts = null;
+            this.conflicts = Collections.emptyList();
         }
 
         /** Создает новый объект SyncResult с успешным принаком и списком конфликтов.
          *
          * @param conflicts список конфликтов, каждый элемент состоит из 2 объектов ReadLaterItem.
          */
-        private SyncResult(@Nullable List<ReadLaterItem[]> conflicts) {
+        private SyncResult(@NonNull List<ReadLaterItem[]> conflicts) {
             this.isSuccessful = true;
             this.conflicts = conflicts;
         }
@@ -285,6 +297,8 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
         // Проверяем, есть ли SyncCallback и есть ли подлкючение к сети
         if (mSyncCallback != null) {
             lastSync = mSyncCallback.getLastSync();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSZ", Locale.US);
+            Log.d("SYNC", "Last sync: " + sdf.format(lastSync));
             if (!mSyncCallback.isNetworkConnected()) {
                 Log.e(TAG_ERROR_NETWORK, ERROR_NETWORK);
                 mSyncCallback.onSyncFailed();
@@ -344,13 +358,27 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
                                 ReadLaterDbUtils.insertItem(appContext, itemServer);
                             } else if (itemLocal.getDateModified() <= lastSync) {
                                 // Server: есть, изменен; Local: есть, без изм.
-                                Log.d(TAG_SYNC, "Updating Local: " + remoteId);
-                                ReadLaterDbUtils.updateItemByRemoteId(appContext, userId, itemServer, remoteId);
+                                Log.d(TAG_SYNC, "Updating Local: " + remoteId + ", item: " + itemServer.toString());
+                                ReadLaterDbUtils.updateItem(appContext, itemServer, userId, remoteId);
                             } else {
                                 // Server: есть, изменен; Local: есть, изменен
-                                if (!itemLocal.equals(itemServer)) {
-                                    Log.d(TAG_SYNC, "Conflict: " + remoteId);
+                                if (!itemLocal.equalsByContent(itemServer)) {
+                                    // Разбор конфликтов пользователем происходит только если не равны содержательно
                                     conflicts.add(new ReadLaterItem[]{itemServer, itemLocal});
+                                } else {
+                                    // Если они равны содержательно, но все таки изменены, то запишем в оба места
+                                    //      меньшую дату создания и большие даты изменения и просмотра
+                                    ReadLaterItem.Builder itemBuilder = new ReadLaterItem.Builder(itemLocal);
+                                    itemBuilder.dateCreated(
+                                            Math.min(itemLocal.getDateCreated(), itemServer.getDateCreated()));
+                                    itemBuilder.dateModified(Math.max(
+                                            itemLocal.getDateModified(), itemServer.getDateModified()));
+                                    itemBuilder.dateViewed(Math.max(
+                                            itemLocal.getDateViewed(), itemServer.getDateViewed()));
+                                    ReadLaterItem savingItem = itemBuilder.build();
+                                    updateItemOnServer(cloudApi, userId, remoteId, savingItem);
+                                    ReadLaterDbUtils.updateItem(appContext, savingItem, userId, remoteId);
+                                    Log.d(TAG_SYNC, "Auto merge: " + remoteId + ", item: " + itemServer.toString());
                                 }
                             }
                         } else {
@@ -368,8 +396,10 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
                                 continue;
                             } else {
                                 // Server: есть, без изм.; Local: есть, изменен
-                                Log.d(TAG_SYNC, "Updating Server: " + remoteId);
-                                if (!updateItemOnServer(cloudApi, userId, remoteId, itemLocal)) {
+                                Log.d(TAG_SYNC, "Updating Server: " + itemLocal.toString());
+                                ReadLaterItem.Builder itemBuilder = new ReadLaterItem.Builder(itemLocal);
+                                itemBuilder.dateModified(System.currentTimeMillis());
+                                if (!updateItemOnServer(cloudApi, userId, remoteId, itemBuilder.build())) {
                                     return new SyncResult();
                                 }
                             }
@@ -406,8 +436,11 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
                     // Делим заметки на измененные и не измененные
                     if (itemLocal.getDateModified() > lastSync) {
                         // Server: нет; Local: есть, изменен
-                        Log.d(TAG_SYNC, "Inserting Server: " + remoteId);
-                        Integer newRemoteId = insertItemOnServer(cloudApi, userId, itemLocal);
+                        ReadLaterItem.Builder itemBuilder = new ReadLaterItem.Builder(itemLocal);
+                        itemBuilder.dateModified(System.currentTimeMillis());
+                        ReadLaterItem savingItem = itemBuilder.build();
+                        Log.d(TAG_SYNC, "Inserting Server: " + savingItem.toString());
+                        Integer newRemoteId = insertItemOnServer(cloudApi, userId, savingItem);
                         if (newRemoteId == null) {
                             return new SyncResult();
                         }
@@ -436,7 +469,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
             if (syncResult == null || !syncResult.isSuccessful) {
                 mSyncCallback.onSyncFailed();
             } else {
-                if (syncResult.conflicts != null) {
+                if (!syncResult.conflicts.isEmpty()) {
                     mSyncCallback.onSyncWithConflicts(syncResult.conflicts, syncStartTime);
                 } else {
                     mSyncCallback.onSyncSuccess(syncStartTime);

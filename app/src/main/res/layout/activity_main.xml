@@ -1,70 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.DrawerLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/drawerlayout_mainlist"
+    android:id="@+id/fragmentcontainer_mainactivity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        >
+    <ProgressBar
+        android:id="@+id/pb_mainactivity_loading"
+        android:layout_gravity="center"
+        android:visibility="invisible"
+        style="@style/ProgressBarSpinning"
+        />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            >
-
-            <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar_mainactivity"
-                style="@style/Toolbar"
-                />
-
-            <android.support.v4.widget.SwipeRefreshLayout
-                android:id="@+id/fragmentcontainer_mainactivity"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                >
-
-            </android.support.v4.widget.SwipeRefreshLayout>
-
-        </LinearLayout>
-
-        <ProgressBar
-            android:id="@+id/pb_mainactivity_loading"
-            android:layout_gravity="center"
-            android:visibility="invisible"
-            style="@style/ProgressBarSpinning"
-            />
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab_item_add"
-            android:layout_gravity="bottom|end"
-            app:srcCompat="@drawable/ic_add_24dp"
-            style="@style/FAB"
-            />
-
-    </FrameLayout>
-
-    <ScrollView
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="end"
-        style="@style/MainList.Drawer.Layout"
-        >
-
-        <fragment
-            android:name="com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment"
-            android:tag="fragment_drawer_filter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            tools:layout="@layout/fragment_drawer_filter"
-            />
-
-    </ScrollView>
-
-</android.support.v4.widget.DrawerLayout>
+</FrameLayout>

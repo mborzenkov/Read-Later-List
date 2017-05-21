@@ -5,7 +5,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="@dimen/width_drawer"
     android:layout_height="wrap_content"
-    android:layout_gravity="end"
     >
 
     <TextView

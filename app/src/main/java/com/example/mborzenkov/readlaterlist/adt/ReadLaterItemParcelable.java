@@ -7,9 +7,6 @@ import android.support.annotation.NonNull;
 /** Представляет вспомогательный класс для ReadLaterItem, который реализует интерфейс parcelable. */
 public final class ReadLaterItemParcelable implements Parcelable {
 
-    /** Константа для использования в Intent в качестве ключа при передаче объекта ReadLaterItem. */
-    public static final String KEY_EXTRA = "com.example.mborzenkov.readlaterlist.readlateritem.extra";
-
     /** Объект ReadLaterItem, соответствующий экземпляру этого вспомогательного класса. */
     private final ReadLaterItem item;
 

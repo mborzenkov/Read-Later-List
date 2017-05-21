@@ -132,12 +132,13 @@ public class ReadLaterDbUtils {
     /** Обновляет заметку с указанным remoteId.
      *
      * @param context контекст
-     * @param userId идентификатор пользователя
      * @param item заметка с содержимым, которое нужно положить на место обновляемой заметки
+     * @param userId идентификатор пользователя
      * @param remoteId внешний идентификатор заметки
+     *
      * @return true - если обновление прошло успешно, иначе false
      */
-    public static boolean updateItemByRemoteId(Context context, int userId, ReadLaterItem item, int remoteId) {
+    public static boolean updateItem(Context context, ReadLaterItem item, int userId, int remoteId) {
         int localId = getItemLocalIdByRemoteId(context, userId, remoteId);
         //noinspection SimplifiableIfStatement
         if (localId < 0) {
@@ -151,6 +152,7 @@ public class ReadLaterDbUtils {
      * @param context Контекст
      * @param item Элемент в виде ReadLaterItem
      * @param uid _id элемента для изменения
+     *
      * @return True, если изменение было выполнено успешно
      */
     public static boolean updateItem(Context context, ReadLaterItem item, int uid) {
