@@ -52,8 +52,7 @@ import com.example.mborzenkov.readlaterlist.utility.MainListBackupUtils;
 public class ItemListFragment extends Fragment implements
         SearchView.OnQueryTextListener,
         ItemListAdapter.ItemListAdapterOnClickHandler,
-        LoaderManager.LoaderCallbacks<Cursor>,
-        FilterDrawerFragment.DrawerCallbacks {
+        LoaderManager.LoaderCallbacks<Cursor> {
 
 
     /////////////////////////
@@ -64,6 +63,9 @@ public class ItemListFragment extends Fragment implements
 
     /** ID контейнера для Drawer. */
     public static final @IdRes int DRAWER_CONTAINER = R.id.drawerfragmentcontainer_itemlist;
+
+    /** Максимальная длительность показа индикатора загрузки. */
+    private static final int SYNC_ICON_MAX_DURATION = 6000; // 6 сек
 
 
     /////////////////////////
@@ -166,7 +168,6 @@ public class ItemListFragment extends Fragment implements
                 public void onDrawerClosed(View view) {
                     // При закрытии - устанавливаем фильтр
                     super.onDrawerClosed(view);
-                    Log.d("ITEMLIST", "Drawer closed");
                     if (mLoaderManager != null) {
                         mLoaderManager.restartLoader();
                     }
@@ -209,6 +210,8 @@ public class ItemListFragment extends Fragment implements
                     mSwipeRefreshLayout.setEnabled((firstVisibleItem == 0) && (topRowVerticalPosition >= 0));
                 }
             });
+        } else {
+            mSwipeRefreshLayout.setEnabled(false);
         }
 
         setHasOptionsMenu(true);
@@ -223,6 +226,11 @@ public class ItemListFragment extends Fragment implements
         if (mLoaderManager != null) {
             mLoaderManager.restartLoader();
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
     }
 
     @Override
@@ -359,148 +367,6 @@ public class ItemListFragment extends Fragment implements
 
 
     /////////////////////////
-    // Колбеки FilterDrawerFragment
-
-    @Override
-    public void onActionToggled(FilterDrawerFragment.DrawerActions action) {
-
-        // TODO: Возможно убрать isLongTaskActive
-
-        // Если выполняется какая-то работа, кнопки не работают, показывается предупреждение.
-        if (mCallbacks != null && mCallbacks.isLongTaskActive()) {
-            ActivityUtils.showAlertDialog(getContext(),
-                    getString(R.string.mainlist_longloading_title),
-                    getString(R.string.mainlist_longloading_text),
-                    null,
-                    null);
-            return;
-        }
-
-        // TODO: Переделать бэкап таски
-//
-//        switch (action) {
-//            case BACKUP_SAVE:
-//                // Действие "Сохранить бэкап" открывает окно подтверждения и по положительному ответу
-//                // вызывает функцию для сохранения
-//                ActivityUtils.showAlertDialog(getContext(),
-//                        getString(R.string.mainlist_drawer_backup_save_question_title),
-//                        getString(R.string.mainlist_drawer_backup_save_question_text),
-//                        () -> {
-//                            handleBackupTask(true);
-//                        },
-//                        null);
-//                break;
-//            case BACKUP_RESTORE:
-//                // Действие "Восстановить из бэкапа" открывает окно подтверждения и по положительному ответу
-//                // вызывает функцию для восстановления
-//                ActivityUtils.showAlertDialog(getContext(),
-//                        getString(R.string.mainlist_drawer_backup_restore_question_title),
-//                        getString(R.string.mainlist_drawer_backup_restore_question_text),
-//                        () -> {
-//                            handleBackupTask(false);
-//                        },
-//                        null);
-//                break;
-//            case FILL_PLACEHOLDERS:
-//                // Действие "Заполнить данными" открывает окно подтверждения и по положительному ответу
-//                // вызывает функцию для заполнения
-//                if (BuildConfig.DEBUG) {
-//                    EditText inputNumber = new EditText(getContext());
-//                    inputNumber.setInputType(InputType.TYPE_CLASS_NUMBER);
-//                    inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(1)}); // Не более 9
-//                    ActivityUtils.showInputTextDialog(
-//                            getContext(),
-//                            inputNumber,
-//                            getString(R.string.mainlist_menu_add_placeholders_question_title),
-//                            getString(R.string.mainlist_menu_add_placeholders_question_text),
-//                            (input) -> {
-//                                try {
-//                                    if (mCallbacks != null) {
-//                                        // Смотрим введенное значение
-//                                        int number = Integer.parseInt(input);
-//                                        MainActivityLongTask.startLongBackgroundTask(
-//                                                () -> DebugUtils.addPlaceholdersToDatabase(this, count),
-//                                                this)){
-//                                            showLoading();
-//                                        }
-//                                    }
-//                                } catch (NumberFormatException e) {
-//                                    Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
-//                                }
-//                            },
-//                            null);
-//                }
-//                break;
-//            case DELETE_ALL:
-//                // Действие "Удалить все" открывает окно подтверждения и по положительному ответу
-//                // вызывает функцию для очистки
-//                if (BuildConfig.DEBUG) {
-//                    ActivityUtils.showAlertDialog(
-//                            getContext(),
-//                            getString(R.string.mainlist_menu_delete_all_question_title),
-//                            getString(R.string.mainlist_menu_delete_all_question_text),
-//                            () -> {
-//                                MainActivityLongTask.startLongBackgroundTask(
-//                                        () -> {
-//                                            ReadLaterDbUtils.deleteAll(this);
-//                                            LongTaskNotifications.cancelNotification();
-//                                        },
-//                                        this)){
-//                                    showLoading();
-//                                }
-//                            },
-//                            null);
-//                }
-//                break;
-//        }
-
-        mDrawerLayout.closeDrawer(Gravity.END);
-    }
-
-    @Override
-    public void onUserChanged() {
-        // TODO: toggleSync();
-    }
-
-
-//    /////////////////////////
-//    // Методы сохранения и восстановления из бэкапа
-//    /** Выполняет сохранение или восстановление бэкапов в фоновом потоке.
-//     *
-//     * @param savingMode true - режим сохранения данных, false - режим восстановления
-//     */
-//    private void handleBackupTask(boolean savingMode) {
-//
-//        // Пробуем заблокировать интерфейс
-//        if (!MainActivityLongTask.startAnotherLongTask()) {
-//            return; // не удалось, что то уже происходит
-//        }
-//
-//        // Запускаем поток
-//        HandlerThread handlerThread = new HandlerThread("BackupHandlerThread");
-//        handlerThread.start();
-//        Looper looper = handlerThread.getLooper();
-//        Handler handler = new Handler(looper);
-//
-//        // Выполняем работу
-//        if (savingMode) {
-//            handler.post(() -> {
-//                MainListBackupUtils.saveEverythingAsJsonFile(this);
-//                MainActivityLongTask.stopAnotherLongTask();
-//            });
-//        } else {
-//            showLoading();
-//            handler.post(() -> {
-//                MainListBackupUtils.restoreEverythingFromJsonFile(this);
-//                if (MainActivityLongTask.stopAnotherLongTask()) {
-//                    runOnUiThread(mItemListFragment::reloadData);
-//                }
-//            });
-//        }
-//
-//    }
-
-    /////////////////////////
     // Все остальное
 
     /** Проверяет, загружены ли данные в список.
@@ -513,9 +379,13 @@ public class ItemListFragment extends Fragment implements
         return (mItemListAdapter != null) && (mItemListAdapter.getCursor() != null);
     }
 
-
+    /** Устанавливает индикатор загрузки.
+     *
+     * @param refreshing true - индикатор появляется, false - убирается
+     */
     public void setRefreshing(boolean refreshing) {
         mSwipeRefreshLayout.setRefreshing(refreshing);
+        mSwipeRefreshLayout.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), SYNC_ICON_MAX_DURATION);
     }
 
 }

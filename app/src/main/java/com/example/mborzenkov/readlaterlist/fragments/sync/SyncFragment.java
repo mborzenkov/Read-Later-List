@@ -94,18 +94,17 @@ public class SyncFragment extends Fragment {
 
     }
 
-    /** Принудительно останавливает синхронизацию. */
-    public synchronized void stopSync() {
-        if (syncInAction) {
-            if (mSyncTask != null) {
-                mSyncTask.cancel(true);
-            }
-        }
-        syncInAction = false;
+    /** Проверяет, запущена ли синхронизация.
+     *
+     * @return true - если запущена, иначе false
+     */
+    public synchronized boolean isSyncActive() {
+        return syncInAction;
     }
 
     /** Запускает полную синхронизацию.
      * Синхронизация выполняется в AsyncTask, поэтому startFullSync должен быть запущен в UI Thread.
+     * Новая синхронизация не будет запущена, если предыдущая еще не завершилась.
      */
     @MainThread
     public synchronized void startFullSync() {
@@ -120,6 +119,16 @@ public class SyncFragment extends Fragment {
         mSyncTask = new SyncAsyncTask(mSyncCallback);
         mSyncTask.execute();
 
+    }
+
+    /** Принудительно останавливает синхронизацию. */
+    public synchronized void stopSync() {
+        if (syncInAction) {
+            if (mSyncTask != null) {
+                mSyncTask.cancel(true);
+            }
+        }
+        syncInAction = false;
     }
 
 }

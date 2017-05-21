@@ -19,22 +19,30 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputFilter;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
+import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
-import com.example.mborzenkov.readlaterlist.fragments.ColorPickerFragment;
-import com.example.mborzenkov.readlaterlist.fragments.EditItemFragment;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
+import com.example.mborzenkov.readlaterlist.fragments.ColorPickerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
-import com.example.mborzenkov.readlaterlist.fragments.OnBackPressedListener;
+import com.example.mborzenkov.readlaterlist.fragments.EditItemFragment;
+import com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncAsyncTask;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncFragment;
+import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
+import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
+import com.example.mborzenkov.readlaterlist.utility.LongTaskNotifications;
+import com.example.mborzenkov.readlaterlist.utility.MainListBackupUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 
 import java.util.ArrayList;
@@ -45,15 +53,13 @@ public class MainActivity extends AppCompatActivity implements
         SyncAsyncTask.SyncCallback,
         ConflictsFragment.ConflictsCallback,
         ItemListFragment.ItemListCallbacks,
-        EditItemFragment.EditItemCallbacks {
+        EditItemFragment.EditItemCallbacks,
+        FilterDrawerFragment.DrawerCallbacks {
 
     // [DrawerFragment]
-    // TODO: Перезагрузка данных в правильных местах
-    // TODO: Обработчик new item click
-    // TODO: Вызов toggle sync при событиях в ItemListFragment
-    // TODO: Првоерить SwipeRefreshLayout не будет активен, если нет колбеков (и кнопка невидимая)
-    // TODO: Переделать бэкап таски и наполнение
-    // TODO: Id может быть 0, надо поменять на -1 спец значение
+    // TODO: Повороты экрана (детачится ли все)
+    // TODO: Sync в onPause и конфликт
+    // TODO: savedInstanceState и повороты экрана
 
     // [v.0.7.0]
     // TODO: Проверить все на выполнение не на UI Thread (missing frames - причина виртуалки или где-то косяки?)
@@ -71,10 +77,6 @@ public class MainActivity extends AppCompatActivity implements
 
     /** ID контейнера для помещения фрагментов. */
     private static final @IdRes int FRAGMENT_CONTAINER = R.id.fragmentcontainer_mainactivity;
-
-    // Intent
-    /** Константа, обозначающая пустой UID. */
-    private static final int UID_EMPTY = -1;
 
 
     /////////////////////////
@@ -126,8 +128,6 @@ public class MainActivity extends AppCompatActivity implements
                 .add(FRAGMENT_CONTAINER, itemListFragment, ItemListFragment.TAG)
                 .commit();
 
-        // TODO: savedInstanceState
-
         // Инициализация SyncFragment
         mSyncFragment = SyncFragment.getInstance(fragmentManager);
 
@@ -148,8 +148,8 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onResume() {
         super.onResume();
+        // Вызывает синхронизацию данных с сервером, которая по окончанию вызовет обновление списка.
         if (!MainActivityLongTask.isActive()) {
-            // Вызывает синхронизацию данных с сервером, которая по окончанию вызовет обновление списка.
             toggleSync();
         }
         registerReceiver(mInternetBroadcastReceiver, mInternetChangedIntentFilter);
@@ -178,6 +178,10 @@ public class MainActivity extends AppCompatActivity implements
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mInternetBroadcastReceiver);
+        // Синхронизируемся на всякий случай
+        if (!MainActivityLongTask.isActive()) {
+            toggleSync();
+        }
     }
 
     @Override
@@ -244,9 +248,6 @@ public class MainActivity extends AppCompatActivity implements
                         if (mSyncFragment.updateOneItem(item, userId, remoteId)) {
                             ReadLaterDbUtils.updateItemByRemoteId(this, userId, item, remoteId);
                         }
-                        if (!MainActivityLongTask.isActive()) {
-                            // runOnUiThread(mItemListFragment::reloadData);
-                        }
                     },
                     null,
                     null
@@ -277,21 +278,17 @@ public class MainActivity extends AppCompatActivity implements
         invalidateOptionsMenu();
     }
 
-    @Override
-    public boolean isLongTaskActive() {
-        return MainActivityLongTask.isActive();
-    }
-
     /////////////////////////
     // Колбеки ItemListFragment
 
     @Override
     public void onNewItemClick() {
-        /*
-                getSupportFragmentManager().beginTransaction().hide(mItemListFragment).commit();
-                Intent newItemIntent = new Intent(MainActivity.this, EditItemFragment.class);
-                startActivityForResult(newItemIntent, ITEM_ADD_NEW_REQUEST);
-         */
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        EditItemFragment editItemFragment = EditItemFragment.getInstance(
+                fragmentManager, null, EditItemFragment.UID_EMPTY);
+        fragmentManager.beginTransaction()
+                .replace(FRAGMENT_CONTAINER, editItemFragment, EditItemFragment.TAG)
+                .addToBackStack(null).commit();
     }
 
     @Override
@@ -310,98 +307,186 @@ public class MainActivity extends AppCompatActivity implements
 
 
     /////////////////////////
+    // Колбеки FilterDrawerLayout
+
+    @Override
+    public void onActionToggled(FilterDrawerFragment.DrawerActions action) {
+
+        // Если выполняется какая-то работа, кнопки не работают, показывается предупреждение.
+        if (MainActivityLongTask.isActive()) {
+            ActivityUtils.showAlertDialog(this,
+                    getString(R.string.mainlist_longloading_title),
+                    getString(R.string.mainlist_longloading_text),
+                    null,
+                    null);
+            return;
+        }
+
+        switch (action) {
+            case BACKUP_SAVE:
+                // Действие "Сохранить бэкап" открывает окно подтверждения и по положительному ответу
+                // вызывает функцию для сохранения
+                ActivityUtils.showAlertDialog(
+                        this,
+                        getString(R.string.mainlist_drawer_backup_save_question_title),
+                        getString(R.string.mainlist_drawer_backup_save_question_text),
+                    () -> {
+                        mSyncFragment.stopSync();
+                        MainActivityLongTask.startLongBackgroundTask(
+                            () -> MainListBackupUtils.saveEverythingAsJsonFile(this),
+                                this);
+                        showLoading();
+                    },
+                        null);
+                break;
+            case BACKUP_RESTORE:
+                // Действие "Восстановить из бэкапа" открывает окно подтверждения и по положительному ответу
+                // вызывает функцию для восстановления
+                ActivityUtils.showAlertDialog(
+                        this,
+                        getString(R.string.mainlist_drawer_backup_restore_question_title),
+                        getString(R.string.mainlist_drawer_backup_restore_question_text),
+                    () -> {
+                        mSyncFragment.stopSync();
+                        MainActivityLongTask.startLongBackgroundTask(
+                            () -> MainListBackupUtils.restoreEverythingFromJsonFile(this),
+                                this);
+                        showLoading();
+                    },
+                        null);
+                break;
+            case FILL_PLACEHOLDERS:
+                // Действие "Заполнить данными" открывает окно подтверждения и по положительному ответу
+                // вызывает функцию для заполнения
+                if (BuildConfig.DEBUG) {
+                    EditText inputNumber = new EditText(this);
+                    inputNumber.setInputType(InputType.TYPE_CLASS_NUMBER);
+                    inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(1)}); // 0-9
+                    ActivityUtils.showInputTextDialog(
+                            this,
+                            inputNumber,
+                            getString(R.string.mainlist_menu_add_placeholders_question_title),
+                            getString(R.string.mainlist_menu_add_placeholders_question_text),
+                        (input) -> {
+                            try {
+                                // Смотрим введенное значение
+                                int count = Integer.parseInt(input);
+                                // Запускаем бэкграунд таск
+                                mSyncFragment.stopSync();
+                                MainActivityLongTask.startLongBackgroundTask(
+                                    () -> DebugUtils.addPlaceholdersToDatabase(this, count),
+                                        this);
+                                showLoading();
+                            } catch (NumberFormatException e) {
+                                Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
+                            }
+                        },
+                            null);
+                }
+                break;
+            case DELETE_ALL:
+                // Действие "Удалить все" открывает окно подтверждения и по положительному ответу
+                // вызывает функцию для очистки
+                if (BuildConfig.DEBUG) {
+                    ActivityUtils.showAlertDialog(
+                            this,
+                            getString(R.string.mainlist_menu_delete_all_question_title),
+                            getString(R.string.mainlist_menu_delete_all_question_text),
+                        () -> {
+                            mSyncFragment.stopSync();
+                            MainActivityLongTask.startLongBackgroundTask(
+                                () -> {
+                                    ReadLaterDbUtils.deleteAll(this);
+                                    LongTaskNotifications.cancelNotification();
+                                },
+                                    this);
+                            showLoading();
+                        },
+                            null);
+                }
+                break;
+            default:
+                break;
+        }
+
+    }
+
+    @Override
+    public void onUserChanged() {
+        toggleSync();
+    }
+
+
+    /////////////////////////
     // Колбеки EditItemFragment
 
     @Override
     public void onCreateNewItem(@NonNull ReadLaterItem item) {
-
+        new BackgroundTask().execute(
+                () -> ReadLaterDbUtils.insertItem(MainActivity.this, item),
+                null,
+                null
+        );
+        getSupportFragmentManager().popBackStack();
+        Snackbar.make(mFragmentContainer, getString(R.string.snackbar_item_added), Snackbar.LENGTH_LONG).show();
     }
 
     @Override
-    public void onSaveItem(@NonNull ReadLaterItem item, @IntRange(from = 1) int localId) {
-
+    public void onSaveItem(@NonNull ReadLaterItem item, @IntRange(from = 0) int localId) {
+        new BackgroundTask().execute(
+                () -> ReadLaterDbUtils.updateItem(MainActivity.this, item, localId),
+                null,
+                null
+        );
+        getSupportFragmentManager().popBackStack();
+        Snackbar.make(mFragmentContainer, getString(R.string.snackbar_item_edited), Snackbar.LENGTH_LONG).show();
     }
 
     @Override
-    public void onDeleteItem(@IntRange(from = 1) int localId) {
+    public void onDeleteItem(@IntRange(from = 0) int localId) {
+        new BackgroundTask().execute(
+                () -> ReadLaterDbUtils.deleteItem(this, localId),
+                null,
+                null
+        );
+        getSupportFragmentManager().popBackStack();
+        Snackbar.make(mFragmentContainer, getString(R.string.snackbar_item_removed), Snackbar.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onExitWithoutModifying(@Nullable ReadLaterItem item,
+                                       @IntRange(from = EditItemFragment.UID_EMPTY) int localId) {
+
+        if (item != null) {
+            // Этот блок вызывается при простом просмотре без изменений
+            new BackgroundTask().execute(
+                    () -> ReadLaterDbUtils.updateItemViewDate(MainActivity.this, localId),
+                    null,
+                    null
+            );
+        }
+
+        getSupportFragmentManager().popBackStack();
 
     }
 
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-//
-//        // Каждый раз при окончании редактирования, сбрасываем переменную mEditItemId
-//        int uid = mEditItemId;
-//        mEditItemId = UID_EMPTY;
-//
-//        // Обрабатывает возврат от EditItemFragment
-//        if (resultCode == RESULT_OK && data != null && data.hasExtra(ReadLaterItemParcelable.KEY_EXTRA)) {
-//            // Возвращенные данные в формате ReadLaterItem
-//            ReadLaterItemParcelable parcelableData = data.getParcelableExtra(ReadLaterItemParcelable.KEY_EXTRA);
-//            ReadLaterItem resultData = parcelableData == null ? null : parcelableData.getItem();
-//            switch (requestCode) {
-//                case ITEM_ADD_NEW_REQUEST:
-//                    if (resultData != null) {
-//                        // Добавляет новый элемент в базу, показывает снэкбар
-//                        new BackgroundTask().execute(
-//                                () -> ReadLaterDbUtils.insertItem(MainActivity.this, resultData),
-//                                null,
-//                                null
-//                        );
-//                        Snackbar.make(mFragmentContainer, getString(R.string.snackbar_item_added),
-//                                Snackbar.LENGTH_LONG).show();
-//                        return;
-//                    }
-//                    break;
-//                case ITEM_EDIT_REQUEST:
-//                    if (uid != UID_EMPTY) {
-//                        if (resultData == null) {
-//                            // Удаляет элемент, показывает снэкбар
-//                            new BackgroundTask().execute(
-//                                    () -> ReadLaterDbUtils.deleteItem(this, uid),
-//                                    null,
-//                                    null
-//                            );
-//                            Snackbar.make(mFragmentContainer,
-//                                    getString(R.string.snackbar_item_removed), Snackbar.LENGTH_LONG).show();
-//                        } else {
-//                            // Изменяет элемент
-//                            new BackgroundTask().execute(
-//                                    () -> ReadLaterDbUtils.updateItem(MainActivity.this, resultData, uid),
-//                                    null,
-//                                    null
-//                            );
-//                            Snackbar.make(mFragmentContainer,
-//                                    getString(R.string.snackbar_item_edited), Snackbar.LENGTH_LONG).show();
-//                        }
-//                        return;
-//                    }
-//                    break;
-//                default:
-//                    break;
-//            }
-//        }
-//
-//        // Этот блок вызывается при простом просмотре, тк при успешном случае с ADD_NEW или EDIT, уже был вызван return
-//        if (uid != UID_EMPTY) {
-//            new BackgroundTask().execute(
-//                    () -> ReadLaterDbUtils.updateItemViewDate(MainActivity.this, uid),
-//                    null,
-//                    null
-//            );
-//        }
-//
-//        // В случае, если ничего не изменилось, список сразу не перезагружается.
-//
-//    }
 
     /////////////////////////
     // Методы синхронизации
 
-    /** Вызывает начало синхронизации. */
+    /** Вызывает начало синхронизации.
+     * Синхронизация будет запущена, если не выполняется LongTask.
+     * По окончанию синхронизации при любом исходе вызывается finishSync.
+     */
     private void toggleSync() {
-//        mItemListFragment.setRefreshing(true);
-//        mSyncFragment.startFullSync();
+        if (!MainActivityLongTask.isActive()) {
+            ItemListFragment itemListFragment =
+                    (ItemListFragment) getSupportFragmentManager().findFragmentByTag(ItemListFragment.TAG);
+            if ((itemListFragment != null) && itemListFragment.isVisible()) {
+                itemListFragment.setRefreshing(true);
+            }
+            mSyncFragment.startFullSync();
+        }
     }
 
     /** Обновляет дату последней синхронизации в SharedPreferences.
@@ -416,11 +501,15 @@ public class MainActivity extends AppCompatActivity implements
         mLastSync = lastSyncDate;
     }
 
-    /** Завершает синхронизацию принудительно. */
+    /** Завершает синхронизацию. */
     private void finishSync() {
         mSyncFragment.stopSync();
-        getContentResolver().notifyChange(ReadLaterContract.ReadLaterEntry.CONTENT_URI, null);
-//        mItemListFragment.setRefreshing(false);
+        ItemListFragment itemListFragment =
+                (ItemListFragment) getSupportFragmentManager().findFragmentByTag(ItemListFragment.TAG);
+        if ((itemListFragment != null) && itemListFragment.isVisible()) {
+            itemListFragment.setRefreshing(false);
+            getContentResolver().notifyChange(ReadLaterContract.ReadLaterEntry.CONTENT_URI, null);
+        }
     }
 
 
@@ -429,7 +518,7 @@ public class MainActivity extends AppCompatActivity implements
 
     /** Колбек для MainActivityLongTask об окончании работ. */
     void onLongTaskFinished() {
-        // mItemListFragment.reloadData();
+        getContentResolver().notifyChange(ReadLaterContract.ReadLaterEntry.CONTENT_URI, null);
     }
 
 
@@ -445,7 +534,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     /** Запускает AsyncTask для выполнения быстрого действия.
-     * Действие не будет выполнено, если уже выполняется длительное действие (isInLoadingMode == true).
+     * По окончанию выполняет перезагрузку данных, если не выполняется длительного действия.
      */
     private class BackgroundTask extends AsyncTask<Runnable, Void, Void> {
 
@@ -459,7 +548,7 @@ public class MainActivity extends AppCompatActivity implements
         protected void onPostExecute(Void taskResult) {
             super.onPostExecute(taskResult);
             if (!MainActivityLongTask.isActive()) {
-                // mItemListFragment.reloadData();
+                getContentResolver().notifyChange(ReadLaterContract.ReadLaterEntry.CONTENT_URI, null);
             }
         }
 

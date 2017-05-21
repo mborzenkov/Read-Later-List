@@ -15,8 +15,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -52,17 +50,15 @@ public class EditItemFragment extends Fragment implements
         View.OnClickListener,
         OnBackPressedListener {
 
-    /** ID для открытия ColorPickerFragment на редактирование цвета. */
-    private static final int ITEM_EDIT_COLOR_REQUEST = 11;
-
-    private static final String checkNull = String.format("HI, %s", null);
-
 
     /////////////////////////
     // Константы
 
     /** TAG фрагмента для фрагмент менеджера. */
     public static final String TAG = "fragment_edititem";
+
+    /** Константа, обозначающая пустой UID. */
+    public static final int UID_EMPTY = -1;
 
     /** Ключ для Bundle редактируемого объекта ReadLaterItem. */
     private static final String BUNDLE_ITEM_KEY = "item";
@@ -86,16 +82,16 @@ public class EditItemFragment extends Fragment implements
      *
      * @param fragmentManager менеджер для поиска фрагментов по тэгу
      * @param item объект для редактирования или null, если создание нового элемента
-     * @param itemLocalId внутренний идентификатор объекта или 0, если создание нового элемента
+     * @param itemLocalId внутренний идентификатор объекта или UID_EMPTY, если создание нового элемента
      * @return новый объект EditItemFragment
-     * @throws IllegalArgumentException если itemLocalId < 0
-     * @throws IllegalArgumentException если item == null и itemLocalId != 0
+     * @throws IllegalArgumentException если itemLocalId < UID_EMPTY
+     * @throws IllegalArgumentException если item == null и itemLocalId != -UID_EMPTY
      */
     public static EditItemFragment getInstance(FragmentManager fragmentManager,
                                                @Nullable ReadLaterItem item,
-                                               @IntRange(from = 0) int itemLocalId) {
+                                               @IntRange(from = UID_EMPTY) int itemLocalId) {
 
-        if ((itemLocalId < 0) || ((item == null) && (itemLocalId != 0))) {
+        if ((itemLocalId < UID_EMPTY) || ((item == null) && (itemLocalId != UID_EMPTY))) {
             throw new IllegalArgumentException(
                     String.format("Erorr @ EditItemFragment.getInstance. itemLocalId: %s, item: %s",
                             itemLocalId, item));
@@ -126,6 +122,7 @@ public class EditItemFragment extends Fragment implements
         /** Вызывается при завершении редактирования объекта и необходимости сохранения изменений.
          * Если ничего не изменено, onCreateNewItem не вызывается.
          * Вызывается только для режима создания объекта.
+         * При этом Fragment не закрывается, получатель колбека должен закрыть его самостоятельно.
          *
          * @param item новый объект
          */
@@ -134,17 +131,28 @@ public class EditItemFragment extends Fragment implements
         /** Вызывается при завершении редактирования объекта и необходимости сохранения изменений.
          * Если изменений нет, onSaveItem не вызывается.
          * Вызывается только для режима редактирования объекта.
+         * При этом Fragment не закрывается, получатель колбека должен закрыть его самостоятельно.
          *
          * @param item объект, который нужно сохранить
-         * @param localId внутренний идентификатор объекта, всегда больше 1
+         * @param localId внутренний идентификатор объекта, всегда больше UID_EMPTY
          */
-        void onSaveItem(@NonNull ReadLaterItem item, @IntRange(from = 1) int localId);
+        void onSaveItem(@NonNull ReadLaterItem item, @IntRange(from = 0) int localId);
 
         /** Вызывается при необходимости удаления объекта.
+         * При этом Fragment не закрывается, получатель колбека должен закрыть его самостоятельно.
          *
-         * @param localId внутренний идентификатор объекта, всегда больше 1
+         * @param localId внутренний идентификатор объекта, всегда больше UID_EMPTY
          */
-        void onDeleteItem(@IntRange(from = 1) int localId);
+        void onDeleteItem(@IntRange(from = 0) int localId);
+
+        /** Вызывается при выходе без изменений.
+         * При этом Fragment не закрывается, получатель колбека должен закрыть его самостоятельно.
+         * Получателю следует обновить last view date, если item != null.
+         *
+         * @param item редактируемый элемент или null, если закрыли режим добавления
+         * @param localId id редактируемого элемента > UID_EMPTY или UID_EMPTY, если item == null
+         */
+        void onExitWithoutModifying(@Nullable ReadLaterItem item, @IntRange(from = UID_EMPTY) int localId);
 
     }
 
@@ -154,13 +162,13 @@ public class EditItemFragment extends Fragment implements
 
     // Инвариант
     //      mFromItem - объект, редактирование которого производится или null, если создание нового
-    //      mFromItemLocalId - внутренний идентификатор mFromItem или 0, если создание нового объекта
+    //      mFromItemLocalId - внутренний идентификатор mFromItem или UID_EMPTY, если создание нового объекта
 
     /** Редактируемый элемент. */
     private @Nullable ReadLaterItem mFromItem = null;
 
     /** Внутренний идентификатор редактируемого объекта. */
-    private @IntRange(from = 0) int mFromItemLocalId = 0;
+    private @IntRange(from = UID_EMPTY) int mFromItemLocalId = UID_EMPTY;
 
     /** Объект для колбеков о событиях во фрагменте. */
     private @Nullable EditItemCallbacks mCallbacks = null;
@@ -183,9 +191,9 @@ public class EditItemFragment extends Fragment implements
 
     private void checkRep() {
         if (BuildConfig.DEBUG) {
-            if (mFromItemLocalId < 0) {
+            if (mFromItemLocalId < UID_EMPTY) {
                 throw new AssertionError(String.format(ERROR_INVARIANT_FAIL, mFromItem, mFromItemLocalId));
-            } else if ((mFromItem == null) && (mFromItemLocalId != 0)) {
+            } else if ((mFromItem == null) && (mFromItemLocalId != UID_EMPTY)) {
                 throw new AssertionError(String.format(ERROR_INVARIANT_FAIL, "null", mFromItemLocalId));
             }
         }
@@ -207,9 +215,11 @@ public class EditItemFragment extends Fragment implements
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
-        ReadLaterItemParcelable itemParcelable = args.getParcelable(BUNDLE_ITEM_KEY);
-        mFromItem = itemParcelable == null ? null : itemParcelable.getItem();
-        mFromItemLocalId = args.getInt(BUNDLE_ITEMID_KEY, 0);
+        if (args != null) {
+            ReadLaterItemParcelable itemParcelable = args.getParcelable(BUNDLE_ITEM_KEY);
+            mFromItem = itemParcelable == null ? null : itemParcelable.getItem();
+            mFromItemLocalId = args.getInt(BUNDLE_ITEMID_KEY, UID_EMPTY);
+        }
         checkRep();
     }
 
@@ -236,7 +246,7 @@ public class EditItemFragment extends Fragment implements
 
         // Установка клик листенеров
         mColorImageButton.setOnClickListener(this);
-        ((ImageButton) rootView.findViewById(R.id.ib_edititem_updateimage)).setOnClickListener(this);
+        rootView.findViewById(R.id.ib_edititem_updateimage).setOnClickListener(this);
         mLabelEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -331,10 +341,10 @@ public class EditItemFragment extends Fragment implements
                         getString(R.string.edititem_menu_delete_question_text),
                     () -> {
                         if (mCallbacks != null) {
-                            if (mFromItemLocalId > 0) {
+                            if (mFromItemLocalId > UID_EMPTY) {
                                 mCallbacks.onDeleteItem(mFromItemLocalId);
                             } else {
-                                getFragmentManager().popBackStack();
+                                mCallbacks.onExitWithoutModifying(mFromItem, mFromItemLocalId);
                             }
                         }
                     },
@@ -391,7 +401,9 @@ public class EditItemFragment extends Fragment implements
     /** Выполняет закрытие фрагмента с сохранением. */
     private void closeWithSaving() {
         if (!isModified()) {
-            getFragmentManager().popBackStack();
+            if (mCallbacks != null) {
+                mCallbacks.onExitWithoutModifying(mFromItem, mFromItemLocalId);
+            }
             return;
         }
         // packInputData возвращает null, если что-то не так
@@ -400,7 +412,7 @@ public class EditItemFragment extends Fragment implements
             if (mFromItem == null) {
                 mCallbacks.onCreateNewItem(resultData);
             } else {
-                // Ошибка проверки, mFromItemLocalId > 0 подтверждается инвариантом, если mFromItem != null
+                // Ошибка проверки, mFromItemLocalId > UID_EMPTY подтверждается инвариантом, если mFromItem != null
                 //noinspection Range
                 mCallbacks.onSaveItem(resultData, mFromItemLocalId);
             }
@@ -414,10 +426,16 @@ public class EditItemFragment extends Fragment implements
                     getContext(),
                     getString(R.string.edititem_menu_back_question_title),
                     getString(R.string.edititem_menu_back_question_text),
-                    getFragmentManager()::popBackStack,
+                () -> {
+                    if (mCallbacks != null) {
+                        mCallbacks.onExitWithoutModifying(mFromItem, mFromItemLocalId);
+                    }
+                },
                     null);
         } else {
-            getFragmentManager().popBackStack();
+            if (mCallbacks != null) {
+                mCallbacks.onExitWithoutModifying(mFromItem, mFromItemLocalId);
+            }
         }
     }
 

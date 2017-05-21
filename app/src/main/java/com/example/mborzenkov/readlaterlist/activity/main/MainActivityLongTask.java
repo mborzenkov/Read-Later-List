@@ -27,32 +27,6 @@ class MainActivityLongTask extends AsyncTask<Runnable, Integer, Void>  {
         return isActive;
     }
 
-    /** Блокирует интерфейс, не вызывая при этом AsyncTask.
-     * По завершению работ интерфейс обязательно нужно разблокировать с помощью stopAnotherLongTask().
-     *
-     * @return true - если все прошло успешно и можно начинать работу, иначе false
-     */
-    static synchronized boolean startAnotherLongTask() {
-        if (isActive) {
-            return false;
-        }
-        isActive = true;
-        return true;
-    }
-
-    /** Разблокирует интерфейс, не изменяя при этом AsyncTask.
-     * Должен вызываться только если был ранее успешно вызван startAnotherLongTask().
-     *
-     * @return true - если все прошло успешно и можно начинать работу, иначе false
-     */
-    static synchronized boolean stopAnotherLongTask() {
-        if (!isActive) {
-            return false;
-        }
-        isActive = false;
-        return true;
-    }
-
     /** Начинает выполнение длительного действия.
      * Действие не будет выполнено, если уже выполняется другое длительное действие (isActive == true).
      * Отклоняет другие длительные действия до оконачния выполнения.

@@ -15,7 +15,4 @@ public interface BasicFragmentCallbacks {
      */
     void setNewToolbar(@NonNull Toolbar toolbar, @NonNull String title);
 
-    /** Определяет, запущена ли сейчас какая-нибудь длительная операция. */
-    boolean isLongTaskActive();
-
 }
