@@ -2,14 +2,9 @@ package com.example.mborzenkov.readlaterlist.fragments.itemlist;
 
 import android.app.SearchManager;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.os.Message;
 import android.support.annotation.IdRes;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
@@ -23,10 +18,8 @@ import android.support.v4.content.Loader;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -43,8 +36,6 @@ import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.fragments.BasicFragmentCallbacks;
 import com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment;
-import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
-import com.example.mborzenkov.readlaterlist.utility.MainListBackupUtils;
 
 /** Фрагмент со списком ReadLaterItem.
  * Activity, использующая фрагмент, должна реализовывать интерфейс ItemListCallbacks.
@@ -62,7 +53,7 @@ public class ItemListFragment extends Fragment implements
     public static final String TAG = "fragment_itemlist";
 
     /** ID контейнера для Drawer. */
-    public static final @IdRes int DRAWER_CONTAINER = R.id.drawerfragmentcontainer_itemlist;
+    private static final @IdRes int DRAWER_CONTAINER = R.id.drawerfragmentcontainer_itemlist;
 
     /** Максимальная длительность показа индикатора загрузки. */
     private static final int SYNC_ICON_MAX_DURATION = 6000; // 6 сек
@@ -177,11 +168,13 @@ public class ItemListFragment extends Fragment implements
                 public void onDrawerOpened(View drawerView) {
                     //  При открытии - обновляем Drawer на основании фильтра
                     super.onDrawerOpened(drawerView);
-                    mFilterDrawerFragment.reloadDataFromCurrentFilter();
+                    if (mFilterDrawerFragment != null) {
+                        mFilterDrawerFragment.reloadDataFromCurrentFilter();
+                    }
                 }
 
             };
-            mDrawerLayout.addDrawerListener(drawerToggle);
+        mDrawerLayout.addDrawerListener(drawerToggle);
 
         // Инициализация Toolbar
         Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar_itemlist);
@@ -226,11 +219,6 @@ public class ItemListFragment extends Fragment implements
         if (mLoaderManager != null) {
             mLoaderManager.restartLoader();
         }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
     }
 
     @Override
@@ -343,10 +331,9 @@ public class ItemListFragment extends Fragment implements
     @Override
     public void onLoadFinished(Loader<Cursor> loader, @Nullable Cursor data) {
         // По завершению загрузки, подменяем Cursor в адаптере и показываем данные
-        boolean listIsEmpty = true;
         if (mItemListAdapter != null) {
             mItemListAdapter.changeCursor(data);
-            listIsEmpty = ((data == null) || (data.getCount() == 0));
+            boolean listIsEmpty = ((data == null) || (data.getCount() == 0));
             if (listIsEmpty) {
                 mItemsListView.setVisibility(View.INVISIBLE);
                 mEmptyListView.setVisibility(View.VISIBLE);
@@ -368,16 +355,6 @@ public class ItemListFragment extends Fragment implements
 
     /////////////////////////
     // Все остальное
-
-    /** Проверяет, загружены ли данные в список.
-     * Получает Cursor у адаптера и проверяет, что он не null.
-     * Если данные загружены, но список пуст, то результат будет true.
-     *
-     * @return true, если данные загружены, иначе false
-     */
-    public boolean dataIsLoaded() {
-        return (mItemListAdapter != null) && (mItemListAdapter.getCursor() != null);
-    }
 
     /** Устанавливает индикатор загрузки.
      *

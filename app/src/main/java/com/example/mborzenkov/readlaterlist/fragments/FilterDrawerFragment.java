@@ -7,7 +7,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.widget.DrawerLayout;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.util.Log;
@@ -19,7 +18,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -342,8 +340,8 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                                 editText,
                                 getString(R.string.mainlist_drawer_filters_save_question_title),
                                 null,
-                                (String input) -> saveFilter(input),
-                                () -> resetSavedFilterSelection());
+                            (String input) -> saveFilter(input),
+                            () -> resetSavedFilterSelection());
 
                     } else if (position == indexSavedDelete) {
                         // Вариант 2: Клик на кнопку "- Удалить"
@@ -357,8 +355,8 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                                 getContext(),
                                 getString(R.string.mainlist_drawer_filters_remove_question_title),
                                 getString(R.string.mainlist_drawer_filters_remove_question_text),
-                                () -> removeSavedFilter(),
-                                () -> resetSavedFilterSelection());
+                            () -> removeSavedFilter(),
+                            () -> resetSavedFilterSelection());
                     } else {
                         // Остальные варианты - выбираем
                         MainListFilterUtils.clickOnSavedFilter(position);

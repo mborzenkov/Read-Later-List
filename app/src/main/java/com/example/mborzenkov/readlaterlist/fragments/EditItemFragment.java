@@ -15,7 +15,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -48,8 +47,7 @@ import java.util.Locale;
  *      При выборе удаления элемента, возвращает null в Intent под ключем ReadLaterItem.KEY_EXTRA
  */
 public class EditItemFragment extends Fragment implements
-        View.OnClickListener,
-        OnBackPressedListener {
+        View.OnClickListener {
 
 
     /////////////////////////
@@ -424,14 +422,6 @@ public class EditItemFragment extends Fragment implements
         }
     }
 
-    /////////////////////////
-    // Колбеки OnBackPressedListener
-
-    @Override
-    public void onBackPressed() {
-        onExitAttempt();
-    }
-
 
     /////////////////////////
     // Методы при заершении редактирования
@@ -477,6 +467,13 @@ public class EditItemFragment extends Fragment implements
         }
     }
 
+    /** Вызывается, когда нажата кнопка назад.
+     * Управление полностью передается фрагменту. Фрагмент должен обработать нажатие самостоятельно.
+     */
+    public void onBackPressed() {
+        onExitAttempt();
+    }
+
 
     /////////////////////////
     // Вспомогательные методы
@@ -485,7 +482,7 @@ public class EditItemFragment extends Fragment implements
      *
      * @param newColor цвет, который нужно установить
      */
-    public void setColor(int newColor) {
+    private void setColor(int newColor) {
         mChosenColor = newColor;
         ((GradientDrawable) mColorImageButton.getBackground()).setColor(mChosenColor);
     }

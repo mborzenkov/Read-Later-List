@@ -297,8 +297,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
         // Проверяем, есть ли SyncCallback и есть ли подлкючение к сети
         if (mSyncCallback != null) {
             lastSync = mSyncCallback.getLastSync();
-            final String FORMAT_DATE = "yyyy-MM-dd'T'hh:mm:ss.SSSZ";
-            SimpleDateFormat sdf = new SimpleDateFormat(FORMAT_DATE, Locale.US);
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSZ", Locale.US);
             Log.d("SYNC", "Last sync: " + sdf.format(lastSync));
             if (!mSyncCallback.isNetworkConnected()) {
                 Log.e(TAG_ERROR_NETWORK, ERROR_NETWORK);
