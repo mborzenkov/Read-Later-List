@@ -53,7 +53,7 @@ public class ItemListFragment extends Fragment implements
     public static final String TAG = "fragment_itemlist";
 
     /** ID контейнера для Drawer. */
-    private static final @IdRes int DRAWER_CONTAINER = R.id.drawerfragmentcontainer_itemlist;
+    private static final @IdRes int CONTAINER_FRAGMENT_FILTER = R.id.filterfragmentcontainer_itemlist;
 
     /** Максимальная длительность показа индикатора загрузки. */
     private static final int SYNC_ICON_MAX_DURATION = 6000; // 6 сек
@@ -110,10 +110,9 @@ public class ItemListFragment extends Fragment implements
     // Хэлперы
     private @Nullable ItemListAdapter mItemListAdapter = null;
     private @Nullable ItemListLoaderManager mLoaderManager = null;
-    private @Nullable FilterDrawerFragment mFilterDrawerFragment = null;
 
     // Объекты layout
-    private DrawerLayout mDrawerLayout;
+    private @Nullable DrawerLayout mDrawerLayout;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private RecyclerView mItemsRecyclerView;
     private LinearLayout mEmptyListView;
@@ -148,31 +147,12 @@ public class ItemListFragment extends Fragment implements
         mItemsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         mEmptyListView = (LinearLayout) rootView.findViewById(R.id.linearLayout_emptylist);
 
-        // Инициализация Drawer Layout и обработчика открытия и закрытия Drawer
+        // Инициализация FilterFragment
         FragmentManager fragmentManager = getChildFragmentManager();
-        mFilterDrawerFragment = FilterDrawerFragment.getInstance(fragmentManager);
-        fragmentManager.beginTransaction().replace(DRAWER_CONTAINER, mFilterDrawerFragment, FilterDrawerFragment.TAG)
+        FilterDrawerFragment filterDrawerFragment = FilterDrawerFragment.getInstance(fragmentManager);
+        fragmentManager.beginTransaction()
+                .replace(CONTAINER_FRAGMENT_FILTER, filterDrawerFragment, FilterDrawerFragment.TAG)
                 .commit();
-        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(getActivity(), mDrawerLayout,
-                    R.string.mainlist_drawer_title, R.string.mainlist_drawer_title) {
-
-                @Override
-                public void onDrawerClosed(View view) {
-                    // При закрытии - устанавливаем фильтр
-                    super.onDrawerClosed(view);
-                    if (mLoaderManager != null) {
-                        mLoaderManager.restartLoader();
-                    }
-                }
-
-                @Override
-                public void onDrawerOpened(View drawerView) {
-                    //  При открытии - обновляем Drawer на основании фильтра
-                    super.onDrawerOpened(drawerView);
-                }
-
-            };
-        mDrawerLayout.addDrawerListener(drawerToggle);
 
         // Инициализация Toolbar
         Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar_itemlist);
@@ -189,18 +169,6 @@ public class ItemListFragment extends Fragment implements
             // Слушаем о потягивании refresh
             mSwipeRefreshLayout.setOnRefreshListener(mCallbacks::onRefreshToggled);
 
-            // Это нужно для того, чтобы swiperefresh не появлялся при скролле вверх
-//            mSwipeRefreshLayout.canChildScrollUp()
-//
-//            mItemsRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-//                @Override
-//                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-//                    super.onScrolled(recyclerView, dx, dy);
-//                    int topRowVerticalPosition = (mItemsRecyclerView.getChildCount() == 0)
-//                            ?  0 : mItemsRecyclerView.getChildAt(0).getTop();
-//                    mSwipeRefreshLayout.setEnabled((firstVisibleItem == 0) && (topRowVerticalPosition >= 0));
-//                }
-//            });
         } else {
             mSwipeRefreshLayout.setEnabled(false);
         }
@@ -249,13 +217,17 @@ public class ItemListFragment extends Fragment implements
             menu.findItem(R.id.mainlist_action_refresh).setVisible(false);
         }
 
+        menu.findItem(R.id.mainlist_settings).setVisible(mDrawerLayout != null);
+
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.mainlist_settings:
-                mDrawerLayout.openDrawer(Gravity.END);
+                if (mDrawerLayout != null) {
+                    mDrawerLayout.openDrawer(Gravity.END);
+                }
                 return true;
             case R.id.mainlist_action_refresh:
                 if (mCallbacks != null) {

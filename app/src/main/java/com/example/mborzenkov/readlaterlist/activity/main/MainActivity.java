@@ -29,6 +29,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
@@ -118,6 +119,8 @@ public class MainActivity extends AppCompatActivity implements
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Toast.makeText(this, "WINDOW_WIDTH: " + String.valueOf(getResources().getDisplayMetrics().widthPixels / getResources().getDisplayMetrics().density), Toast.LENGTH_SHORT).show();
 
         // Инициализация объектов layout
         mFragmentContainer = (FrameLayout) findViewById(FRAGMENT_CONTAINER);
@@ -432,6 +435,14 @@ public class MainActivity extends AppCompatActivity implements
         toggleSync();
     }
 
+    @Override
+    public void onFilterChanged() {
+        ItemListFragment itemListFragment =
+                (ItemListFragment) getSupportFragmentManager().findFragmentByTag(ItemListFragment.TAG);
+        if (itemListFragment != null) {
+            itemListFragment.onDataChanged();
+        }
+    }
 
     /////////////////////////
     // Колбеки EditItemFragment

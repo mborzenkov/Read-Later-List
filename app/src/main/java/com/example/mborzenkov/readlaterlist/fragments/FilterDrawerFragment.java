@@ -13,7 +13,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -32,7 +31,6 @@ import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
@@ -90,6 +88,9 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
          */
         void onActionToggled(DrawerActions action);
 
+        /** Оповещает об изменениях фильтра. */
+        void onFilterChanged();
+
     }
 
     /** Перечисление действий в Drawer. */
@@ -145,7 +146,8 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
     private final Map<MainListFilter.SortOrder, String> mSortOrderSymbols = new HashMap<>();
     /** Избранные цвета. */
     private @Nullable int[] favColors = null;
-
+    /** Признак выполнения загрузки. */
+    private boolean loaded = false;
 
     /////////////////////////
     // Колбеки Fragment
@@ -165,6 +167,7 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                              @Nullable Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_drawer_filter, container, false);
+        loaded = false;
 
         // Объекты layout
         mFavLinearLayout = (LinearLayout) rootView.findViewById(R.id.linearlayout_filterdrawer_favorites);
@@ -290,7 +293,10 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
     public void reloadDataFromCurrentFilter() {
 
         MainListFilter currentFilter = MainListFilterUtils.getCurrentFilter();
-        mDateFiltersSpinner.setSelection(currentFilter.getSelection().getPosition());
+
+        Log.d("CURRENT_FILTER", currentFilter.toString());
+
+        mDateFiltersSpinner.setSelection(currentFilter.getSelection().getPosition(), false);
         mDateFromEditText.setText(currentFilter.getDateFrom());
         mDateToEditText.setText(currentFilter.getDateTo());
         switch (mDateFiltersSpinner.getSelectedItemPosition()) {
@@ -305,7 +311,7 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
         }
         favColors = FavoriteColorsUtils.updateFavLayoutFromSharedPreferences(getContext(), mFavLinearLayout, null,
                 this, currentFilter.getColorFilter());
-        Log.d("FILTER", Arrays.toString(currentFilter.getColorFilter().toArray()));
+
         resetButtons();
         Button selectedSortButton = null;
         switch (currentFilter.getSortType()) {
@@ -340,13 +346,17 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
         if (mSavedFiltersAdapter == null) {
             mSavedFiltersAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item);
         }
-
         mSavedFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mSavedFiltersSpinner.setAdapter(mSavedFiltersAdapter);
+
         // Устанавливаем онклик слушатель
         mSavedFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                if (!loaded) {
+                    loaded = true;
+                    return;
+                }
                 int indexSavedAdd = MainListFilterUtils.getIndexSavedAdd();
                 int indexSavedDelete = MainListFilterUtils.getIndexSavedDelete();
                 if (position == indexSavedAdd) {
@@ -378,9 +388,13 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                             () -> removeSavedFilter(),
                             () -> resetSavedFilterSelection());
                 } else {
+                    Log.d("FILTER", "CREATION w position: " + position);
                     // Остальные варианты - выбираем
                     MainListFilterUtils.clickOnSavedFilter(position);
                     reloadDataFromCurrentFilter();
+                    if (mCallbacks != null) {
+                        mCallbacks.onFilterChanged();
+                    }
                 }
             }
 
@@ -466,6 +480,9 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                         filter.setSortType((MainListFilter.SortType) v.getTag());
                     }
                     reloadDataFromCurrentFilter();
+                    if (mCallbacks != null) {
+                        mCallbacks.onFilterChanged();
+                    }
                 }
                 break;
             case R.id.imageButton_favorite_color:
@@ -497,6 +514,9 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                 filter.removeColorFilter(color);
             }
             reloadDataFromCurrentFilter();
+            if (mCallbacks != null) {
+                mCallbacks.onFilterChanged();
+            }
         }
     }
 
@@ -585,6 +605,9 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
         MainListFilterUtils.removeCurrentFilter(getContext());
         reloadSavedFiltersList();
         reloadDataFromCurrentFilter();
+        if (mCallbacks != null) {
+            mCallbacks.onFilterChanged();
+        }
     }
 
     /** Сбрасывает текущий выбор фильтра в списке сохраненных. */
