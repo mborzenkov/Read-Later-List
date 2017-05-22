@@ -34,6 +34,7 @@ import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
+import com.example.mborzenkov.readlaterlist.fragments.ColorPickerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
 import com.example.mborzenkov.readlaterlist.fragments.EditItemFragment;
 import com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment;
@@ -54,7 +55,13 @@ public class MainActivity extends AppCompatActivity implements
         ConflictsFragment.ConflictsCallback,
         ItemListFragment.ItemListCallbacks,
         EditItemFragment.EditItemCallbacks,
-        FilterDrawerFragment.DrawerCallbacks {
+        FilterDrawerFragment.DrawerCallbacks,
+        ColorPickerFragment.ColorPickerCallbacks {
+
+    // [ColorPickerFragment]
+    // TODO: Сохранение state у Drawer
+    // TODO: Не работает фильтр по цветам
+    // TODO: При переходе в edititem и обратно из drawer исчезает выбранный фильтр, что наверное связано с instance state
 
     // [v.0.7.0]
     // TODO: Проверить все на выполнение не на UI Thread (missing frames - причина виртуалки или где-то косяки?)
@@ -173,9 +180,16 @@ public class MainActivity extends AppCompatActivity implements
         FragmentManager fragmentManager = getSupportFragmentManager();
         EditItemFragment editItemFragment =
                 (EditItemFragment) fragmentManager.findFragmentByTag(EditItemFragment.TAG);
-        if ((editItemFragment != null) && editItemFragment.isVisible()) {
+        if ((editItemFragment != null) && (editItemFragment.isVisible())) {
             editItemFragment.onBackPressed();
             backHandled = true;
+        } else {
+            ColorPickerFragment colorPickerFragment =
+                    (ColorPickerFragment) fragmentManager.findFragmentByTag(ColorPickerFragment.TAG);;
+            if ((colorPickerFragment != null) && (colorPickerFragment.isVisible())) {
+                colorPickerFragment.onBackPressed();
+                backHandled = true;
+            }
         }
 
         if (!backHandled) {
@@ -428,6 +442,15 @@ public class MainActivity extends AppCompatActivity implements
     // Колбеки EditItemFragment
 
     @Override
+    public void onRequestColorPicker(int color) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        ColorPickerFragment colorPickerFragment = ColorPickerFragment.getInstance(fragmentManager, color);
+        fragmentManager.beginTransaction()
+                .replace(FRAGMENT_CONTAINER, colorPickerFragment, ColorPickerFragment.TAG)
+                .addToBackStack(null).commit();
+    }
+
+    @Override
     public void onCreateNewItem(@NonNull ReadLaterItem item) {
         mHandlerThreadHandler.post(() -> ReadLaterDbUtils.insertItem(MainActivity.this, item));
         popFragmentFromBackstack();
@@ -458,6 +481,25 @@ public class MainActivity extends AppCompatActivity implements
         }
         popFragmentFromBackstack();
 
+    }
+
+
+    /////////////////////////
+    // Колбеки ColorPickerCallbacks
+
+    @Override
+    public void onColorPicked(int newColor) {
+        popFragmentFromBackstack();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        EditItemFragment editItemFragment = (EditItemFragment) fragmentManager.findFragmentByTag(EditItemFragment.TAG);
+        if (editItemFragment != null) {
+            editItemFragment.setColor(newColor);
+        }
+    }
+
+    @Override
+    public void onEndPickingColor() {
+        popFragmentFromBackstack();
     }
 
 
@@ -547,7 +589,7 @@ public class MainActivity extends AppCompatActivity implements
             InputMethodManager mgr = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             mgr.hideSoftInputFromWindow(focus.getWindowToken(), 0);
         }
-        getSupportFragmentManager().popBackStack();
+        getSupportFragmentManager().popBackStackImmediate();
     }
 
 }

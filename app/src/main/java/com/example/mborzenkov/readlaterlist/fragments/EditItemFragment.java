@@ -15,6 +15,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -42,9 +43,10 @@ import java.util.Locale;
 
 /** Fragment для редактирования элемента.
  * Использование:
- *      Чтобы заполнить Activity данными, передать в Intent объект ReadLaterItem с ключем ReadLaterItem.KEY_EXTRA
- *      При успешном редактировании возвращает новый объект ReadLaterItem в Intent под ключем ReadLaterItem.KEY_EXTRA
- *      При выборе удаления элемента, возвращает null в Intent под ключем ReadLaterItem.KEY_EXTRA
+ *      Для получения объекта всегда используйте getInstance.
+ *      Для заполнения фрагмента данными, необходимо передать в getInstance объект ReadLaterItem и его itemLocalId.
+ *      Для получения результатов редактирования, необходимо, чтобы Activity, использующая фрагмент, реализовывала
+ *          интерфейс EditItemCallbacks.
  */
 public class EditItemFragment extends Fragment implements
         View.OnClickListener {
@@ -122,6 +124,13 @@ public class EditItemFragment extends Fragment implements
 
     /** Интерфейс для оповещений о событиях во фрагменте. */
     public interface EditItemCallbacks extends BasicFragmentCallbacks {
+
+        /** Вызывается при нажатии пользователя на выбор цвета.
+         * Получатель должен открыть выбиратель цвета и по окончанию выбора вызвать setColor().
+         *
+         * @param color цвет, который нужно установить по умолчанию
+         */
+        void onRequestColorPicker(int color);
 
         /** Вызывается при завершении редактирования объекта и необходимости сохранения изменений.
          * Если ничего не изменено, onCreateNewItem не вызывается.
@@ -334,6 +343,7 @@ public class EditItemFragment extends Fragment implements
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        Log.d("FRAGMENT", "Save instance EditItem");
         outState.putInt(SAVEDINSTANCE_COLOR_KEY, mChosenColor);
         if (getView() != null) {
             outState.putString(SAVEDINSTANCE_DATECREATED_KEY,
@@ -408,7 +418,9 @@ public class EditItemFragment extends Fragment implements
         switch (id) {
             case R.id.ib_edit_item_color:
                 if (view.getId() == R.id.ib_edit_item_color) {
-                    openColorPicker();
+                    if (mCallbacks != null) {
+                        mCallbacks.onRequestColorPicker(mChosenColor);
+                    }
                 }
                 break;
             case R.id.fab_edititem_save:
@@ -421,7 +433,6 @@ public class EditItemFragment extends Fragment implements
                 break;
         }
     }
-
 
     /////////////////////////
     // Методы при заершении редактирования
@@ -482,7 +493,7 @@ public class EditItemFragment extends Fragment implements
      *
      * @param newColor цвет, который нужно установить
      */
-    private void setColor(int newColor) {
+    public void setColor(int newColor) {
         mChosenColor = newColor;
         ((GradientDrawable) mColorImageButton.getBackground()).setColor(mChosenColor);
     }
@@ -567,11 +578,6 @@ public class EditItemFragment extends Fragment implements
             mLabelInputLayout.setError(getString(R.string.edititem_error_title_empty));
             return null;
         }
-    }
-
-    /** Открывает фрагмент для выбора цвета и устанавливает в нем mChosenColor по умолчанию. */
-    private void openColorPicker() {
-        // TODO: [v.0.7.0] ColorPickerFragment
     }
 
 }

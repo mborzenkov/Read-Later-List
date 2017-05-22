@@ -21,7 +21,7 @@ import java.util.Set;
 /** Сервисный класс для работы с любимыми цветами. */
 public class FavoriteColorsUtils {
 
-    /** Константа для использования в качестве ключа при сохранении массива Favorites. */
+    /** Константа для использования в качестве ключа при сохранении массива Favorites в SharedPreferences. */
     private static final String FAVORITES_KEY = "com.example.mborzenkov.colorpicker.favorites";
     /** Количество элементов favorites. */
     private static int sMaxFavorites = 0;
@@ -61,6 +61,7 @@ public class FavoriteColorsUtils {
     }
 
     /** Получает любимые цвета из SharedPreferences.
+     * Если какой либо из цветов не задан, он будет Color.TRANSPARENT.
      *
      * @param context Контекст
      * @param sharedPreferences Ссылка на SharedPreferences, если null - получается через контекст
@@ -120,4 +121,38 @@ public class FavoriteColorsUtils {
         }
         return result;
     }
+
+    /** Сохраняет любимый цвет в SharedPreferences.
+     * Цвет будет сохранен с ключем, равным position.
+     *
+     * @param context Контекст, может быть null, если указан sharedPreferences
+     * @param sharedPreferences Ссылка на SharedPreferences, если null - получается через контекста
+     * @param newColor цвет для сохранения в формате sRGB
+     * @param position ключ для сохранения (позиция любимого цвета)
+     *
+     * @throws IllegalArgumentException если context == null и sharedPreferences == null
+     *              так как невозможно получить sharedPreferences
+     */
+    public static void saveFavoriteColor(@Nullable Context context,
+                                         @Nullable SharedPreferences sharedPreferences,
+                                         int newColor,
+                                         int position) {
+
+        if (sharedPreferences == null) {
+
+            if (context == null) {
+                throw new IllegalArgumentException(
+                        "Error @ FavoriteColorsUtils.saveFavoriteColor: context and sharedPreferences both null");
+            }
+
+            sharedPreferences = context.getSharedPreferences(FAVORITES_KEY, Context.MODE_PRIVATE);
+
+        }
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(String.valueOf(position), newColor);
+        editor.apply();
+
+    }
+
 }
