@@ -30,6 +30,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.example.mborzenkov.readlaterlist.R;
@@ -92,8 +93,12 @@ public class ItemListFragment extends Fragment implements
          *
          * @param item элемент списка в формате ReadLaterItem
          * @param localId _id этого элемента, > 0
+         * @param sharedElement shared element для использования при открытии фрагмента редактирования,
+         *                      не null, у него обязательно установлен transition name
          */
-        void onItemClick(@NonNull ReadLaterItem item, @IntRange(from = 0) int localId);
+        void onItemClick(@NonNull ReadLaterItem item,
+                         @IntRange(from = 0) int localId,
+                         @NonNull ImageView sharedElement);
 
         /** Вызывается при потягивании SwipeRefreshLayout или нажатии на кнопку Refresh. */
         void onRefreshToggled();
@@ -265,9 +270,9 @@ public class ItemListFragment extends Fragment implements
     // Колбеки View.onClickListener
 
     @Override
-    public void onClick(@NonNull ReadLaterItem item, int itemLocalId) {
+    public void onClick(@NonNull ReadLaterItem item, int itemLocalId, @NonNull ImageView sharedElement) {
         if (mCallbacks != null) {
-            mCallbacks.onItemClick(item, itemLocalId);
+            mCallbacks.onItemClick(item, itemLocalId, sharedElement);
         }
     }
 

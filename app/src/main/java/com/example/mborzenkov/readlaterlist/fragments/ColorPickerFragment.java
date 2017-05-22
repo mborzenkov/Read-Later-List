@@ -20,6 +20,7 @@ import android.support.annotation.Size;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -34,6 +35,7 @@ import android.widget.TextView;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 
@@ -366,6 +368,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
         final int colorGradientEnd = ContextCompat.getColor(context, R.color.gradient_end);
         mStepHue = countStep(colorGradientStart, colorGradientEnd, numberOfSquares);
 
+
         /* Рассчитывает mSquareStandardColorsHsv.
          * Каждый элемент mSquareStandardColorsHsv - это середина между левым краем градиента и правым.
          * Элементы начинаются с colorGradientStart + (mStepHue / 2) и каждый следующий равен предыдущему + mStepHue.
@@ -471,6 +474,9 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
         mainElement.setBackground(mainElementDrawable);
         mainElement.setOnClickListener(this::clickOnChosenSquare);
         changeMainColor(mChosenColorHsv, false);
+
+        // Shared element
+        ViewCompat.setTransitionName(mainElement, MainActivity.SHARED_ELEMENT_COLOR_TRANSITION_NAME);
 
         // Инициализируем все цветные объекты
         inflateFavoriteDrawables(inflater, context);

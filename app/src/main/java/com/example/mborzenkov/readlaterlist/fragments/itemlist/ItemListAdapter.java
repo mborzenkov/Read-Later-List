@@ -5,16 +5,20 @@ import android.database.Cursor;
 import android.graphics.drawable.GradientDrawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
+import com.example.mborzenkov.readlaterlist.fragments.EditItemFragment;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -40,8 +44,10 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
          *
          * @param item элемент, на который нажали
          * @param itemLocalId внутренний идентификатор элемента (_id)
+         * @param sharedElement shared element для использования при открытии фрагмента редактирования,
+         *                      не null, у него обязательно установлен transition name
          */
-        void onClick(@NonNull ReadLaterItem item, int itemLocalId);
+        void onClick(@NonNull ReadLaterItem item, int itemLocalId, @NonNull ImageView sharedElement);
     }
 
 
@@ -75,8 +81,12 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
             if (mCursor != null) {
                 mCursor.moveToPosition(getAdapterPosition());
                 ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
-                mClickHandler.onClick(dbAdapter.itemFromCursor(mCursor),
-                        mCursor.getInt(ItemListLoaderManager.INDEX_COLUMN_ID));
+                ViewCompat.setTransitionName(colorImageView,
+                        MainActivity.SHARED_ELEMENT_COLOR_TRANSITION_NAME);
+                mClickHandler.onClick(
+                        dbAdapter.itemFromCursor(mCursor),
+                        mCursor.getInt(ItemListLoaderManager.INDEX_COLUMN_ID),
+                        colorImageView);
             }
         }
 
