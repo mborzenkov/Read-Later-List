@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -18,16 +19,19 @@ import android.support.annotation.Size;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.transition.TransitionInflater;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -78,6 +82,9 @@ public class MainActivity extends AppCompatActivity implements
 
     /** Тэг для HandlerThread. */
     private static final String HANDLERTHREAD_TAG = "mainactivity_handlerthread";
+
+    /** Префикс для SharedElement. */
+    public static final String SHARED_ELEMENT_COLOR_TRANSITION_NAME = "readlateritem_sharedelement_color";
 
 
     /////////////////////////
@@ -311,11 +318,21 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onItemClick(@NonNull ReadLaterItem item, int localId) {
+    public void onItemClick(@NonNull ReadLaterItem item, int localId, @NonNull ImageView sharedElement) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         EditItemFragment editItemFragment = EditItemFragment.getInstance(fragmentManager, item, localId);
-        fragmentManager.beginTransaction()
-                .replace(FRAGMENT_CONTAINER, editItemFragment, EditItemFragment.TAG)
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+
+        // Shared element
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            editItemFragment.setSharedElementEnterTransition(
+                    TransitionInflater.from(this).inflateTransition(android.R.transition.move));
+            editItemFragment.setEnterTransition(
+                    TransitionInflater.from(this).inflateTransition(android.R.transition.slide_right));
+            transaction.addSharedElement(sharedElement, SHARED_ELEMENT_COLOR_TRANSITION_NAME);
+        }
+
+        transaction.replace(FRAGMENT_CONTAINER, editItemFragment, EditItemFragment.TAG)
                 .addToBackStack(null).commit();
     }
 
@@ -448,11 +465,21 @@ public class MainActivity extends AppCompatActivity implements
     // Колбеки EditItemFragment
 
     @Override
-    public void onRequestColorPicker(int color) {
+    public void onRequestColorPicker(int color, ImageView sharedElement) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         ColorPickerFragment colorPickerFragment = ColorPickerFragment.getInstance(fragmentManager, color);
-        fragmentManager.beginTransaction()
-                .replace(FRAGMENT_CONTAINER, colorPickerFragment, ColorPickerFragment.TAG)
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+
+        // Shared element
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            colorPickerFragment.setSharedElementEnterTransition(
+                    TransitionInflater.from(this).inflateTransition(android.R.transition.move));
+            colorPickerFragment.setEnterTransition(
+                    TransitionInflater.from(this).inflateTransition(android.R.transition.slide_right));
+            transaction.addSharedElement(sharedElement, SHARED_ELEMENT_COLOR_TRANSITION_NAME);
+        }
+
+        transaction.replace(FRAGMENT_CONTAINER, colorPickerFragment, ColorPickerFragment.TAG)
                 .addToBackStack(null).commit();
     }
 

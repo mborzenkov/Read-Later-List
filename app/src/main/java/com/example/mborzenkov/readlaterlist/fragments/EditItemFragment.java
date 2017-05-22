@@ -12,6 +12,7 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -30,6 +31,7 @@ import android.widget.TextView;
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 
+import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
@@ -129,8 +131,10 @@ public class EditItemFragment extends Fragment implements
          * Получатель должен открыть выбиратель цвета и по окончанию выбора вызвать setColor().
          *
          * @param color цвет, который нужно установить по умолчанию
+         * @param sharedElement shared element для использования при открытии фрагмента редактирования,
+         *                      не null, у него обязательно установлен transition name
          */
-        void onRequestColorPicker(int color);
+        void onRequestColorPicker(int color, ImageView sharedElement);
 
         /** Вызывается при завершении редактирования объекта и необходимости сохранения изменений.
          * Если ничего не изменено, onCreateNewItem не вызывается.
@@ -193,7 +197,7 @@ public class EditItemFragment extends Fragment implements
     private TextInputEditText mLabelEditText;
     private TextInputLayout mLabelInputLayout;
     private TextInputEditText mDescriptionEditText;
-    private ImageButton mColorImageButton;
+    private ImageView mColorImageButton;
     private TextInputEditText mImageUrlEditText;
     private TextInputLayout mImageUrlInputLayout;
     private ImageView mImageFromUrlImageView;
@@ -252,6 +256,10 @@ public class EditItemFragment extends Fragment implements
         mImageUrlEditText = (TextInputEditText) rootView.findViewById(R.id.et_edititem_imageurl);
         mImageUrlInputLayout = (TextInputLayout) rootView.findViewById(R.id.til_edititem_imageurl);
         mImageFromUrlImageView = (ImageView) rootView.findViewById(R.id.iv_edititem_imagefromurl);
+
+        // Shared element
+        ViewCompat.setTransitionName(mColorImageButton, MainActivity.SHARED_ELEMENT_COLOR_TRANSITION_NAME);
+
 
         // Инициализация FAB Save
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab_edititem_save);
@@ -426,7 +434,7 @@ public class EditItemFragment extends Fragment implements
             case R.id.ib_edit_item_color:
                 if (view.getId() == R.id.ib_edit_item_color) {
                     if (mCallbacks != null) {
-                        mCallbacks.onRequestColorPicker(mChosenColor);
+                        mCallbacks.onRequestColorPicker(mChosenColor, mColorImageButton);
                     }
                 }
                 break;
