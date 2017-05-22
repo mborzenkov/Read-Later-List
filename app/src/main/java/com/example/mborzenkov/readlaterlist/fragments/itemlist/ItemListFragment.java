@@ -168,9 +168,6 @@ public class ItemListFragment extends Fragment implements
                 public void onDrawerOpened(View drawerView) {
                     //  При открытии - обновляем Drawer на основании фильтра
                     super.onDrawerOpened(drawerView);
-                    if (mFilterDrawerFragment != null) {
-                        mFilterDrawerFragment.reloadDataFromCurrentFilter();
-                    }
                 }
 
             };

@@ -2,7 +2,7 @@ package com.example.mborzenkov.readlaterlist.fragments;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.PorterDuff;
@@ -15,41 +15,59 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.Size;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
+import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Activity для выбора цвета с помощью палитры
+/** Fragment для выбора цвета с помощью палитры.
  * Использование:
- *      Для установки выбранного цвета при открытии необходимо передать int
- *              в Intent с ключем ColorPickerFragment.CHOSEN_KEY
- *      При выборе цвета (нажатии на выбранный цвет) возвращает его как int
- *              в Intent с ключем  ColorPickerFragment.CHOSEN_KEY
+ *      Для получения объекта всегда используйте getInstance.
+ *      Для заполнения установки начального цвета, необходимо передать его в getInstance.
+ *      Для получения результатов редактирования, необходимо, чтобы Activity, использующая фрагмент, реализовывала
+ *          интерфейс ColorPickerCallbacks.
  */
-public class ColorPickerFragment extends AppCompatActivity implements View.OnTouchListener, View.OnLongClickListener {
+public class ColorPickerFragment extends Fragment implements View.OnTouchListener, View.OnLongClickListener {
 
-    // Объявляем все переменные
-    /** Константа для использования в качестве ключа при сохранении массива Favorites. */
-    private static final String FAVORITES_KEY = "com.example.mborzenkov.colorpicker.favorites";
-    /** Константа для использования в качестве ключа при сохранении выбранного цвета. */
-    public static final String CHOSEN_KEY = "com.example.mborzenkov.colorpicker.chosen";
+    /////////////////////////
+    // Константы
+
+    /** TAG фрагмента для фрагмент менеджера. */
+    public static final String TAG = "fragment_colorpicker";
+
+    // Ключи для Bundle.
+    private static final String BUNDLE_DEFAULTCOLOR_KEY = "colorpicker_defaultcolor";
+
+    // Ключи для savedInstanceState
+    private static final String SAVEDINSTANCE_CHOSENCOLOR_KEY = "colorpicker_chosencolor";
+    private static final String SAVEDINSTANCE_GRADIENTCOLORS_KEY = "colorpicker_gradientcolors";
+
+    /** Ошибка при нарушении инварианта. */
+    private static final String ERROR_INVARIANT_FAIL = "ColorPickerFragment invariant break: %s";
 
     /** Задержка для проверки двойного клика. */
     private static final long QUALIFICATION_SPAN = 200;
@@ -58,48 +76,56 @@ public class ColorPickerFragment extends AppCompatActivity implements View.OnTou
     /** Продолжительность вибрации. */
     private static final int VIBRATE_LENGTH = 50; // 0.05 сек
 
+
+    /////////////////////////
+    // Static
+
     /** Последняя случившаяся вибрация. */
     private static long sLastVibrate = 0;
 
-    // Элементы layout и помощники
-    private HorizontalScrollView mScrollView;
-    private LinearLayout mColorsLinearLayout;
-    private LinearLayout mFavLinearLayout;
-    private TextView mRgbValueTextView;
-    private TextView mHsvValueTextView;
+    /** Возвращает уже созданный ранее объект ColorPickerFragment или создает новый, если такого нет.
+     * Для создания объектов следует всегда использовать этот метод.
+     * Не помещает объект в FragmentManager.
+     * При помещении объекта в FragmentManager, следует использовать тэг TAG.
+     *
+     * @param fragmentManager менеджер для поиска фрагментов по тэгу
+     * @param defaultColor цвет, который нужно установить при открытии фрагмента в формате sRGB
+     *
+     * @return новый объект EditItemFragment
+     */
+    public static ColorPickerFragment getInstance(FragmentManager fragmentManager, int defaultColor) {
 
-    private SharedPreferences mSharedPreferences;
-    private Handler mHandler;
-    private Vibrator mVibrator;
-    // -
+        ColorPickerFragment fragment = (ColorPickerFragment) fragmentManager.findFragmentByTag(TAG);
 
-    /** Шаг, на котором будут располагаться края мультиградиента, квадрат находится на STEP_HUE/2 от края градиента. */
-    private int mStepHue;
-    /** Скорость перетягивания по горизонтали. */
-    private int mDivHue;
-    /** Скорость перетягивания по вертикали. */
-    private int mDivVal;
+        if (fragment == null) {
+            fragment = new ColorPickerFragment();
+        }
 
-    /** Список цветов у квадратов по умолчанию в формате HSV. */
-    private List<float[]> mSquareStandardColorsHsv = new ArrayList<>();
-    /** Список текущих цветов у квадратов в формате HSV. */
-    @SuppressWarnings("CanBeFinal") // Потому что он не может быть final, потому что добавляются элементы
-    private List<float[]> mSquareColorsHsv = new ArrayList<>();
-    /** Список любимых цветов в формате Color. */
-    private int[] mFavoriteColors;
-    /** Выбранный цвет в формате HSV. */
-    private float[] chosenColorHsv = new float[3];
+        Bundle args = new Bundle();
+        args.putInt(BUNDLE_DEFAULTCOLOR_KEY, defaultColor);
+        fragment.setArguments(args);
 
-    /** Признак режима редактирования. */
-    private boolean editingMode = false;
-    /** Признак двойного клика. */
-    private boolean doubleClick = false;
-    /** Последний квадрат, на который кликнули. */
-    private ImageButton lastClickedSquare = null;
-    /** Предыдущее положение нажатия по X. */
-    private int deltaX = 0;
-    /** Предыдущее положение нажатия по Y. */
-    private int deltaY = 0;
+        return fragment;
+
+    }
+
+    /** Интерфейс для оповещений о событиях во фрагменте. */
+    public interface ColorPickerCallbacks extends BasicFragmentCallbacks {
+
+        /** Вызывается при завершении редактирования объекта и необходимости сохранения изменений.
+         * Если ничего не изменено, onColorChosen не вызывается.
+         * При этом Fragment не закрывается, получатель колбека должен закрыть его самостоятельно.
+         *
+         * @param newColor выбранный цвет
+         */
+        void onColorPicked(int newColor);
+
+        /** Вызывается при выходе без изменений.
+         * При этом Fragment не закрывается, получатель колбека должен закрыть его самостоятельно.
+         */
+        void onEndPickingColor();
+
+    }
 
     /** Считает шаг для HUE между краями мультиградиента.
      * @param startColor Начальный цвет
@@ -125,144 +151,480 @@ public class ColorPickerFragment extends AppCompatActivity implements View.OnTou
         return Arrays.copyOf(colorFrom, 3);
     }
 
-    /** Возвращает новый Drawable квадратик с прозрачным цветом.
+    /** Возвращает новый Drawable для последующей установки в нем цвета.
+     * Drawable уже может обладать случайным цветом.
      *
-     * @return Квадратик Drawable
+     * @return Drawable
      */
-    private GradientDrawable getSquareDrawable(Context context) {
+    private static GradientDrawable newColorDrawable(Context context) {
         return (GradientDrawable) ContextCompat.getDrawable(context, R.drawable.circle_stroke);
     }
 
-    /** Заставляет телефон вибрировать.
-     *
+    /** Варианты границ градиента: Левая и Правая.
+     * Перечисление для чистоты кода и простоты понимания, вместо true/false.
      */
-    private void vibrate() {
-        if (System.currentTimeMillis() - sLastVibrate > TIMEOUT_VIBRATE) {
-            mVibrator.vibrate(VIBRATE_LENGTH);
-            sLastVibrate = System.currentTimeMillis();
+    private enum GradientBorders { LEFT, RIGHT }
+
+    /** Возвращает граничное значение от переданного цвета.
+     *      В случае LEFT, возвращает цвет, с измененным HUE на - stepHue/2;
+     *      В случае RIGHT, возвращает цвет, с измененным HUE на + stepHue/2
+     *
+     * @param color цвет в формате HSV
+     * @param border тип запрашиваемой границы: LEFT или RIGHT
+     * @param stepHue разница HUE между краями градиента LEFT и RIGHT
+     *
+     * @return цвет в формате sRGB, соответствующий граничному значению
+     */
+    private static int getBorder(@NonNull float[] color, @NonNull GradientBorders border, int stepHue) {
+        float[] tmpColor = copyOfColor(color);
+        switch (border) {
+            case LEFT:
+                tmpColor[0] -= (stepHue / 2);
+                break;
+            case RIGHT:
+                tmpColor[0] += (stepHue / 2);
+                break;
+        }
+        return Color.HSVToColor(tmpColor);
+    }
+
+    /////////////////////////
+    // Поля объекта
+
+    // Инвариант:
+    //      mStepHue - шаг, на котором располгаются края градиентов, > 0
+    //      mDivHue - значение, на которое изменяется HUE при перетягивании, >0
+    //      mDivVal - значение, на которое изменяется VAL при перятягивании, >0
+    //      mDefaultColor - главный цвет по умолчанию
+    //      mSquareStandardColorsHsv - список цветов в градиенте по умолчанию,
+    //              не null, не пустой, каждый цвет отличается от следующего по HUE на mStepHue, каждый элемент float[3]
+    //      mSquareColorsHsv - список текущих цветов в градиенте,
+    //              не null, не пустой, размер равен mSquareStandardColorsHsv, каждый элемент float[3]
+    //      mFavoriteColors - список любимых цветов, не null
+    //      mChosenColorHsv - текущий выбранный цвет, не null, размерность 3
+
+    /** Шаг, на котором будут располагаться края мультиградиента, квадрат находится на STEP_HUE/2 от края градиента. */
+    private int mStepHue;
+    /** Скорость перетягивания по горизонтали. */
+    private int mDivHue;
+    /** Скорость перетягивания по вертикали. */
+    private int mDivVal;
+
+    /** Цвет по умолчанию в формате sRGB в этом фрагменте. */
+    private int mDefaultColor;
+    /** Список цветов у квадратов по умолчанию в формате HSV. */
+    private @NonNull List<float[]> mSquareStandardColorsHsv = Collections.emptyList();
+    /** Список текущих цветов у квадратов в формате HSV. */
+    private @NonNull List<float[]> mSquareColorsHsv = Collections.emptyList();
+    /** Список любимых цветов в формате Color. */
+    private @NonNull int[] mFavoriteColors = new int[0];
+    /** Выбранный цвет в формате HSV. */
+    private @NonNull @Size(3) float[] mChosenColorHsv = new float[3];
+
+    /** Объект для колбеков о событиях во фрагменте. */
+    private @Nullable ColorPickerCallbacks mCallbacks = null;
+
+    // Элементы layout и помощники
+    private HorizontalScrollView mScrollView;
+    private LinearLayout mColorsLinearLayout;
+    private LinearLayout mFavLinearLayout;
+    private TextView mRgbValueTextView;
+    private TextView mHsvValueTextView;
+
+    private Handler mHandler;
+    private Vibrator mVibrator;
+    // -
+
+    // Вспомогательные переменные
+    /** Признак режима редактирования. */
+    private boolean editingMode = false;
+    /** Признак двойного клика. */
+    private boolean doubleClick = false;
+    /** Последний квадрат, на который кликнули. */
+    private @Nullable ImageButton lastClickedSquare = null;
+    /** Предыдущее положение нажатия по X. */
+    private int deltaX = 0;
+    /** Предыдущее положение нажатия по Y. */
+    private int deltaY = 0;
+
+
+    /////////////////////////
+    // Проверка достоверности инварианта
+
+    private void checkRep() {
+        if (BuildConfig.DEBUG) {
+            if (mStepHue <= 0) {
+                throw new AssertionError(
+                        String.format(ERROR_INVARIANT_FAIL, "mStepHue == " + mStepHue));
+            } else if (mDivHue <= 0) {
+                throw new AssertionError(
+                        String.format(ERROR_INVARIANT_FAIL, "mDivHue == " + mDivHue));
+            } else if (mDivVal <= 0) {
+                throw new AssertionError(
+                        String.format(ERROR_INVARIANT_FAIL, "mStepHue == " + mDivVal));
+            } else if (mSquareStandardColorsHsv.isEmpty()) {
+                throw new AssertionError(
+                        String.format(ERROR_INVARIANT_FAIL, "mSquareStandardColorsHsv is empty"));
+            } else if (mSquareColorsHsv.isEmpty()) {
+                throw new AssertionError(
+                        String.format(ERROR_INVARIANT_FAIL, "mSquareColorsHsv is empty"));
+            } else if (mSquareColorsHsv.size() != mSquareStandardColorsHsv.size()) {
+                throw new AssertionError(
+                        String.format(ERROR_INVARIANT_FAIL,
+                                "mSquareColorsHsv.size() != mSquareStandardColorsHsv.size()"));
+            } else if (mChosenColorHsv.length != 3) {
+                throw new AssertionError(
+                        String.format(ERROR_INVARIANT_FAIL, "mChosenColorHsv.length != 3"));
+            }
+
+            // mSquareStandardColorsHsv.size() == mSquareColorsHsv.size(), поэтому пройдемся одним циклом по обоим
+            for (int i = 0, size = mSquareStandardColorsHsv.size(); i < size; i++) {
+                float[] colorStd = mSquareStandardColorsHsv.get(i);
+                if (colorStd.length != 3) {
+                    throw new AssertionError(
+                            String.format(ERROR_INVARIANT_FAIL,
+                                    "Element.length of mSquareStandardColorsHsv != 3, element: "
+                                            + Arrays.toString(colorStd)));
+                } else if (i > 0) {
+                    float[] prevColor = mSquareStandardColorsHsv.get(i - 1);
+                    if ((colorStd[0] != (prevColor[0] + mStepHue))) {
+                        throw new AssertionError(
+                                String.format(ERROR_INVARIANT_FAIL,
+                                        "(color(i) HUE) != ((color(i+1) HUE) + mStepHue) of mSquareStandardColorsHsv: "
+                                                + Arrays.toString(prevColor) + " , " + Arrays.toString(colorStd)));
+                    } else if ((colorStd[1] != prevColor[1]) || (colorStd[2] != prevColor[2])) {
+                        throw new AssertionError(
+                                String.format(ERROR_INVARIANT_FAIL,
+                                        "color(i) SAT or VAL != color(i+1) SAT or VAL of mSquareStandardColorsHsv: "
+                                                + Arrays.toString(prevColor) + " , " + Arrays.toString(colorStd)));
+                    }
+                }
+
+                float[] colorCurrent = mSquareColorsHsv.get(i);
+                if (colorCurrent.length != 3) {
+                    throw new AssertionError(
+                            String.format(ERROR_INVARIANT_FAIL,
+                                    "Element.length of mSquareColorsHsv != 3, element: "
+                                            + Arrays.toString(colorCurrent)));
+                }
+            }
         }
     }
 
+
+    /////////////////////////
+    // Колбеки Fragment
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof ColorPickerCallbacks) {
+            mCallbacks = (ColorPickerCallbacks) context;
+        }
+    }
+
+    /** {@inheritDoc}
+     *
+     * @throws IllegalStateException если объект создается без Bundle или не содержит BUNDLE_DEFAULTCOLOR_KEY,
+     *              что значит, что он создется не через getInstance
+     */
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_colorpicker);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_colorpicker);
-        toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.icons));
-        setSupportActionBar(toolbar);
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
+
+        Bundle args = getArguments();
+        if (args == null) {
+            throw new IllegalStateException("Error @ ColorPickerFragment.onCreate: Bundle == null");
+        } else if (!args.containsKey(BUNDLE_DEFAULTCOLOR_KEY)) {
+            throw new IllegalStateException(
+                    "Error @ ColorPickerFragment.onCreate: !Bundle.containsKey(BUNDLE_DEFAULTCOLOR_KEY)");
         }
 
-        Context applicationContext = getApplicationContext();
-        LayoutInflater layoutInflater = getLayoutInflater();
-        GradientDrawable squareDrawable = getSquareDrawable(applicationContext);
-        squareDrawable.setColor(Color.TRANSPARENT);
-        Intent fromIntent = getIntent();
-
-        // Инициализация
-        mScrollView = (HorizontalScrollView) findViewById(R.id.horizontalScrollView);
-        mColorsLinearLayout = (LinearLayout) findViewById(R.id.linearLayout_main);
-        mFavLinearLayout = (LinearLayout) findViewById(R.id.linearlayout_filterdrawer_favorites);
-        mRgbValueTextView = (TextView) findViewById(R.id.textView_RGB_value);
-        mHsvValueTextView = (TextView) findViewById(R.id.textView_HSV_value);
-        mSharedPreferences = getSharedPreferences(FAVORITES_KEY, Context.MODE_PRIVATE);
-        mHandler = new Handler();
-        mVibrator = (Vibrator) applicationContext.getSystemService(VIBRATOR_SERVICE);
-
-        final int numberOfSquares = getResources().getInteger(R.integer.colorpicker_circles);
-        final int colorGradientStart = ContextCompat.getColor(applicationContext, R.color.gradient_start);
-        final int colorGradientEnd = ContextCompat.getColor(applicationContext, R.color.gradient_end);
-        mStepHue = countStep(colorGradientStart, colorGradientEnd, numberOfSquares);
+        mDefaultColor = args.getInt(BUNDLE_DEFAULTCOLOR_KEY);
 
         // Скорость перетягивания зависит от дисплея
         DisplayMetrics dm = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(dm);
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(dm);
         int width = dm.widthPixels;
         int height = dm.heightPixels;
-        double wi = (double)width / (double)dm.xdpi;
-        double hi = (double)height / (double)dm.ydpi;
+        double wi = (double) width / (double) dm.xdpi;
+        double hi = (double) height / (double) dm.ydpi;
         mDivHue = (int) (wi * 10);
         mDivVal = (int) (hi * 500);
 
-        // Инициализируем массив Favorites
-        final int maxFavorites = getResources().getInteger(R.integer.colorpicker_favorites);
-        mFavoriteColors = new int[maxFavorites];
+        // Контекст, максимальное количество Favorites, общее число квадратиков
+        Context context = getContext();
+        Resources resources = getResources();
+        final int numberOfSquares = resources.getInteger(R.integer.colorpicker_circles);
+
+        // Массив Favorites, список цветов на поле градиента и шаг между цветами
+        mFavoriteColors = FavoriteColorsUtils.getFavoriteColorsFromSharedPreferences(context, null);
+        mSquareStandardColorsHsv = new ArrayList<>(numberOfSquares);
+        mSquareColorsHsv = new ArrayList<>(numberOfSquares);
+        final int colorGradientStart = ContextCompat.getColor(context, R.color.gradient_start);
+        final int colorGradientEnd = ContextCompat.getColor(context, R.color.gradient_end);
+        mStepHue = countStep(colorGradientStart, colorGradientEnd, numberOfSquares);
+
+        /* Рассчитывает mSquareStandardColorsHsv.
+         * Каждый элемент mSquareStandardColorsHsv - это середина между левым краем градиента и правым.
+         * Элементы начинаются с colorGradientStart + (mStepHue / 2) и каждый следующий равен предыдущему + mStepHue.
+         */
+        {
+            if (BigInteger.valueOf(colorGradientStart)
+                    .add(
+                            BigInteger.valueOf(mStepHue)
+                                    .multiply(BigInteger.valueOf(numberOfSquares)))
+                    .compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) == 1) {
+                throw new IllegalArgumentException(
+                        "Error @ ColorPickerFragment.calculateGradient: colorGradientStart + "
+                                + "(mStepHue * mSquareStandardColorsHsv.size()) > Integer.MAX_VALUE");
+            } else if (mStepHue <= 0) {
+                throw new IllegalStateException(
+                        "Error @ ColorPickerFragment.calculateGradient: mStepHue == " + mStepHue);
+            }
+
+            float[] transparentColorHsv = new float[3];
+            Color.colorToHSV(Color.TRANSPARENT, transparentColorHsv);
+            float[] curColorHsv = new float[3];
+            Color.colorToHSV(colorGradientStart, curColorHsv);
+            curColorHsv[0] += mStepHue / 2;
+            for (int i = 0; i < numberOfSquares; i++) {
+                mSquareStandardColorsHsv.add(copyOfColor(curColorHsv));
+                mSquareColorsHsv.add(copyOfColor(curColorHsv));
+                curColorHsv[0] += mStepHue;
+            }
+
+            float[] defaultColorHsv = new float[3];
+            Color.colorToHSV(mDefaultColor, defaultColorHsv);
+            mChosenColorHsv = copyOfColor(defaultColorHsv);
+
+        }
+
+        checkRep();
+
+    }
+
+    /** {@inheritDoc}
+     *
+     * @throws IllegalStateException если при восстановлении из savedInstanceState были найдены ключи
+     *              SAVEDINSTANCE_CHOSENCOLOR_KEY и SAVEDINSTANCE_GRADIENTCOLORS_KEY, но не удалось восстановить из них
+     *              значения
+     */
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+
+        View rootView = inflater.inflate(R.layout.fragment_colorpicker, container, false);
+
+        // Инициализация объектов layout
+        mScrollView = (HorizontalScrollView) rootView.findViewById(R.id.horizontalScrollView);
+        mColorsLinearLayout = (LinearLayout) rootView.findViewById(R.id.linearLayout_main);
+        mFavLinearLayout = (LinearLayout) rootView.findViewById(R.id.linearlayout_filterdrawer_favorites);
+        mRgbValueTextView = (TextView) rootView.findViewById(R.id.textView_RGB_value);
+        mHsvValueTextView = (TextView) rootView.findViewById(R.id.textView_HSV_value);
+
+        // Инициализация хелперов
+        mHandler = new Handler();
+        mVibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
+
+        // Заполненяем mSquareColorsHsv
+        if ((savedInstanceState != null) && savedInstanceState.containsKey(SAVEDINSTANCE_CHOSENCOLOR_KEY)
+                && savedInstanceState.containsKey(SAVEDINSTANCE_GRADIENTCOLORS_KEY)) {
+
+            final int numberOfSquares = mSquareColorsHsv.size();
+
+            // Восстановление из SavedInstanceState
+            float[] savedChosenColor = savedInstanceState.getFloatArray(SAVEDINSTANCE_CHOSENCOLOR_KEY);
+            if ((savedChosenColor != null) && (savedChosenColor.length == 3)) {
+                mChosenColorHsv = savedChosenColor;
+            } else {
+                throw new IllegalStateException(
+                        "Error @ ColorPickerFragment.onCreateView: savedInstanceState contain all keys, but "
+                                + "savedChosenColor is invalid");
+            }
+            List<Integer> savedGradientColors =
+                    savedInstanceState.getIntegerArrayList(SAVEDINSTANCE_GRADIENTCOLORS_KEY);
+            if ((savedGradientColors != null) && (savedGradientColors.size() == numberOfSquares)) {
+                for (int i = 0; i < numberOfSquares; i++) {
+                    int color = savedGradientColors.get(i);
+                    float[] hsvColor = new float[3];
+                    Color.colorToHSV(color, hsvColor);
+                    mSquareColorsHsv.set(i, hsvColor);
+                }
+            } else {
+                throw new IllegalStateException(
+                        "Error @ ColorPickerFragment.onCreateView: savedInstanceState contain all keys, but "
+                                + "savedGradientColors is invalid");
+            }
+
+        }
+
+        Context context = getContext();
+
+        // Ставим цвет у центрального цветного элемента и у приложения
+        GradientDrawable mainElementDrawable = newColorDrawable(context);
+        mainElementDrawable.setColor(Color.HSVToColor(mChosenColorHsv));
+        View mainElement = rootView.findViewById(R.id.imageButton_chosen);
+        mainElement.setBackground(mainElementDrawable);
+        mainElement.setOnClickListener(this::clickOnChosenSquare);
+        changeMainColor(mChosenColorHsv, false);
+
+        // Инициализируем все цветные объекты
+        inflateFavoriteDrawables(inflater, context);
+        inflateGradientDrawables(inflater, context);
+
+        // Объекты и действия, имеющие смысл только при наличии колбеков
+        if (mCallbacks != null) {
+
+            // Инициализация тулбара
+            Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar_colorpicker);
+            toolbar.setTitleTextColor(ContextCompat.getColor(getContext(), R.color.icons));
+            mCallbacks.setNewToolbar(toolbar, getString(R.string.title_activity_colorpicker));
+
+        }
+
+        // Меню нет
+        setHasOptionsMenu(true);
+
+        return rootView;
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkRep(); // TODO: убрать эту проверку
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putFloatArray(SAVEDINSTANCE_CHOSENCOLOR_KEY, mChosenColorHsv);
+        ArrayList<Integer> mainGradientElements = new ArrayList<>();
+        for (float[] elementColor : mSquareColorsHsv) {
+            mainGradientElements.add(Color.HSVToColor(elementColor));
+        }
+        outState.putIntegerArrayList(SAVEDINSTANCE_GRADIENTCOLORS_KEY, mainGradientElements);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallbacks = null;
+    }
+
+
+    /////////////////////////
+    // Вспомогательные методы для создания объекта
+
+    /** Создает все элементы в layout Favorites.
+     * Очищает mFavLinearLayout и добавляет mFavoriteColors.length элементов в него.
+     * Устанавливает каждому элементу цвет в соответствии с mFavoriteColors.
+     * Каждому добавленному элементу устанавливает Tag с его порядковым номером.
+     *
+     * @param inflater инфлейтер для создания view
+     * @param context контекст для обращения к ресурсам
+     *
+     * @throws IllegalStateException если mFavoriteColors == null
+     * @throws IllegalStateException если mFavLinearLayout == null
+     * @throws android.view.InflateException если не удалось добавить view в mFavLinearLayout
+     *
+     */
+    private void inflateFavoriteDrawables(@NonNull LayoutInflater inflater,
+                                          @NonNull Context context) {
+
+        if (mFavLinearLayout == null) {
+            throw new IllegalStateException(
+                    "Error @ ColorPickerFragment.inflateFavoriteDrawables: mFavLinearLayout == null");
+        }
+
+        mFavLinearLayout.removeAllViews();
+
+        for (int i = 0, maxFavorites = mFavoriteColors.length; i < maxFavorites; i++) {
+
+            GradientDrawable favoritesDrawable = newColorDrawable(context);
+            favoritesDrawable.setColor(mFavoriteColors[i]);
+            View favSquare = inflater.inflate(R.layout.content_colorpicker_favorites, mFavLinearLayout, false);
+            View squareButton = favSquare.findViewById(R.id.imageButton_favorite_color);
+            squareButton.setOnLongClickListener(this);
+            squareButton.setBackground(favoritesDrawable);
+            squareButton.setTag(i);
+            squareButton.setOnClickListener(this::clickOnFavSquare);
+            mFavLinearLayout.addView(favSquare);
+
+        }
+
+    }
+
+    /** Создает все элементы в layout mColorsLinearLayout.
+     * Очищает mColorsLinearLayout и добавляет mSquareColorsHsv.size() элементов в него.
+     * Устанавливает каждому элементу цвет в соответствии с mSquareColorsHsv.
+     * Каждому добавленному элементу станавливает Tag в соответствии с его порядовым номером.
+     * Устанавливает градиент в mColorsLinearLayout в соответствии с mSquareStandardColorsHsv.
+     *
+     * @param inflater инфлейтер для создания view
+     * @param context контекст для обращения к ресурсам
+     *
+     * @throws IllegalStateException если mSquareColorsHsv.size() == 0
+     * @throws IllegalStateException если mSquareStandardColorsHsv.size() == 0
+     * @throws IllegalStateException если mColorsLinearLayout == null
+     * @throws IllegalStateException если mStepHue <= 0
+     * @throws android.view.InflateException если не удалось добавить view в mColorsLinearLayout
+     */
+    private void inflateGradientDrawables(@NonNull LayoutInflater inflater,
+                                          @NonNull Context context) {
+
+        final int numberOfSquares = mSquareColorsHsv.size();
+
+        if (mSquareColorsHsv.size() == 0) {
+            throw new IllegalStateException(
+                    "Error @ ColorPickerFragment.inflateGradientDrawables: mSquareColorsHsv is empty");
+        } else if (mSquareStandardColorsHsv.size() == 0) {
+            throw new IllegalStateException(
+                    "Error @ ColorPickerFragment.inflateGradientDrawables: mSquareStandardColorsHsv is empty");
+        } else if (mColorsLinearLayout == null) {
+            throw new IllegalStateException(
+                    "Error @ ColorPickerFragment.inflateGradientDrawables: mColorsLinearLayout == null");
+        } else if (mStepHue <= 0) {
+            throw new IllegalStateException(
+                "Error @ ColorPickerFragment.inflateGradientDrawables: mStepHue == " + mStepHue);
+        }
+
+        mColorsLinearLayout.removeAllViews();
 
         // Эти два массива нужны для создания мультиградиента
         final int[] mArrayOfGradient = new int[numberOfSquares + 1];
         final float[] arrayOfPositions = new float[numberOfSquares + 1];
 
-        // Создаем Favorites квадратики
-        for (int i = 0; i < maxFavorites; i++) {
-
-            squareDrawable = getSquareDrawable(applicationContext);
-            View favSquare = layoutInflater.inflate(R.layout.content_colorpicker_favorites, mFavLinearLayout, false);
-            View squareButton = favSquare.findViewById(R.id.imageButton_favorite_color);
-            squareButton.setOnLongClickListener(this);
-            squareButton.setBackground(squareDrawable);
-            squareButton.setTag(i);
-            mFavLinearLayout.addView(favSquare);
-
-        }
-
-        if (savedInstanceState == null) {
-            for (int i = 0; i < maxFavorites; i++) {
-                int savedColor = mSharedPreferences.getInt(String.valueOf(i), Color.TRANSPARENT);
-                setFavoriteColor(i, savedColor);
-            }
-        }
-
         // Считаем начальный цвет
-        int curColor = colorGradientStart;
-        float[] curColorHsv = new float[3];
-        Color.colorToHSV(curColor, curColorHsv);
-        mArrayOfGradient[0] = curColor;
+        mArrayOfGradient[0] = getBorder(mSquareStandardColorsHsv.get(0), GradientBorders.LEFT, mStepHue);
         arrayOfPositions[0] = 0;
 
-        // Заполняем квадратиками поле
+        // Заполняем цветными элементами поле градиента
         for (int i = 0; i < numberOfSquares; i++) {
 
-            // Создаем Drawable квадратик и запоминаем его цвет в mSquareColorsHsv
-            curColorHsv[0] += mStepHue / 2;
-            curColor = Color.HSVToColor(curColorHsv);
-            squareDrawable = getSquareDrawable(applicationContext);
-            squareDrawable.setColor(curColor);
-            mSquareColorsHsv.add(copyOfColor(curColorHsv));
-            curColorHsv[0] += mStepHue / 2;
-
             // Запоминаем правую границу градиента и ее положение
-            curColor = Color.HSVToColor(curColorHsv);
-            mArrayOfGradient[i + 1] = curColor;
+            mArrayOfGradient[i + 1] = getBorder(mSquareStandardColorsHsv.get(i), GradientBorders.RIGHT, mStepHue);
             arrayOfPositions[i + 1] = (float) i / (float) numberOfSquares;
 
-            // Создаем View квадратик
-            View square = layoutInflater.inflate(R.layout.content_colorpicker_circle, mColorsLinearLayout, false);
-            View squareButton = square.findViewById(R.id.imageButton_colored_square);
+            // Создаем цветной элемент внутри градиента
+            GradientDrawable gradientChildDrawable = newColorDrawable(context);
+            gradientChildDrawable.setColor(Color.HSVToColor(mSquareColorsHsv.get(i)));
+
+            // Создаем View, устанавливаем ему бэкграунд в виде цветного элемента
+            View gradientChild = inflater.inflate(R.layout.content_colorpicker_circle, mColorsLinearLayout, false);
+            View gradientChildImageButton = gradientChild.findViewById(R.id.imageButton_colored_square);
             // Устанавливаем ему Listener'ы для действий с ним
-            squareButton.setOnLongClickListener(this);
-            squareButton.setOnTouchListener(this);
-            squareButton.setBackground(squareDrawable);
+            gradientChildImageButton.setOnLongClickListener(this);
+            gradientChildImageButton.setOnTouchListener(this);
+            gradientChildImageButton.setBackground(gradientChildDrawable);
             // Простой способ потом понимать какой квадратик какой - установить таги
-            squareButton.setTag(i);
-            mColorsLinearLayout.addView(square);
+            gradientChildImageButton.setTag(i);
+            mColorsLinearLayout.addView(gradientChild);
 
-            Color.colorToHSV(curColor, curColorHsv);
-
-        }
-
-        // Ставим цвет у главного квадратика и у приложения
-        squareDrawable = getSquareDrawable(applicationContext);
-        findViewById(R.id.imageButton_chosen).setBackground(squareDrawable);
-        if (savedInstanceState == null) {
-            if (fromIntent.hasExtra(CHOSEN_KEY)) {
-                Color.colorToHSV(fromIntent.getIntExtra(CHOSEN_KEY, Color.TRANSPARENT), chosenColorHsv);
-            } else {
-                chosenColorHsv = copyOfColor(mSquareColorsHsv.get(0));
-            }
-            changeMainColor(chosenColorHsv, true);
         }
 
         // Создаем мультиградиент и устанавливаем его
@@ -280,50 +642,30 @@ public class ColorPickerFragment extends AppCompatActivity implements View.OnTou
         perfectGradient.setShaderFactory(shaderFactory);
         mColorsLinearLayout.setBackground(perfectGradient);
 
-        // Запоминаем все начальные значения
-        mSquareStandardColorsHsv = new ArrayList<>();
-        for (float[] val : mSquareColorsHsv) {
-            mSquareStandardColorsHsv.add(copyOfColor(val));
-        }
-
     }
 
-    /** Возвращает выбранный цвет и закрывает Activity.
-     * @param color Выбранный цвет
-     */
-    private void closeWithResult(int color) {
-        Intent result = new Intent();
-        result.putExtra(CHOSEN_KEY, color);
-        setResult(RESULT_OK, result);
-        finish();
-    }
+
+    /////////////////////////
+    // Колбеки меню
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        if (savedInstanceState != null) {
-            int[] favoritesFromState = savedInstanceState.getIntArray(FAVORITES_KEY);
-            if (favoritesFromState != null) {
-                for (int i = 0; i < favoritesFromState.length; i++) {
-                    if (favoritesFromState[i] != 0) {
-                        setFavoriteColor(i, favoritesFromState[i]);
-                    }
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id) {
+            case android.R.id.home:
+                if (mCallbacks != null) {
+                    mCallbacks.onEndPickingColor();
                 }
-                mFavoriteColors = Arrays.copyOf(favoritesFromState, favoritesFromState.length);
-            }
-            float[] chosenColorFromState = savedInstanceState.getFloatArray(CHOSEN_KEY);
-            if (chosenColorFromState != null) {
-                changeMainColor(chosenColorFromState, true);
-            }
+                return true;
+            default:
+                break;
         }
+        return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putIntArray(FAVORITES_KEY, mFavoriteColors);
-        outState.putFloatArray(CHOSEN_KEY, chosenColorHsv);
-    }
+
+    /////////////////////////
+    // Колбеки onTouchListener
 
     @Override
     public boolean onTouch(View view, MotionEvent event) {
@@ -346,7 +688,7 @@ public class ColorPickerFragment extends AppCompatActivity implements View.OnTou
                 if (editingMode) {
                     editingMode = false;
                     mScrollView.requestDisallowInterceptTouchEvent(false);
-                    changeMainColor(chosenColorHsv, false);
+                    changeMainColor(mChosenColorHsv, false);
                     mColorsLinearLayout.getBackground().clearColorFilter();
                 } else if (doubleClick && square.equals(lastClickedSquare)) {
                     reverseColor(square);
@@ -373,6 +715,10 @@ public class ColorPickerFragment extends AppCompatActivity implements View.OnTou
         }
     }
 
+
+    /////////////////////////
+    // Колбеки onLongClickListener
+
     @Override
     public boolean onLongClick(View v) {
         switch (v.getId()) {
@@ -390,11 +736,9 @@ public class ColorPickerFragment extends AppCompatActivity implements View.OnTou
             case R.id.imageButton_favorite_color:
                 if (v.getTag() != null) {
                     int position = (Integer) v.getTag();
-                    int colorFavorite = Color.HSVToColor(chosenColorHsv);
+                    int colorFavorite = Color.HSVToColor(mChosenColorHsv);
                     setFavoriteColor(position, colorFavorite);
-                    SharedPreferences.Editor editor = mSharedPreferences.edit();
-                    editor.putInt(String.valueOf(position), colorFavorite);
-                    editor.apply();
+                    FavoriteColorsUtils.saveFavoriteColor(getContext(), null, colorFavorite, position);
                     vibrate();
                     return true;
                 }
@@ -404,6 +748,10 @@ public class ColorPickerFragment extends AppCompatActivity implements View.OnTou
         }
         return false;
     }
+
+
+    /////////////////////////
+    // Обработчики нажатий
 
     /** Обработчик нажатия на Favorites квадратик.
      * При вызове меняет цвет у главного квадратика, надписей вокруг него и строки меню
@@ -426,7 +774,9 @@ public class ColorPickerFragment extends AppCompatActivity implements View.OnTou
      */
     public void clickOnChosenSquare(@NonNull View view) {
         if (view.getId() == R.id.imageButton_chosen) {
-            closeWithResult(Color.HSVToColor(chosenColorHsv));
+            if (mCallbacks != null) {
+                mCallbacks.onColorPicked(Color.HSVToColor(mChosenColorHsv));
+            }
         }
     }
 
@@ -460,17 +810,35 @@ public class ColorPickerFragment extends AppCompatActivity implements View.OnTou
         }
     }
 
+
+    /////////////////////////
+    // Методы при заершении редактирования
+
+    /** Вызывается, когда нажата кнопка назад.
+     * Управление полностью передается фрагменту. Фрагмент должен обработать нажатие самостоятельно.
+     */
+    public void onBackPressed() {
+        if (mCallbacks != null) {
+            mCallbacks.onEndPickingColor();
+        }
+    }
+
+    /////////////////////////
+    // Методы для управления цветами
+
     /** Меняет цвет у основного квадратика, надписей вокруг него и строки меню на переданный colorHSV.
      *
      * @param colorHsv Цвет в HSV, float[] размерностью 3
      * @param saveAsChosen Признак, нужно ли сохранить цвет
      */
-    private void changeMainColor(@NonNull float[] colorHsv, boolean saveAsChosen) {
+    private void changeMainColor(@NonNull @Size(3) float[] colorHsv, boolean saveAsChosen) {
         if (saveAsChosen) {
-            chosenColorHsv = copyOfColor(colorHsv);
+            mChosenColorHsv = copyOfColor(colorHsv);
         }
         int color = Color.HSVToColor(colorHsv);
-        ((GradientDrawable) findViewById(R.id.imageButton_chosen).getBackground()).setColor(color);
+        if (getView() != null) {
+            ((GradientDrawable) getView().findViewById(R.id.imageButton_chosen).getBackground()).setColor(color);
+        }
         mRgbValueTextView.setText(String.format(Locale.US, "%d, %d, %d",
                 Color.red(color), Color.green(color), Color.blue(color)));
         mHsvValueTextView.setText(String.format(Locale.US, "%.2f, %.2f, %.2f", colorHsv[0], colorHsv[1], colorHsv[2]));
@@ -554,4 +922,19 @@ public class ColorPickerFragment extends AppCompatActivity implements View.OnTou
         ((GradientDrawable) favSquare.getBackground()).setColor(color);
         mFavoriteColors[position] = color;
     }
+
+
+    /////////////////////////
+    // Вспомогательные методы
+
+    /** Заставляет телефон вибрировать.
+     *
+     */
+    private void vibrate() {
+        if (System.currentTimeMillis() - sLastVibrate > TIMEOUT_VIBRATE) {
+            mVibrator.vibrate(VIBRATE_LENGTH);
+            sLastVibrate = System.currentTimeMillis();
+        }
+    }
+
 }
