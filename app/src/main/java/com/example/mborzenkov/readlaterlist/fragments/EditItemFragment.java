@@ -341,6 +341,13 @@ public class EditItemFragment extends Fragment implements
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // За собой нужно почистить инпут мод
+        getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED);
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         Log.d("FRAGMENT", "Save instance EditItem");

@@ -58,11 +58,6 @@ public class MainActivity extends AppCompatActivity implements
         FilterDrawerFragment.DrawerCallbacks,
         ColorPickerFragment.ColorPickerCallbacks {
 
-    // [ColorPickerFragment]
-    // TODO: Сохранение state у Drawer
-    // TODO: Не работает фильтр по цветам
-    // TODO: При переходе в edititem и обратно из drawer исчезает выбранный фильтр, что наверное связано с instance state
-
     // [v.0.7.0]
     // TODO: Проверить все на выполнение не на UI Thread (missing frames - причина виртуалки или где-то косяки?)
     // TODO: Проверить алгоритм синхронизации:

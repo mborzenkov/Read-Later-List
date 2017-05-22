@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -31,6 +32,7 @@ import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
@@ -225,7 +227,7 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
         mDateToEditText.setTag(zeroLong);
 
         // Добавляем Favorites на Drawer Layout
-        FavoriteColorsUtils.inflateFavLayout(getActivity(), mFavLinearLayout);
+        FavoriteColorsUtils.inflateFavLayout(getContext(), inflater, mFavLinearLayout);
 
         // Инициализируем кнопки SortBy
         mSortByLabelButton.setTag(MainListFilter.SortType.LABEL);
@@ -268,6 +270,8 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
             deleteAllButton.setVisibility(View.INVISIBLE);
         }
 
+        reloadDataFromCurrentFilter();
+
         return rootView;
 
     }
@@ -284,12 +288,24 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
 
     /** Обновляет Drawer в соответствии с выбранным фильтром. */
     public void reloadDataFromCurrentFilter() {
+
         MainListFilter currentFilter = MainListFilterUtils.getCurrentFilter();
         mDateFiltersSpinner.setSelection(currentFilter.getSelection().getPosition());
         mDateFromEditText.setText(currentFilter.getDateFrom());
         mDateToEditText.setText(currentFilter.getDateTo());
+        switch (mDateFiltersSpinner.getSelectedItemPosition()) {
+            case MainListFilterUtils.INDEX_DATE_ALL:
+                mDateFromEditText.setVisibility(View.GONE);
+                mDateToEditText.setVisibility(View.GONE);
+                break;
+            default:
+                mDateFromEditText.setVisibility(View.VISIBLE);
+                mDateToEditText.setVisibility(View.VISIBLE);
+                break;
+        }
         favColors = FavoriteColorsUtils.updateFavLayoutFromSharedPreferences(getContext(), mFavLinearLayout, null,
                 this, currentFilter.getColorFilter());
+        Log.d("FILTER", Arrays.toString(currentFilter.getColorFilter().toArray()));
         resetButtons();
         Button selectedSortButton = null;
         switch (currentFilter.getSortType()) {
@@ -313,6 +329,7 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
             selectedSortButton.setText(selectedSortButton.getText().toString()
                     + " " + mSortOrderSymbols.get(currentFilter.getSortOrder()));
         }
+
     }
 
     /** Перезагружает адаптер списка сохраненных фильтров.
@@ -322,52 +339,54 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
 
         if (mSavedFiltersAdapter == null) {
             mSavedFiltersAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item);
-            mSavedFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            mSavedFiltersSpinner.setAdapter(mSavedFiltersAdapter);
+        }
 
-            // Устанавливаем онклик слушатель
-            mSavedFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
-                    int indexSavedAdd = MainListFilterUtils.getIndexSavedAdd();
-                    int indexSavedDelete = MainListFilterUtils.getIndexSavedDelete();
-                    if (position == indexSavedAdd) {
-                        // Вариант 1: Клик на кнопку "+ Добавить"
-                        // Показываем окно ввода текста, сохраняем при успешном вводе
-                        final EditText editText = new EditText(getContext());
-                        ActivityUtils.showInputTextDialog(
-                                getContext(),
-                                editText,
-                                getString(R.string.mainlist_drawer_filters_save_question_title),
-                                null,
-                            (String input) -> saveFilter(input),
-                            () -> resetSavedFilterSelection());
+        mSavedFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mSavedFiltersSpinner.setAdapter(mSavedFiltersAdapter);
+        // Устанавливаем онклик слушатель
+        mSavedFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                int indexSavedAdd = MainListFilterUtils.getIndexSavedAdd();
+                int indexSavedDelete = MainListFilterUtils.getIndexSavedDelete();
+                if (position == indexSavedAdd) {
+                    // Вариант 1: Клик на кнопку "+ Добавить"
+                    // Показываем окно ввода текста, сохраняем при успешном вводе
+                    final EditText editText = new EditText(getContext());
+                    ActivityUtils.showInputTextDialog(
+                            getContext(),
+                            editText,
+                            getString(R.string.mainlist_drawer_filters_save_question_title),
+                            null,
+                        (String input) -> {
+                            saveFilter(input);
+                        },
+                        () -> resetSavedFilterSelection());
 
-                    } else if (position == indexSavedDelete) {
-                        // Вариант 2: Клик на кнопку "- Удалить"
-                        // Показываем окно подтверждения, удаляем при положительном ответе
-                        final int currentIndex = MainListFilterUtils.getIndexSavedCurrent();
-                        if (currentIndex == MainListFilterUtils.INDEX_SAVED_DEFAULT) {
-                            mSavedFiltersSpinner.setSelection(currentIndex);
-                            return;
-                        }
-                        ActivityUtils.showAlertDialog(
-                                getContext(),
-                                getString(R.string.mainlist_drawer_filters_remove_question_title),
-                                getString(R.string.mainlist_drawer_filters_remove_question_text),
+                } else if (position == indexSavedDelete) {
+                    // Вариант 2: Клик на кнопку "- Удалить"
+                    // Показываем окно подтверждения, удаляем при положительном ответе
+                    final int currentIndex = MainListFilterUtils.getIndexSavedCurrent();
+                    if (currentIndex == MainListFilterUtils.INDEX_SAVED_DEFAULT) {
+                        mSavedFiltersSpinner.setSelection(currentIndex);
+                        return;
+                    }
+                    ActivityUtils.showAlertDialog(
+                            getContext(),
+                            getString(R.string.mainlist_drawer_filters_remove_question_title),
+                            getString(R.string.mainlist_drawer_filters_remove_question_text),
                             () -> removeSavedFilter(),
                             () -> resetSavedFilterSelection());
-                    } else {
-                        // Остальные варианты - выбираем
-                        MainListFilterUtils.clickOnSavedFilter(position);
-                        reloadDataFromCurrentFilter();
-                    }
+                } else {
+                    // Остальные варианты - выбираем
+                    MainListFilterUtils.clickOnSavedFilter(position);
+                    reloadDataFromCurrentFilter();
                 }
+            }
 
-                @Override
-                public void onNothingSelected(AdapterView<?> adapterView) { }
-            });
-        }
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) { }
+        });
 
         mSavedFiltersAdapter.clear();
         mSavedFiltersAdapter.addAll(MainListFilterUtils.getSavedFiltersList(getContext()));
@@ -477,6 +496,7 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
             } else {
                 filter.removeColorFilter(color);
             }
+            reloadDataFromCurrentFilter();
         }
     }
 

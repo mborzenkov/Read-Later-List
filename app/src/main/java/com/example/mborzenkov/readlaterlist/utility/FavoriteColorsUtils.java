@@ -8,14 +8,17 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.DrawableContainer;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 
 import com.example.mborzenkov.readlaterlist.R;
 
+import java.util.Arrays;
 import java.util.Set;
 
 /** Сервисный класс для работы с любимыми цветами. */
@@ -39,22 +42,31 @@ public class FavoriteColorsUtils {
 
     /** Добавляет Favorite кружки на layout.
      *
-     * @param activity Активити, где все происходит
+     * @param context контекст
+     * @param inflater инфлейтер для инфлейтинга
      * @param layout Layout, в котором должны быть кружки
      */
-    public static void inflateFavLayout(Activity activity, LinearLayout layout) {
+    public static void inflateFavLayout(@NonNull Context context,
+                                        @NonNull LayoutInflater inflater,
+                                        @NonNull LinearLayout layout) {
 
-        Context context = activity.getApplicationContext();
-        LayoutInflater layoutInflater = activity.getLayoutInflater();
         sMaxFavorites = getMaxFavorites(context);
 
         for (int i = 0; i < sMaxFavorites; i++) {
             StateListDrawable circle =
                     (StateListDrawable) ContextCompat.getDrawable(context, R.drawable.circle_default);
-            View favCircle = layoutInflater.inflate(R.layout.fragment_drawer_filter_favorites, layout, false);
+            View favCircle = inflater.inflate(R.layout.fragment_drawer_filter_favorites, layout, false);
             View circleButton = favCircle.findViewById(R.id.imageButton_favorite_color);
             circleButton.setBackground(circle);
             circleButton.setTag(i);
+
+            // + Видимо activated состояние получается не сразу при инфлейтинге, по какой то причине цвет потом
+            // не соответствует. Этот костыль позволяет добиться желаемого результата, но нужно поправить
+            // на более элегантное решение.
+            circleButton.setActivated(true);
+            circleButton.setActivated(false);
+            // -
+
             layout.addView(favCircle);
         }
 
