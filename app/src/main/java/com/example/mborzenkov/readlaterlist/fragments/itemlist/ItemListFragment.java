@@ -18,8 +18,11 @@ import android.support.v4.content.Loader;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -27,13 +30,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
-import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.fragments.BasicFragmentCallbacks;
 import com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment;
 
@@ -115,7 +115,7 @@ public class ItemListFragment extends Fragment implements
     // Объекты layout
     private DrawerLayout mDrawerLayout;
     private SwipeRefreshLayout mSwipeRefreshLayout;
-    private ListView mItemsListView;
+    private RecyclerView mItemsRecyclerView;
     private LinearLayout mEmptyListView;
 
 
@@ -143,8 +143,9 @@ public class ItemListFragment extends Fragment implements
         // Инициализируем элементы layout
         mDrawerLayout = (DrawerLayout) rootView.findViewById(R.id.drawerlayout_itemlist);
         mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swiperefreshlayout_itemlist);
-        mItemsListView = (ListView) rootView.findViewById(R.id.listview_itemlist);
-        mItemsListView.setAdapter(mItemListAdapter);
+        mItemsRecyclerView = (RecyclerView) rootView.findViewById(R.id.listview_itemlist);
+        mItemsRecyclerView.setAdapter(mItemListAdapter);
+        mItemsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         mEmptyListView = (LinearLayout) rootView.findViewById(R.id.linearLayout_emptylist);
 
         // Инициализация Drawer Layout и обработчика открытия и закрытия Drawer
@@ -189,17 +190,17 @@ public class ItemListFragment extends Fragment implements
             mSwipeRefreshLayout.setOnRefreshListener(mCallbacks::onRefreshToggled);
 
             // Это нужно для того, чтобы swiperefresh не появлялся при скролле вверх
-            mItemsListView.setOnScrollListener(new AbsListView.OnScrollListener() {
-                @Override
-                public void onScrollStateChanged(AbsListView view, int scrollState) { }
-
-                @Override
-                public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                    int topRowVerticalPosition = (mItemsListView.getChildCount() == 0)
-                            ?  0 : mItemsListView.getChildAt(0).getTop();
-                    mSwipeRefreshLayout.setEnabled((firstVisibleItem == 0) && (topRowVerticalPosition >= 0));
-                }
-            });
+//            mSwipeRefreshLayout.canChildScrollUp()
+//
+//            mItemsRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+//                @Override
+//                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+//                    super.onScrolled(recyclerView, dx, dy);
+//                    int topRowVerticalPosition = (mItemsRecyclerView.getChildCount() == 0)
+//                            ?  0 : mItemsRecyclerView.getChildAt(0).getTop();
+//                    mSwipeRefreshLayout.setEnabled((firstVisibleItem == 0) && (topRowVerticalPosition >= 0));
+//                }
+//            });
         } else {
             mSwipeRefreshLayout.setEnabled(false);
         }
@@ -292,17 +293,9 @@ public class ItemListFragment extends Fragment implements
     // Колбеки View.onClickListener
 
     @Override
-    public void onClick(int position) {
-        if ((mCallbacks != null) && (mItemListAdapter != null)) {
-            // При нажатии на элемент, подготавливает и отправляет колбек.
-            Cursor cursor = mItemListAdapter.getCursor();
-            if (cursor != null && !cursor.isClosed()) {
-                cursor.moveToPosition(position);
-                int itemLocalId = cursor.getInt(ItemListLoaderManager.INDEX_COLUMN_ID);
-                ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
-                ReadLaterItem item = dbAdapter.itemFromCursor(cursor);
-                mCallbacks.onItemClick(item, itemLocalId);
-            }
+    public void onClick(@NonNull ReadLaterItem item, int itemLocalId) {
+        if (mCallbacks != null) {
+            mCallbacks.onItemClick(item, itemLocalId);
         }
     }
 
@@ -329,14 +322,15 @@ public class ItemListFragment extends Fragment implements
     public void onLoadFinished(Loader<Cursor> loader, @Nullable Cursor data) {
         // По завершению загрузки, подменяем Cursor в адаптере и показываем данные
         if (mItemListAdapter != null) {
-            mItemListAdapter.changeCursor(data);
+            Log.d("FRAGMENT", "SWAP_CURSOR");
+            mItemListAdapter.swapCursor(data);
             boolean listIsEmpty = ((data == null) || (data.getCount() == 0));
             if (listIsEmpty) {
-                mItemsListView.setVisibility(View.INVISIBLE);
+                mItemsRecyclerView.setVisibility(View.INVISIBLE);
                 mEmptyListView.setVisibility(View.VISIBLE);
             } else {
                 mEmptyListView.setVisibility(View.INVISIBLE);
-                mItemsListView.setVisibility(View.VISIBLE);
+                mItemsRecyclerView.setVisibility(View.VISIBLE);
             }
         }
     }
@@ -345,7 +339,7 @@ public class ItemListFragment extends Fragment implements
     public void onLoaderReset(Loader<Cursor> loader) {
         // При сбросе загрузчика данных, сбрасываем данные
         if (mItemListAdapter != null) {
-            mItemListAdapter.changeCursor(null);
+            mItemListAdapter.swapCursor(null);
         }
     }
 
