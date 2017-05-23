@@ -42,6 +42,7 @@ import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.fragments.ColorPickerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
 import com.example.mborzenkov.readlaterlist.fragments.EditItemFragment;
+import com.example.mborzenkov.readlaterlist.fragments.EditItemViewPagerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncAsyncTask;
@@ -320,19 +321,20 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onItemClick(@NonNull ReadLaterItem item, int localId, @NonNull ImageView sharedElement) {
         FragmentManager fragmentManager = getSupportFragmentManager();
-        EditItemFragment editItemFragment = EditItemFragment.getInstance(fragmentManager, item, localId);
+        EditItemViewPagerFragment editItem = new EditItemViewPagerFragment();
+
         FragmentTransaction transaction = fragmentManager.beginTransaction();
 
         // Shared element
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            editItemFragment.setSharedElementEnterTransition(
+            editItem.setSharedElementEnterTransition(
                     TransitionInflater.from(this).inflateTransition(android.R.transition.move));
-            editItemFragment.setEnterTransition(
+            editItem.setEnterTransition(
                     TransitionInflater.from(this).inflateTransition(android.R.transition.slide_right));
             transaction.addSharedElement(sharedElement, SHARED_ELEMENT_COLOR_TRANSITION_NAME);
         }
 
-        transaction.replace(FRAGMENT_CONTAINER, editItemFragment, EditItemFragment.TAG)
+        transaction.replace(FRAGMENT_CONTAINER, editItem) //EditItemFragment.TAG
                 .addToBackStack(null).commit();
     }
 
