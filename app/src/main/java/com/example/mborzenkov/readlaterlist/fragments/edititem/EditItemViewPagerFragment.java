@@ -1,12 +1,15 @@
 package com.example.mborzenkov.readlaterlist.fragments.edititem;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,15 +29,30 @@ import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 public class EditItemViewPagerFragment extends Fragment
         implements EditItemFragmentActions {
 
-    // TODO: [ViewPager] Несколько фрагментов
-    // Записать в JDoc класса и getInstance, не забыть переопределять mCurrentItem и mCurrentItemLocalId
-    // TODO: [ViewPager] Табы и свайпы
+    // TODO: [ViewPager] Не работает меню в первом фрагменте (и кнопка <-)
+    // TODO: [ViewPager] Не работает isModified при изменении цвета
+    // TODO: [ViewPager] Не работает sharedElement из редактирования в color picker
+
+    // TODO: [ViewPager] Записать в JDoc класса и getInstance
+    // не забыть переопределять mCurrentItem и mCurrentItemLocalId, уделить особое внимание mCurrentFragment
+
+    // TODO: [ViewPager] Табы
+
+    // TODO: [ViewPager] Проверить без интернета на больших данных (20 шт.) туда сюда что все работает
+    // TODO: [ViewPager] Убрать данные, добавить штук 5 и потом влкючить интернет при редактировании, должен пойти синк
+    // TODO: [ViewPager] Комментарии по ViewPager и инспекторы
 
 
     /////////////////////////
     // Константы
 
+    /** TAG фрагмента для фрагмент менеджера. */
     public static final String TAG = "fragment_edititem_viewpager";
+
+    /** Ключ для Bundle с позицией элемента. */
+    public static final String BUNDLE_ITEMPOSITION_KEY = "item_position";
+    /** Ключ для Bundle с общим количеством элементов. */
+    public static final String BUNDLE_TOTALITEMS_KEY = "total_items";
 
 
     /////////////////////////
@@ -52,27 +70,31 @@ public class EditItemViewPagerFragment extends Fragment
 
         @Override
         public Fragment getItem(int position) {
-            EditItemFragment fragment =
-                    EditItemFragment.getInstance(mFragmentManager, mCurrentItem, mCurrentItemLocalId);
+            EditItemFragment fragment = null;
+            if (position == mCurrentItemPosition) {
+                fragment = EditItemFragment.getInstance(mFragmentManager, mCurrentItem, mCurrentItemLocalId);
+            } else if (mCallbacks != null) {
+                fragment = EditItemFragment.getInstance(mFragmentManager,
+                        mCallbacks.getItemAt(position),
+                        mCallbacks.getItemLocalIdAt(position));
+            }
             return fragment;
         }
 
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
             Object obj = super.instantiateItem(container, position);
-            if ((position == mViewPager.getCurrentItem()) && (obj instanceof EditItemFragment)) {
-                mCurrentFragment = (EditItemFragment) obj;
-                if (tmpColor != null) {
-                    mCurrentFragment.setColor(tmpColor);
-                    tmpColor = null;
-                }
+            if ((position == mViewPager.getCurrentItem()) && (obj instanceof EditItemFragment) && (tmpColor != null)) {
+                EditItemFragment fragment = (EditItemFragment) obj;
+                fragment.setColor(tmpColor);
+                tmpColor = null;
             }
             return obj;
         }
 
         @Override
         public int getCount() {
-            return 1;
+            return mTotalItems;
         }
 
     }
@@ -90,20 +112,31 @@ public class EditItemViewPagerFragment extends Fragment
      * @param fragmentManager менеджер для поиска фрагментов по тэгу
      * @param item объект для редактирования или null, если создание нового элемента
      * @param itemLocalId внутренний идентификатор объекта или UID_EMPTY, если создание нового элемента
+     * @param position позиция элемента в наборе данных, >=0 и < totalItems
+     * @param totalItems общее число элементов в наборе данных, если создание нового элемента, то 1, иначе >=1
      *
-     * @return новый объект EditItemViewPagerFragment
+     * @return объект EditItemViewPagerFragment
      *
      * @throws IllegalArgumentException если itemLocalId < UID_EMPTY
      * @throws IllegalArgumentException если item == null и itemLocalId != -UID_EMPTY
+     * @throws IllegalArgumentException если position < 0 или position >= totalItems
+     * @throws IllegalArgumentException если totalItems < 1
      */
     public static EditItemViewPagerFragment getInstance(FragmentManager fragmentManager,
                                                         @Nullable ReadLaterItem item,
-                                                        @IntRange(from = UID_EMPTY) int itemLocalId) {
+                                                        @IntRange(from = UID_EMPTY) int itemLocalId,
+                                                        @IntRange(from = 0) int position,
+                                                        @IntRange(from = 1) int totalItems) {
 
         if ((itemLocalId < UID_EMPTY) || ((item == null) && (itemLocalId != UID_EMPTY))) {
             throw new IllegalArgumentException(
                     String.format("Erorr @ EditItemViewPagerFragment.getInstance. itemLocalId: %s, item: %s",
                             itemLocalId, item));
+        } else if ((position < 0) || (position >= totalItems)) {
+            throw new IllegalArgumentException("Erorr @ EditItemViewPagerFragment.getInstance. position = " + position);
+        } else if (totalItems < 1) {
+            throw new IllegalArgumentException(
+                    "Erorr @ EditItemViewPagerFragment.getInstance. totalItems = " + totalItems);
         }
 
         EditItemViewPagerFragment fragment = (EditItemViewPagerFragment) fragmentManager.findFragmentByTag(TAG);
@@ -112,17 +145,45 @@ public class EditItemViewPagerFragment extends Fragment
             fragment = new EditItemViewPagerFragment();
         }
 
+        Bundle args = new Bundle();
         if (item != null) {
-            Bundle args = new Bundle();
             args.putParcelable(BUNDLE_ITEM_KEY, new ReadLaterItemParcelable(item));
             args.putInt(BUNDLE_ITEMID_KEY, itemLocalId);
             fragment.setArguments(args);
         } else {
             fragment.setArguments(null);
         }
+        args.putInt(BUNDLE_ITEMPOSITION_KEY, position);
+        args.putInt(BUNDLE_TOTALITEMS_KEY, totalItems);
 
         return fragment;
 
+    }
+
+    /** Интерфейс для связи между объектом, предоставляющим данные и этим ViewPager. */
+    public interface EditItemViewPagerCallbacks {
+
+        /** Возвращает элемент в наборе данных на указанной позиции.
+         *
+         * @param position позиция элемента в наборе данных (начиная с 0)
+         *
+         * @return объект ReadLaterItem, соответствующий позиции position
+         *          или null, если элемента на такой позиции нет
+         *
+         * @throws IllegalArgumentException если position < 0 или position >= числа элементов в наборе данных
+         */
+        @Nullable ReadLaterItem getItemAt(@IntRange(from = 0) int position);
+
+        /** Возвращает внутренний идентификатор элемента на указанной позиции.
+         *
+         * @param position позиция элемента в наборе данных (начиная с 0)
+         *
+         * @return внутреннией идентификатор элемента на позиции position
+         *          или UID_EMPTY, если элемента на такой позиции нет
+         *
+         * @throws IllegalArgumentException если position < 0 или position >= числа элементов в наборе данных
+         */
+        @IntRange(from = UID_EMPTY) int getItemLocalIdAt(@IntRange(from = 0) int position);
     }
 
 
@@ -130,16 +191,23 @@ public class EditItemViewPagerFragment extends Fragment
     // Поля объекта
 
     // Инвариант
-    //      mCurrentFragment - текущий фрагмент. Не null, если уже прошел instantiateItem у адаптера.
     //      mCurrentItem - текущий редактируемый элемент. Null, если создается новый объект, иначе не null
     //      mCurrentItemLocalId - внутренний идентификатор элемента. UID_EMPTY, если создается новый объект, иначе >= 0
+    //      mCurrentItemPosition - позиция текущего редактируемого элемента. 0, если создается новый объект, иначе >= 0
+    //      mTotalItems - общее число элементов. 1, если создается новый объект, иначе > 1
 
-    /** Текущий фрагмент. */
-    private @Nullable EditItemFragment mCurrentFragment = null;
     /** Текущий редактируемый элемент. */
     private @Nullable ReadLaterItem mCurrentItem = null;
     /** Внутренний идентификатор текущего редактируемого элемента. */
     private @IntRange(from = UID_EMPTY) int mCurrentItemLocalId = UID_EMPTY;
+    /** Позиция текущего редактируемого элемента. */
+    private @IntRange(from = 0) int mCurrentItemPosition = 0;
+    /** Общее количество элементов. */
+    private @IntRange(from = 1) int mTotalItems = 1;
+
+    // Хэлперы
+    private @Nullable EditItemFragment mCurrentFragment = null; // Не null, если уже прошел instantiateItem у адаптера.
+    private @Nullable EditItemViewPagerCallbacks mCallbacks = null;
 
     // Элементы layout
     private ViewPager mViewPager;
@@ -151,14 +219,45 @@ public class EditItemViewPagerFragment extends Fragment
     private @Nullable Integer tmpColor = null;
 
 
+    /////////////////////////
+    // Колбеки Fragment
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof EditItemViewPagerCallbacks) {
+            mCallbacks = (EditItemViewPagerCallbacks) context;
+        }
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Bundle args = getArguments();
-        if (args != null) {
-            ReadLaterItemParcelable itemParcelable = args.getParcelable(BUNDLE_ITEM_KEY);
+
+        // Получаем данные из savedInstanceState, если есть, или из arguments
+        if ((savedInstanceState != null)
+                && savedInstanceState.containsKey(BUNDLE_ITEM_KEY)
+                && savedInstanceState.containsKey(BUNDLE_ITEMID_KEY)
+                && savedInstanceState.containsKey(BUNDLE_ITEMPOSITION_KEY)
+                && savedInstanceState.containsKey(BUNDLE_TOTALITEMS_KEY)) {
+
+            ReadLaterItemParcelable itemParcelable = savedInstanceState.getParcelable(BUNDLE_ITEM_KEY);
             mCurrentItem = itemParcelable == null ? null : itemParcelable.getItem();
-            mCurrentItemLocalId = args.getInt(BUNDLE_ITEMID_KEY, UID_EMPTY);
+            mCurrentItemLocalId = savedInstanceState.getInt(BUNDLE_ITEMID_KEY, UID_EMPTY);
+            mCurrentItemPosition = savedInstanceState.getInt(BUNDLE_ITEMPOSITION_KEY, 0);
+            mTotalItems = savedInstanceState.getInt(BUNDLE_TOTALITEMS_KEY, 0);
+
+        } else {
+
+            Bundle args = getArguments();
+            if (args != null) {
+                ReadLaterItemParcelable itemParcelable = args.getParcelable(BUNDLE_ITEM_KEY);
+                mCurrentItem = itemParcelable == null ? null : itemParcelable.getItem();
+                mCurrentItemLocalId = args.getInt(BUNDLE_ITEMID_KEY, UID_EMPTY);
+                mCurrentItemPosition = args.getInt(BUNDLE_ITEMPOSITION_KEY, 0);
+                mTotalItems = args.getInt(BUNDLE_TOTALITEMS_KEY, 0);
+            }
+
         }
     }
 
@@ -172,11 +271,45 @@ public class EditItemViewPagerFragment extends Fragment
         mViewPager = (ViewPager) rootView.findViewById(R.id.viewpager_edititem);
         EditItemPagerAdapter pagerAdapter = new EditItemPagerAdapter(getChildFragmentManager());
         mViewPager.setAdapter(pagerAdapter);
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) { }
+
+            @Override
+            public void onPageSelected(int position) {
+                Log.d("FRAGMENT", "SELECTED PAGE: " + position);
+                mCurrentFragment = (EditItemFragment) mViewPager.getAdapter().instantiateItem(mViewPager, position);
+                mCurrentItemPosition = position;
+                if (mCallbacks != null) {
+                    mCurrentItem = mCallbacks.getItemAt(position);
+                    mCurrentItemLocalId = mCallbacks.getItemLocalIdAt(position);
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) { }
+        });
+        mViewPager.setCurrentItem(mCurrentItemPosition, false);
 
         return rootView;
 
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        ReadLaterItemParcelable itemParc = mCurrentItem == null ? null : new ReadLaterItemParcelable(mCurrentItem);
+        outState.putParcelable(BUNDLE_ITEM_KEY, itemParc);
+        outState.putInt(BUNDLE_ITEMID_KEY, mCurrentItemLocalId);
+        outState.putInt(BUNDLE_ITEMPOSITION_KEY, mCurrentItemPosition);
+        outState.putInt(BUNDLE_TOTALITEMS_KEY, mTotalItems);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallbacks = null;
+    }
 
     /////////////////////////
     // Колбеки EditItemFragmentActions
@@ -187,6 +320,7 @@ public class EditItemViewPagerFragment extends Fragment
     @Override
     public void onBackPressed() {
         if (mCurrentFragment != null) {
+            Log.d("FRAGMENT", "BACK PRESSED");
             mCurrentFragment.onBackPressed();
         }
     }
@@ -196,9 +330,7 @@ public class EditItemViewPagerFragment extends Fragment
      */
     @Override
     public void setColor(int newColor) {
-        if (mCurrentFragment != null) {
-            mCurrentFragment.setColor(newColor);
-        }
+        tmpColor = newColor;
     }
 
 }

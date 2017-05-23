@@ -35,15 +35,16 @@ import android.widget.LinearLayout;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.fragments.BasicFragmentCallbacks;
 import com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment;
+import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemFragmentActions;
 
 /** Фрагмент со списком ReadLaterItem.
  * Activity, использующая фрагмент, должна реализовывать интерфейс ItemListCallbacks.
  */
 public class ItemListFragment extends Fragment implements
         SearchView.OnQueryTextListener,
-        ItemListAdapter.ItemListAdapterOnClickHandler,
         LoaderManager.LoaderCallbacks<Cursor> {
 
 
@@ -84,21 +85,12 @@ public class ItemListFragment extends Fragment implements
     }
 
     /** Интерфейс для оповещений о событиях во фрагменте. */
-    public interface ItemListCallbacks extends BasicFragmentCallbacks {
+    public interface ItemListCallbacks extends
+            BasicFragmentCallbacks,
+            ItemListAdapter.ItemListAdapterOnClickHandler {
 
         /** Вызывается при нажатии на (+). */
         void onNewItemClick();
-
-        /** Вызывается при клике на элемент списка.
-         *
-         * @param item элемент списка в формате ReadLaterItem
-         * @param localId _id этого элемента, > 0
-         * @param sharedElement shared element для использования при открытии фрагмента редактирования,
-         *                      не null, у него обязательно установлен transition name
-         */
-        void onItemClick(@NonNull ReadLaterItem item,
-                         @IntRange(from = 0) int localId,
-                         @NonNull ImageView sharedElement);
 
         /** Вызывается при потягивании SwipeRefreshLayout или нажатии на кнопку Refresh. */
         void onRefreshToggled();
@@ -131,8 +123,8 @@ public class ItemListFragment extends Fragment implements
         super.onAttach(context);
         if (context instanceof ItemListCallbacks) {
             mCallbacks = (ItemListCallbacks) context;
+            mItemListAdapter = new ItemListAdapter(context, mCallbacks);
         }
-        mItemListAdapter = new ItemListAdapter(context, this);
         mLoaderManager = new ItemListLoaderManager(this);
     }
 
@@ -269,17 +261,6 @@ public class ItemListFragment extends Fragment implements
 
 
     /////////////////////////
-    // Колбеки View.onClickListener
-
-    @Override
-    public void onClick(@NonNull ReadLaterItem item, int itemLocalId, @NonNull ImageView sharedElement) {
-        if (mCallbacks != null) {
-            mCallbacks.onItemClick(item, itemLocalId, sharedElement);
-        }
-    }
-
-
-    /////////////////////////
     // Колбеки из ItemListLoaderManager
 
     @Override
@@ -301,7 +282,6 @@ public class ItemListFragment extends Fragment implements
     public void onLoadFinished(Loader<Cursor> loader, @Nullable Cursor data) {
         // По завершению загрузки, подменяем Cursor в адаптере и показываем данные
         if (mItemListAdapter != null) {
-            Log.d("FRAGMENT", "SWAP_CURSOR");
             mItemListAdapter.swapCursor(data);
             boolean listIsEmpty = ((data == null) || (data.getCount() == 0));
             if (listIsEmpty) {
@@ -344,6 +324,42 @@ public class ItemListFragment extends Fragment implements
         if (mLoaderManager != null) {
             mLoaderManager.restartLoader();
         }
+    }
+
+    /** Возвращает объект на позиции position в наборе данных адаптера.
+     *
+     * @see com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemViewPagerFragment.EditItemViewPagerCallbacks
+     */
+    public ReadLaterItem getItemAt(int position) {
+        if (mItemListAdapter != null) {
+            Cursor cursor = mItemListAdapter.getCurrentCursor();
+            if (cursor != null) {
+                int prevPosition = cursor.getPosition();
+                cursor.moveToPosition(position);
+                ReadLaterItem item = (new ReadLaterItemDbAdapter()).itemFromCursor(cursor);
+                cursor.moveToPosition(prevPosition);
+                return item;
+            }
+        }
+        return null;
+    }
+
+    /** Возвращает внутренний идентификатор объекта на позиции position в наборе данных адаптера.
+     *
+     * @see com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemViewPagerFragment.EditItemViewPagerCallbacks
+     */
+    public int getItemLocalIdAt(int position) {
+        if (mItemListAdapter != null) {
+            Cursor cursor = mItemListAdapter.getCurrentCursor();
+            if (cursor != null) {
+                int prevPosition = cursor.getPosition();
+                cursor.moveToPosition(position);
+                int localId = cursor.getInt(ItemListLoaderManager.INDEX_COLUMN_ID);
+                cursor.moveToPosition(prevPosition);
+                return localId;
+            }
+        }
+        return EditItemFragmentActions.UID_EMPTY;
     }
 
 }

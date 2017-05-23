@@ -296,7 +296,6 @@ public class EditItemFragment extends Fragment implements
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        Log.d("FRAGMENT", "Save instance EditItem");
         outState.putInt(SAVEDINSTANCE_COLOR_KEY, mChosenColor);
         if (getView() != null) {
             outState.putString(SAVEDINSTANCE_DATECREATED_KEY,
@@ -305,6 +304,12 @@ public class EditItemFragment extends Fragment implements
                     ((TextView) getView().findViewById(R.id.tv_edititem_modified_value)).getText().toString());
         }
         // А все остальное сохраняется само по себе
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ViewCompat.setTransitionName(mColorImageButton, null);
     }
 
     @Override
