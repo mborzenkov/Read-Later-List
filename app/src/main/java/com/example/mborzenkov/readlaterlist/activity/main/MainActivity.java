@@ -33,7 +33,6 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
@@ -41,8 +40,8 @@ import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.fragments.ColorPickerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
-import com.example.mborzenkov.readlaterlist.fragments.EditItemFragment;
-import com.example.mborzenkov.readlaterlist.fragments.EditItemViewPagerFragment;
+import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemFragmentActions;
+import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemViewPagerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncAsyncTask;
@@ -60,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements
         SyncAsyncTask.SyncCallback,
         ConflictsFragment.ConflictsCallback,
         ItemListFragment.ItemListCallbacks,
-        EditItemFragment.EditItemCallbacks,
+        EditItemFragmentActions.EditItemCallbacks,
         FilterDrawerFragment.DrawerCallbacks,
         ColorPickerFragment.ColorPickerCallbacks {
 
@@ -128,8 +127,6 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toast.makeText(this, "WINDOW_WIDTH: " + String.valueOf(getResources().getDisplayMetrics().widthPixels / getResources().getDisplayMetrics().density), Toast.LENGTH_SHORT).show();
-
         // Инициализация объектов layout
         mFragmentContainer = (FrameLayout) findViewById(FRAGMENT_CONTAINER);
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_mainactivity_loading);
@@ -184,14 +181,14 @@ public class MainActivity extends AppCompatActivity implements
         boolean backHandled = false;
 
         FragmentManager fragmentManager = getSupportFragmentManager();
-        EditItemFragment editItemFragment =
-                (EditItemFragment) fragmentManager.findFragmentByTag(EditItemFragment.TAG);
-        if ((editItemFragment != null) && (editItemFragment.isVisible())) {
-            editItemFragment.onBackPressed();
+        EditItemViewPagerFragment editItem =
+                (EditItemViewPagerFragment) fragmentManager.findFragmentByTag(EditItemViewPagerFragment.TAG);
+        if ((editItem != null) && (editItem.isVisible())) {
+            editItem.onBackPressed();
             backHandled = true;
         } else {
             ColorPickerFragment colorPickerFragment =
-                    (ColorPickerFragment) fragmentManager.findFragmentByTag(ColorPickerFragment.TAG);;
+                    (ColorPickerFragment) fragmentManager.findFragmentByTag(ColorPickerFragment.TAG);
             if ((colorPickerFragment != null) && (colorPickerFragment.isVisible())) {
                 colorPickerFragment.onBackPressed();
                 backHandled = true;
@@ -310,18 +307,22 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onNewItemClick() {
+
+        // Открываем EditItemViewPagerFragment, без shared element, потому что новый
         FragmentManager fragmentManager = getSupportFragmentManager();
-        EditItemFragment editItemFragment = EditItemFragment.getInstance(
-                fragmentManager, null, EditItemFragment.UID_EMPTY);
+        EditItemViewPagerFragment editItem  = EditItemViewPagerFragment.getInstance(
+                fragmentManager, null, EditItemViewPagerFragment.UID_EMPTY);
         fragmentManager.beginTransaction()
-                .replace(FRAGMENT_CONTAINER, editItemFragment, EditItemFragment.TAG)
+                .replace(FRAGMENT_CONTAINER, editItem, EditItemViewPagerFragment.TAG)
                 .addToBackStack(null).commit();
     }
 
     @Override
     public void onItemClick(@NonNull ReadLaterItem item, int localId, @NonNull ImageView sharedElement) {
+
+        // Открываем EditItemViewPagerFragment, в нем есть shared element
         FragmentManager fragmentManager = getSupportFragmentManager();
-        EditItemViewPagerFragment editItem = new EditItemViewPagerFragment();
+        EditItemViewPagerFragment editItem = EditItemViewPagerFragment.getInstance(fragmentManager, item, localId);
 
         FragmentTransaction transaction = fragmentManager.beginTransaction();
 
@@ -334,8 +335,9 @@ public class MainActivity extends AppCompatActivity implements
             transaction.addSharedElement(sharedElement, SHARED_ELEMENT_COLOR_TRANSITION_NAME);
         }
 
-        transaction.replace(FRAGMENT_CONTAINER, editItem) //EditItemFragment.TAG
+        transaction.replace(FRAGMENT_CONTAINER, editItem, EditItemViewPagerFragment.TAG)
                 .addToBackStack(null).commit();
+
     }
 
     @Override
@@ -508,7 +510,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onExitWithoutModifying(@Nullable ReadLaterItem item,
-                                       @IntRange(from = EditItemFragment.UID_EMPTY) int localId) {
+                                       @IntRange(from = EditItemViewPagerFragment.UID_EMPTY) int localId) {
 
         if (item != null) {
             // Этот блок вызывается при простом просмотре без изменений
@@ -526,9 +528,10 @@ public class MainActivity extends AppCompatActivity implements
     public void onColorPicked(int newColor) {
         popFragmentFromBackstack();
         FragmentManager fragmentManager = getSupportFragmentManager();
-        EditItemFragment editItemFragment = (EditItemFragment) fragmentManager.findFragmentByTag(EditItemFragment.TAG);
-        if (editItemFragment != null) {
-            editItemFragment.setColor(newColor);
+        EditItemViewPagerFragment editItem = (EditItemViewPagerFragment)
+                fragmentManager.findFragmentByTag(EditItemViewPagerFragment.TAG);
+        if (editItem != null) {
+            editItem.setColor(newColor);
         }
     }
 

@@ -24,6 +24,8 @@ import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -500,9 +502,8 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        checkRep(); // TODO: убрать эту проверку
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
     }
 
     @Override

@@ -10,7 +10,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -18,7 +17,6 @@ import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
-import com.example.mborzenkov.readlaterlist.fragments.EditItemFragment;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;

@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.fragments;
+package com.example.mborzenkov.readlaterlist.fragments.edititem;
 
 import android.content.Context;
 import android.graphics.drawable.GradientDrawable;
@@ -34,6 +34,7 @@ import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
+import com.example.mborzenkov.readlaterlist.fragments.BasicFragmentCallbacks;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -51,7 +52,8 @@ import java.util.Locale;
  *          интерфейс EditItemCallbacks.
  */
 public class EditItemFragment extends Fragment implements
-        View.OnClickListener {
+        View.OnClickListener,
+        EditItemFragmentActions {
 
 
     /////////////////////////
@@ -59,13 +61,6 @@ public class EditItemFragment extends Fragment implements
 
     /** TAG фрагмента для фрагмент менеджера. */
     public static final String TAG = "fragment_edititem";
-
-    /** Константа, обозначающая пустой UID. */
-    public static final int UID_EMPTY = -1;
-
-    // Ключи для Bundle редактируемого объекта ReadLaterItem.
-    private static final String BUNDLE_ITEM_KEY = "item";
-    private static final String BUNDLE_ITEMID_KEY = "item_id";
 
     // Ключи для SavedInstanceState
     private static final String SAVEDINSTANCE_COLOR_KEY = "edititem_color";
@@ -121,55 +116,6 @@ public class EditItemFragment extends Fragment implements
         }
 
         return fragment;
-
-    }
-
-    /** Интерфейс для оповещений о событиях во фрагменте. */
-    public interface EditItemCallbacks extends BasicFragmentCallbacks {
-
-        /** Вызывается при нажатии пользователя на выбор цвета.
-         * Получатель должен открыть выбиратель цвета и по окончанию выбора вызвать setColor().
-         *
-         * @param color цвет, который нужно установить по умолчанию
-         * @param sharedElement shared element для использования при открытии фрагмента редактирования,
-         *                      не null, у него обязательно установлен transition name
-         */
-        void onRequestColorPicker(int color, ImageView sharedElement);
-
-        /** Вызывается при завершении редактирования объекта и необходимости сохранения изменений.
-         * Если ничего не изменено, onCreateNewItem не вызывается.
-         * Вызывается только для режима создания объекта.
-         * При этом Fragment не закрывается, получатель колбека должен закрыть его самостоятельно.
-         *
-         * @param item новый объект
-         */
-        void onCreateNewItem(@NonNull ReadLaterItem item);
-
-        /** Вызывается при завершении редактирования объекта и необходимости сохранения изменений.
-         * Если изменений нет, onSaveItem не вызывается.
-         * Вызывается только для режима редактирования объекта.
-         * При этом Fragment не закрывается, получатель колбека должен закрыть его самостоятельно.
-         *
-         * @param item объект, который нужно сохранить
-         * @param localId внутренний идентификатор объекта, всегда больше UID_EMPTY
-         */
-        void onSaveItem(@NonNull ReadLaterItem item, @IntRange(from = 0) int localId);
-
-        /** Вызывается при необходимости удаления объекта.
-         * При этом Fragment не закрывается, получатель колбека должен закрыть его самостоятельно.
-         *
-         * @param localId внутренний идентификатор объекта, всегда больше UID_EMPTY
-         */
-        void onDeleteItem(@IntRange(from = 0) int localId);
-
-        /** Вызывается при выходе без изменений.
-         * При этом Fragment не закрывается, получатель колбека должен закрыть его самостоятельно.
-         * Получателю следует обновить last view date, если item != null.
-         *
-         * @param item редактируемый элемент или null, если закрыли режим добавления
-         * @param localId id редактируемого элемента > UID_EMPTY или UID_EMPTY, если item == null
-         */
-        void onExitWithoutModifying(@Nullable ReadLaterItem item, @IntRange(from = UID_EMPTY) int localId);
 
     }
 
@@ -260,7 +206,6 @@ public class EditItemFragment extends Fragment implements
         // Shared element
         ViewCompat.setTransitionName(mColorImageButton, MainActivity.SHARED_ELEMENT_COLOR_TRANSITION_NAME);
 
-
         // Инициализация FAB Save
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab_edititem_save);
         fab.setOnClickListener(this);
@@ -349,13 +294,6 @@ public class EditItemFragment extends Fragment implements
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        // За собой нужно почистить инпут мод
-        getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED);
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         Log.d("FRAGMENT", "Save instance EditItem");
@@ -381,6 +319,8 @@ public class EditItemFragment extends Fragment implements
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
+
+        menu.clear();
 
         inflater.inflate(R.menu.menu_edititem, menu);
 
@@ -493,25 +433,24 @@ public class EditItemFragment extends Fragment implements
         }
     }
 
-    /** Вызывается, когда нажата кнопка назад.
-     * Управление полностью передается фрагменту. Фрагмент должен обработать нажатие самостоятельно.
-     */
+
+    /////////////////////////
+    // Колбеки EditItemFragmentActions
+
+    @Override
     public void onBackPressed() {
         onExitAttempt();
+    }
+
+    @Override
+    public void setColor(int newColor) {
+        mChosenColor = newColor;
+        ((GradientDrawable) mColorImageButton.getBackground()).setColor(mChosenColor);
     }
 
 
     /////////////////////////
     // Вспомогательные методы
-
-    /** Устанавливает цвет ImageButton и mChosenColor.
-     *
-     * @param newColor цвет, который нужно установить
-     */
-    public void setColor(int newColor) {
-        mChosenColor = newColor;
-        ((GradientDrawable) mColorImageButton.getBackground()).setColor(mChosenColor);
-    }
 
     /** Выполняет перезагрузку изображения по введенному url. */
     private void reloadImage() {

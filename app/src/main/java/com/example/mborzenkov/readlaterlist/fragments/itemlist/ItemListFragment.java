@@ -207,6 +207,8 @@ public class ItemListFragment extends Fragment implements
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
 
+        menu.clear();
+
         inflater.inflate(R.menu.menu_mainlist, menu);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
