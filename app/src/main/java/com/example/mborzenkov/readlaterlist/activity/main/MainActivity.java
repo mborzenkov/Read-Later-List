@@ -301,7 +301,6 @@ public class MainActivity extends AppCompatActivity implements
                 actionBar.setDisplayHomeAsUpEnabled(true);
             }
         }
-        invalidateOptionsMenu();
     }
 
     /////////////////////////

@@ -3,7 +3,6 @@ package com.example.mborzenkov.readlaterlist.fragments.edititem;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.IntRange;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -15,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 
@@ -30,8 +30,6 @@ public class EditItemViewPagerFragment extends Fragment
         implements EditItemFragmentActions {
 
     // TODO: [ViewPager] Не работает меню в первом фрагменте (и кнопка <-)
-    // TODO: [ViewPager] Не работает isModified при изменении цвета
-    // TODO: [ViewPager] Не работает sharedElement из редактирования в color picker
 
     // TODO: [ViewPager] Записать в JDoc класса и getInstance
     // не забыть переопределять mCurrentItem и mCurrentItemLocalId, уделить особое внимание mCurrentFragment
@@ -90,6 +88,26 @@ public class EditItemViewPagerFragment extends Fragment
                 tmpColor = null;
             }
             return obj;
+        }
+
+        @Override
+        public void setPrimaryItem(ViewGroup container, int position, Object object) {
+            if (mCurrentFragment != object) {
+                Log.d("FRAGMENT", "SET PRIM: " + object + " at " + position);
+                if (mCurrentFragment != null) {
+                    mCurrentFragment.setSharedElementTransitionName(null);
+                }
+                mCurrentFragment = (EditItemFragment) object;
+                mCurrentItemPosition = position;
+                if (mCurrentFragment != null) {
+                    mCurrentFragment.setSharedElementTransitionName(MainActivity.SHARED_ELEMENT_COLOR_TRANSITION_NAME);
+                }
+                if (mCallbacks != null) {
+                    mCurrentItem = mCallbacks.getItemAt(position);
+                    mCurrentItemLocalId = mCallbacks.getItemLocalIdAt(position);
+                }
+            }
+            super.setPrimaryItem(container, position, object);
         }
 
         @Override
@@ -259,6 +277,7 @@ public class EditItemViewPagerFragment extends Fragment
             }
 
         }
+
     }
 
     @Nullable
@@ -271,25 +290,31 @@ public class EditItemViewPagerFragment extends Fragment
         mViewPager = (ViewPager) rootView.findViewById(R.id.viewpager_edititem);
         EditItemPagerAdapter pagerAdapter = new EditItemPagerAdapter(getChildFragmentManager());
         mViewPager.setAdapter(pagerAdapter);
+        mViewPager.setCurrentItem(mCurrentItemPosition, false);
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) { }
 
             @Override
             public void onPageSelected(int position) {
-                Log.d("FRAGMENT", "SELECTED PAGE: " + position);
-                mCurrentFragment = (EditItemFragment) mViewPager.getAdapter().instantiateItem(mViewPager, position);
-                mCurrentItemPosition = position;
-                if (mCallbacks != null) {
-                    mCurrentItem = mCallbacks.getItemAt(position);
-                    mCurrentItemLocalId = mCallbacks.getItemLocalIdAt(position);
+                // Проверим для фрагмента, не изменен ли он, если что не даем скролить
+                if ((mCurrentFragment != null)
+                        && (mCurrentItemPosition != position)
+                        && (mCurrentFragment.isModified())) {
+
+                    int lastPosition = mCurrentItemPosition;
+                    EditItemFragment lastFragment = mCurrentFragment;
+                    mCurrentFragment.showModifiedAlertWithOptions(
+                            () -> lastFragment.reloadDataFromItem(null), // reload data
+                            () -> mViewPager.setCurrentItem(lastPosition)
+                    );
+
                 }
             }
 
             @Override
             public void onPageScrollStateChanged(int state) { }
         });
-        mViewPager.setCurrentItem(mCurrentItemPosition, false);
 
         return rootView;
 
@@ -311,6 +336,7 @@ public class EditItemViewPagerFragment extends Fragment
         mCallbacks = null;
     }
 
+
     /////////////////////////
     // Колбеки EditItemFragmentActions
 
@@ -320,7 +346,6 @@ public class EditItemViewPagerFragment extends Fragment
     @Override
     public void onBackPressed() {
         if (mCurrentFragment != null) {
-            Log.d("FRAGMENT", "BACK PRESSED");
             mCurrentFragment.onBackPressed();
         }
     }

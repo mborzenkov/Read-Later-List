@@ -185,6 +185,12 @@ public class ItemListFragment extends Fragment implements
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        setHasOptionsMenu(false);
+    }
+
+    @Override
     public void onDetach() {
         super.onDetach();
         mCallbacks = null;
@@ -198,8 +204,6 @@ public class ItemListFragment extends Fragment implements
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
-
-        menu.clear();
 
         inflater.inflate(R.menu.menu_mainlist, menu);
 

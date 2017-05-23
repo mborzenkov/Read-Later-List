@@ -502,11 +502,6 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        menu.clear();
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putFloatArray(SAVEDINSTANCE_CHOSENCOLOR_KEY, mChosenColorHsv);
@@ -515,6 +510,12 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
             mainGradientElements.add(Color.HSVToColor(elementColor));
         }
         outState.putIntegerArrayList(SAVEDINSTANCE_GRADIENTCOLORS_KEY, mainGradientElements);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        setHasOptionsMenu(false);
     }
 
     @Override

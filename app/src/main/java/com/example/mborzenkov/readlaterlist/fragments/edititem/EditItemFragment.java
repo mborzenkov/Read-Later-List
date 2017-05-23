@@ -31,10 +31,8 @@ import android.widget.TextView;
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 
-import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
-import com.example.mborzenkov.readlaterlist.fragments.BasicFragmentCallbacks;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -139,6 +137,12 @@ public class EditItemFragment extends Fragment implements
     /** Текущий выбранный цвет в формате sRGB. */
     private int mChosenColor;
 
+    /** Имя transition для shared element.
+     * Должно быть установлено для отображаемого фрагмента.
+     * Должно быть null для всех фрагментов кроме текущего во ViewPager.
+     */
+    private @Nullable String mTransitionName = null;
+
     // Объекты layout
     private TextInputEditText mLabelEditText;
     private TextInputLayout mLabelInputLayout;
@@ -203,9 +207,6 @@ public class EditItemFragment extends Fragment implements
         mImageUrlInputLayout = (TextInputLayout) rootView.findViewById(R.id.til_edititem_imageurl);
         mImageFromUrlImageView = (ImageView) rootView.findViewById(R.id.iv_edititem_imagefromurl);
 
-        // Shared element
-        ViewCompat.setTransitionName(mColorImageButton, MainActivity.SHARED_ELEMENT_COLOR_TRANSITION_NAME);
-
         // Инициализация FAB Save
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab_edititem_save);
         fab.setOnClickListener(this);
@@ -230,29 +231,11 @@ public class EditItemFragment extends Fragment implements
         if (savedInstanceState == null) {
 
             if (mFromItem != null) {
-
-                // Редактирование элемента
-                final SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
-                mLabelEditText.setText(mFromItem.getLabel());
-                mDescriptionEditText.setText(mFromItem.getDescription());
-                setColor(mFromItem.getColor());
-                ((TextView) rootView.findViewById(R.id.tv_edititem_created_value))
-                        .setText(dateFormatter.format(mFromItem.getDateCreated()));
-                ((TextView) rootView.findViewById(R.id.tv_edititem_modified_value))
-                        .setText(dateFormatter.format(mFromItem.getDateModified()));
-                String imageUrl = mFromItem.getImageUrl();
-                if (!imageUrl.isEmpty()) {
-                    mImageUrlEditText.setText(imageUrl);
-                    reloadImage();
-                }
+                reloadDataFromItem(rootView);
                 fab.setImageResource(R.drawable.ic_edit_24dp);
-
             } else {
-
-                // Создание нового элемента
                 setColor(ContextCompat.getColor(getContext(), R.color.item_default_color));
                 fab.setImageResource(R.drawable.ic_add_24dp);
-
             }
 
             // Устанавливаем фокус и открываем клавиатуру на редактирование Label, чтобы все было красиво и удобно
@@ -276,7 +259,6 @@ public class EditItemFragment extends Fragment implements
 
         // Объекты и действия, имеющие смысл только при наличии колбеков
         if (mCallbacks != null) {
-
             // Инициализация Toolbar
             String actionBarTitle = mFromItem == null
                     ? getString(R.string.edititem_title_add) : getString(R.string.edititem_title_edit);
@@ -291,6 +273,15 @@ public class EditItemFragment extends Fragment implements
 
         return rootView;
 
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        if (mTransitionName != null) {
+            Log.d("FRAGMENT", "SETTING TRANSITION NAME OF " + this + " TO " + mTransitionName);
+            ViewCompat.setTransitionName(mColorImageButton, mTransitionName);
+        }
     }
 
     @Override
@@ -309,7 +300,7 @@ public class EditItemFragment extends Fragment implements
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        ViewCompat.setTransitionName(mColorImageButton, null);
+        setHasOptionsMenu(false);
     }
 
     @Override
@@ -325,7 +316,7 @@ public class EditItemFragment extends Fragment implements
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
 
-        menu.clear();
+        // Log.d("FRAGMENT", "CREATE_OPTIONS " + mFromItem.getLabel());
 
         inflater.inflate(R.menu.menu_edititem, menu);
 
@@ -421,10 +412,7 @@ public class EditItemFragment extends Fragment implements
     /** Вызывается при попытке выйти из фрагмента без сохранения. */
     private void onExitAttempt() {
         if (isModified()) {
-            ActivityUtils.showAlertDialog(
-                    getContext(),
-                    getString(R.string.edititem_menu_back_question_title),
-                    getString(R.string.edititem_menu_back_question_text),
+            showModifiedAlertWithOptions(
                 () -> {
                     if (mCallbacks != null) {
                         mCallbacks.onExitWithoutModifying(mFromItem, mFromItemLocalId);
@@ -487,7 +475,7 @@ public class EditItemFragment extends Fragment implements
      *
      * @return true, если изменения были, иначе false
      */
-    private boolean isModified() {
+    boolean isModified() {
         if (mFromItem != null) {
             ReadLaterItem thisItem = packInputData();
             return thisItem == null
@@ -537,6 +525,70 @@ public class EditItemFragment extends Fragment implements
             mLabelInputLayout.setError(getString(R.string.edititem_error_title_empty));
             return null;
         }
+    }
+
+    /** Устанавливает имя для Shared Element.
+     * Если фрагмент уже прошел onCreateView, то transition name будет установлено сразу.
+     * Иначе, будет установлено после onViewCreated.
+     *
+     * @param transitionName новое имя или null (для скрытых фрагментов во viewpager)
+     */
+    public void setSharedElementTransitionName(@Nullable String transitionName) {
+        mTransitionName = transitionName;
+        if (mColorImageButton != null) {
+            Log.d("FRAGMENT", "SETTING TRANSITION NAME OF " + this + " TO " + mTransitionName);
+            ViewCompat.setTransitionName(mColorImageButton, mTransitionName);
+        }
+    }
+
+    /** Показывает AlertDialog с текстом об имеющихся изменениях и кнопками "ОК И ОТМЕНА".
+     *
+     * @param onExitWithoutSaving действие, которое нужно выполнить в случае сброса изменений
+     * @param onCancelExit действие, которое нужно выполнить в случае возвращения к редактированию
+     */
+    void showModifiedAlertWithOptions(@Nullable Runnable onExitWithoutSaving, @Nullable Runnable onCancelExit) {
+        ActivityUtils.showAlertDialog(
+                getContext(),
+                getString(R.string.edititem_menu_back_question_title),
+                getString(R.string.edititem_menu_back_question_text),
+                onExitWithoutSaving,
+                onCancelExit);
+    }
+
+    /** Загружает данные в фрагмент из mFromItem.
+     * Если mFromItem == null (создание нового элемента), не делает ничего.
+     *
+     * @param rootView корневой элемент фрагмента или null (только после onCreateView)
+     *
+     * @throws IllegalStateException если вызван до onCreateView и rootView == null
+     */
+    void reloadDataFromItem(@Nullable View rootView) {
+
+        if (getView() != null) {
+            rootView = getView();
+        } if (rootView == null) {
+            throw new IllegalStateException("Error @ EditItemFragment.reloadDataFromItem(): rootView, getView == null");
+        }
+
+        if (mFromItem != null) {
+
+            // Редактирование элемента
+            final SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
+            mLabelEditText.setText(mFromItem.getLabel());
+            mDescriptionEditText.setText(mFromItem.getDescription());
+            setColor(mFromItem.getColor());
+            ((TextView) rootView.findViewById(R.id.tv_edititem_created_value))
+                    .setText(dateFormatter.format(mFromItem.getDateCreated()));
+            ((TextView) rootView.findViewById(R.id.tv_edititem_modified_value))
+                    .setText(dateFormatter.format(mFromItem.getDateModified()));
+            String imageUrl = mFromItem.getImageUrl();
+            if (!imageUrl.isEmpty()) {
+                mImageUrlEditText.setText(imageUrl);
+                reloadImage();
+            }
+
+        }
+
     }
 
 }
