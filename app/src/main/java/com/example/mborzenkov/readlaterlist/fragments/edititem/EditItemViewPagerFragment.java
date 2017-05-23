@@ -21,7 +21,10 @@ import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 /** Фрагмент для ViewPager с фрагментами EditItemFragment.
  * Использование:
  *      Для получения объекта всегда используйте getInstance.
- *      Для заполнения фрагмента данными, необходимо передать в getInstance объект ReadLaterItem и его itemLocalId.
+ *      Для заполнения фрагмента данными, необходимо передать в getInstance объект ReadLaterItem, его itemLocalId,
+ *          позицию объекта и общее число объектов в наборе данных.
+ *      Activity, использующая фрагмент, должна реализовывать интерфейс EditItemViewPagerCallbacks, чтобы фрагмент
+ *          мог получать данные о других объектах в наборе данных динамически.
  *      Фрагменты EditItemFragment во ViewPager для колбеков используют Activity, к которой они привязаны в onDetach.
  *      Для получения результатов редактирования, необходимо, чтобы Activity, использующая фрагмент, реализовывала
  *          интерфейс EditItemCallbacks.
@@ -30,9 +33,6 @@ public class EditItemViewPagerFragment extends Fragment
         implements EditItemFragmentActions {
 
     // TODO: [ViewPager] Не работает меню в первом фрагменте (и кнопка <-)
-
-    // TODO: [ViewPager] Записать в JDoc класса и getInstance
-    // не забыть переопределять mCurrentItem и mCurrentItemLocalId, уделить особое внимание mCurrentFragment
 
     // TODO: [ViewPager] Табы
 
@@ -126,6 +126,9 @@ public class EditItemViewPagerFragment extends Fragment
      * Не помещает объект в FragmentManager.
      * При помещении объекта в FragmentManager, следует использовать тэг TAG.
      * Параметры item и itemLocalId используются для установки открываемого фрагмента.
+     * Параметры position и totalItems описывают границы и текущий объект в наборе данных.
+     * Activity, использующая фрагмент, должна реализовывать интерфейс EditItemViewPagerCallbacks, чтобы фрагмент
+     *          мог получать данные о других объектах в наборе данных динамически.
      *
      * @param fragmentManager менеджер для поиска фрагментов по тэгу
      * @param item объект для редактирования или null, если создание нового элемента
