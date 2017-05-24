@@ -8,7 +8,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,14 +31,6 @@ import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 public class EditItemViewPagerFragment extends Fragment
         implements EditItemFragmentActions {
 
-    // TODO: [ViewPager] Не работает меню в первом фрагменте (и кнопка <-)
-
-    // TODO: [ViewPager] Табы
-
-    // TODO: [ViewPager] Проверить без интернета на больших данных (20 шт.) туда сюда что все работает
-    // TODO: [ViewPager] Убрать данные, добавить штук 5 и потом влкючить интернет при редактировании, должен пойти синк
-    // TODO: [ViewPager] Комментарии по ViewPager и инспекторы
-
 
     /////////////////////////
     // Константы
@@ -52,6 +43,9 @@ public class EditItemViewPagerFragment extends Fragment
     /** Ключ для Bundle с общим количеством элементов. */
     public static final String BUNDLE_TOTALITEMS_KEY = "total_items";
 
+    /** Offset Limit для ViewPager. */
+    private static final int OFFSET_LIMIT = 3;
+
 
     /////////////////////////
     // PagerAdapter
@@ -59,6 +53,7 @@ public class EditItemViewPagerFragment extends Fragment
     /** Адаптер для управления фрагментами EditItemFragment. */
     private class EditItemPagerAdapter extends FragmentStatePagerAdapter {
 
+        /** Фрагмент менеджер для создания инстансов EditItemFragment. */
         private FragmentManager mFragmentManager;
 
         private EditItemPagerAdapter(FragmentManager fragmentManager) {
@@ -68,6 +63,9 @@ public class EditItemViewPagerFragment extends Fragment
 
         @Override
         public Fragment getItem(int position) {
+            // Получаем новые инстансы EditItemFragment.
+            // mCurrentItemPosition == position скорее всего будет только при открытии,
+            //      потому что далее getItem вызывается заранее в обе стороны возможного скрола
             EditItemFragment fragment = null;
             if (position == mCurrentItemPosition) {
                 fragment = EditItemFragment.getInstance(mFragmentManager, mCurrentItem, mCurrentItemLocalId);
@@ -80,32 +78,24 @@ public class EditItemViewPagerFragment extends Fragment
         }
 
         @Override
-        public Object instantiateItem(ViewGroup container, int position) {
-            Object obj = super.instantiateItem(container, position);
-            if ((position == mViewPager.getCurrentItem()) && (obj instanceof EditItemFragment) && (tmpColor != null)) {
-                EditItemFragment fragment = (EditItemFragment) obj;
-                fragment.setColor(tmpColor);
-                tmpColor = null;
-            }
-            return obj;
-        }
-
-        @Override
         public void setPrimaryItem(ViewGroup container, int position, Object object) {
+            // Этот метод устанавливает PrimaryItem (текущий выбранный фрагмент), нам нужно это запомнить
+            // Метод вызывается много раз с одинаковым position, так что менять что-то надо только если есть изменения
             if (mCurrentFragment != object) {
-                Log.d("FRAGMENT", "SET PRIM: " + object + " at " + position);
+                // Если mCurrentFragment уже какой-то был, то у него нужно убрать transition name (уникальность)
                 if (mCurrentFragment != null) {
                     mCurrentFragment.setSharedElementTransitionName(null);
                 }
+                // Запоминаем все что можно, ставим фрагменту transition name
                 mCurrentFragment = (EditItemFragment) object;
                 mCurrentItemPosition = position;
-                if (mCurrentFragment != null) {
-                    mCurrentFragment.setSharedElementTransitionName(MainActivity.SHARED_ELEMENT_COLOR_TRANSITION_NAME);
-                }
+                mCurrentFragment.setSharedElementTransitionName(MainActivity.SHARED_ELEMENT_COLOR_TRANSITION_NAME);
                 if (mCallbacks != null) {
                     mCurrentItem = mCallbacks.getItemAt(position);
                     mCurrentItemLocalId = mCallbacks.getItemLocalIdAt(position);
                 }
+                // Перезагружаем меню, потому что обычная загрузка не вписывается в сложный жизненный цикл ViewPager
+                mViewPager.post(() -> mCurrentFragment.reloadMenu(null));
             }
             super.setPrimaryItem(container, position, object);
         }
@@ -166,6 +156,7 @@ public class EditItemViewPagerFragment extends Fragment
             fragment = new EditItemViewPagerFragment();
         }
 
+        // Помещаем все в бандл
         Bundle args = new Bundle();
         if (item != null) {
             args.putParcelable(BUNDLE_ITEM_KEY, new ReadLaterItemParcelable(item));
@@ -227,27 +218,27 @@ public class EditItemViewPagerFragment extends Fragment
     private @IntRange(from = 1) int mTotalItems = 1;
 
     // Хэлперы
-    private @Nullable EditItemFragment mCurrentFragment = null; // Не null, если уже прошел instantiateItem у адаптера.
-    private @Nullable EditItemViewPagerCallbacks mCallbacks = null;
+    private @Nullable EditItemFragment mCurrentFragment = null; // Не null, если уже прошел setPrimaryItem у адаптера.
+    private @Nullable EditItemViewPagerCallbacks mCallbacks = null; // Не null, если прошел onAttach
 
     // Элементы layout
     private ViewPager mViewPager;
-
-    /** Поле для сохранения цвета при переходе из ColorPicker в EditItemFragment.
-     * Необходимо из-за промежутка между закрытием ColorPickerFragment и вызовом instantiateView в PagerAdapter.
-     * Если не null, то при instantitateView будет установлен указанный цвет.
-     */
-    private @Nullable Integer tmpColor = null;
 
 
     /////////////////////////
     // Колбеки Fragment
 
+    /** {@inheritDoc}
+     * @throws IllegalStateException если context не реализует интерфейс EditItemViewPagerCallbacks
+     */
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof EditItemViewPagerCallbacks) {
             mCallbacks = (EditItemViewPagerCallbacks) context;
+        } else {
+            throw new IllegalStateException("Error @ EditItemViewPagerFragment.onAttach: "
+                    + "context is not implementing EditiTemViewPagerCallbacks");
         }
     }
 
@@ -318,6 +309,7 @@ public class EditItemViewPagerFragment extends Fragment
             @Override
             public void onPageScrollStateChanged(int state) { }
         });
+        mViewPager.setOffscreenPageLimit(OFFSET_LIMIT);
 
         return rootView;
 
@@ -358,7 +350,19 @@ public class EditItemViewPagerFragment extends Fragment
      */
     @Override
     public void setColor(int newColor) {
-        tmpColor = newColor;
+        // Вызывается при возврате из ColorPickerFragment. В момент вызова, mCurrentFragment еще не вызвал onCreateView,
+        //      а значит setColor упадет с ошибкой.
+        // mViewPager.post гарантирует, что на момент вызова setColor уже пройдет onCreateView.
+        // В момент вызова этого метода, mCurrentFragment, в соответствии с жизненным циклом,
+        //      должен быть уже установлен, так как уже был вызыван setPrimaryItem. Но лучше перепроверить.
+        // Также нужно перезагрузить меню, потому что оно не перезагрузится в SerPrimaryItem,
+        //      потому что mCurrentFragment == object (текущий элемент не менялся).
+        mViewPager.post(() -> {
+            if (mCurrentFragment != null) {
+                mCurrentFragment.setColor(newColor);
+                mCurrentFragment.reloadMenu(null);
+            }
+        });
     }
 
 }

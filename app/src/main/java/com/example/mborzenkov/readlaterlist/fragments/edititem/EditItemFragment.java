@@ -16,7 +16,6 @@ import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -48,6 +47,10 @@ import java.util.Locale;
  *      Для заполнения фрагмента данными, необходимо передать в getInstance объект ReadLaterItem и его itemLocalId.
  *      Для получения результатов редактирования, необходимо, чтобы Activity, использующая фрагмент, реализовывала
  *          интерфейс EditItemCallbacks.
+ *      Для использования shared element необходимо вызывать setSharedElementTransitionName с уникальным именем
+ *              и поддерживать уникальность во всей иерархии View (например, для ViewPager - устанавливать у текущего и
+ *              стирать у остальных).
+ *      Menu устанавливается автоматически
  */
 public class EditItemFragment extends Fragment implements
         View.OnClickListener,
@@ -257,16 +260,7 @@ public class EditItemFragment extends Fragment implements
             }
         }
 
-        // Объекты и действия, имеющие смысл только при наличии колбеков
-        if (mCallbacks != null) {
-            // Инициализация Toolbar
-            String actionBarTitle = mFromItem == null
-                    ? getString(R.string.edititem_title_add) : getString(R.string.edititem_title_edit);
-            Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar_edititem);
-            toolbar.setTitleTextColor(ContextCompat.getColor(getContext(), R.color.icons));
-            mCallbacks.setNewToolbar(toolbar, actionBarTitle);
-
-        }
+        reloadMenu(rootView);
 
         // Есть меню
         setHasOptionsMenu(true);
@@ -279,9 +273,13 @@ public class EditItemFragment extends Fragment implements
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (mTransitionName != null) {
-            Log.d("FRAGMENT", "SETTING TRANSITION NAME OF " + this + " TO " + mTransitionName);
             ViewCompat.setTransitionName(mColorImageButton, mTransitionName);
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
     }
 
     @Override
@@ -315,8 +313,6 @@ public class EditItemFragment extends Fragment implements
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
-
-        // Log.d("FRAGMENT", "CREATE_OPTIONS " + mFromItem.getLabel());
 
         inflater.inflate(R.menu.menu_edititem, menu);
 
@@ -536,29 +532,14 @@ public class EditItemFragment extends Fragment implements
     public void setSharedElementTransitionName(@Nullable String transitionName) {
         mTransitionName = transitionName;
         if (mColorImageButton != null) {
-            Log.d("FRAGMENT", "SETTING TRANSITION NAME OF " + this + " TO " + mTransitionName);
             ViewCompat.setTransitionName(mColorImageButton, mTransitionName);
         }
-    }
-
-    /** Показывает AlertDialog с текстом об имеющихся изменениях и кнопками "ОК И ОТМЕНА".
-     *
-     * @param onExitWithoutSaving действие, которое нужно выполнить в случае сброса изменений
-     * @param onCancelExit действие, которое нужно выполнить в случае возвращения к редактированию
-     */
-    void showModifiedAlertWithOptions(@Nullable Runnable onExitWithoutSaving, @Nullable Runnable onCancelExit) {
-        ActivityUtils.showAlertDialog(
-                getContext(),
-                getString(R.string.edititem_menu_back_question_title),
-                getString(R.string.edititem_menu_back_question_text),
-                onExitWithoutSaving,
-                onCancelExit);
     }
 
     /** Загружает данные в фрагмент из mFromItem.
      * Если mFromItem == null (создание нового элемента), не делает ничего.
      *
-     * @param rootView корневой элемент фрагмента или null (только после onCreateView)
+     * @param rootView корневой элемент фрагмента или null (если вызывается после onCreateView)
      *
      * @throws IllegalStateException если вызван до onCreateView и rootView == null
      */
@@ -566,7 +547,7 @@ public class EditItemFragment extends Fragment implements
 
         if (getView() != null) {
             rootView = getView();
-        } if (rootView == null) {
+        } else if (rootView == null) {
             throw new IllegalStateException("Error @ EditItemFragment.reloadDataFromItem(): rootView, getView == null");
         }
 
@@ -589,6 +570,46 @@ public class EditItemFragment extends Fragment implements
 
         }
 
+    }
+
+    /** Вызывает перезагрузку menu, устанавливает новый тулбар.
+     *
+     * @param rootView корневной элемент фрагмента или null (если вызывается после onCreateView)
+     *
+     * @throws IllegalStateException если вызван до onCreateView и rootView == null
+     */
+    void reloadMenu(@Nullable View rootView) {
+
+        if (getView() != null) {
+            rootView = getView();
+        } else if (rootView == null) {
+            throw new IllegalStateException("Error @ EditItemFragment.reloadDataFromItem(): rootView, getView == null");
+        }
+
+        if (mCallbacks != null) {
+            // Инициализация Toolbar
+            String actionBarTitle = mFromItem == null
+                    ? getString(R.string.edititem_title_add) : getString(R.string.edititem_title_edit);
+            Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar_edititem);
+            toolbar.setTitleTextColor(ContextCompat.getColor(getContext(), R.color.icons));
+            mCallbacks.setNewToolbar(toolbar, actionBarTitle);
+
+        }
+
+    }
+
+    /** Показывает AlertDialog с текстом об имеющихся изменениях и кнопками "ОК И ОТМЕНА".
+     *
+     * @param onExitWithoutSaving действие, которое нужно выполнить в случае сброса изменений
+     * @param onCancelExit действие, которое нужно выполнить в случае возвращения к редактированию
+     */
+    void showModifiedAlertWithOptions(@Nullable Runnable onExitWithoutSaving, @Nullable Runnable onCancelExit) {
+        ActivityUtils.showAlertDialog(
+                getContext(),
+                getString(R.string.edititem_menu_back_question_title),
+                getString(R.string.edititem_menu_back_question_text),
+                onExitWithoutSaving,
+                onCancelExit);
     }
 
 }
