@@ -18,6 +18,7 @@ import android.support.v4.content.Loader;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -141,6 +142,7 @@ public class ItemListFragment extends Fragment implements
         mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swiperefreshlayout_itemlist);
         mItemsRecyclerView = (RecyclerView) rootView.findViewById(R.id.listview_itemlist);
         mItemsRecyclerView.setAdapter(mItemListAdapter);
+        mItemsRecyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
         mItemsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         mEmptyListView = (LinearLayout) rootView.findViewById(R.id.linearLayout_emptylist);
 
