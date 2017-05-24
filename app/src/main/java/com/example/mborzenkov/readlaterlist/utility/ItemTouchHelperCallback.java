@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
+
 /** Класс колбеков для ItemTouchHelper. */
 public class ItemTouchHelperCallback extends ItemTouchHelper.Callback implements View.OnTouchListener {
 
@@ -59,7 +61,7 @@ public class ItemTouchHelperCallback extends ItemTouchHelper.Callback implements
 
     @Override
     public boolean isLongPressDragEnabled() {
-        return true;
+        return MainListFilterUtils.getCurrentFilter().getSortType() == MainListFilter.SortType.MANUAL;
     }
 
     @Override
