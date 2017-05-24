@@ -16,6 +16,7 @@ import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
+import com.example.mborzenkov.readlaterlist.anim.DepthPageTransformer;
 
 /** Фрагмент для ViewPager с фрагментами EditItemFragment.
  * Использование:
@@ -310,6 +311,7 @@ public class EditItemViewPagerFragment extends Fragment
             public void onPageScrollStateChanged(int state) { }
         });
         mViewPager.setOffscreenPageLimit(OFFSET_LIMIT);
+        mViewPager.setPageTransformer(true, new DepthPageTransformer());
 
         return rootView;
 
