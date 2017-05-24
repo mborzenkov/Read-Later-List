@@ -14,7 +14,7 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
     /** Имя базы данных. */
     private static final String DATABASE_NAME = "readlaterlist.db";
     /** Версия базы данных. */
-    private static final int DATABASE_VERSION = 9; // Текущая: 9
+    private static final int DATABASE_VERSION = 10; // Текущая: 10
 
     public ReadLaterDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -36,7 +36,7 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
                     + ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED + " INTEGER NOT NULL, "
                     + ReadLaterEntry.COLUMN_DATE_LAST_VIEW     + " INTEGER NOT NULL, "
                     + ReadLaterEntry.COLUMN_IMAGE_URL          + " TEXT, "
-                    + ReadLaterEntry.COLUMN_ORDER              + " INTEGER NOT NULL UNIQUE);";
+                    + ReadLaterEntry.COLUMN_ORDER              + " INTEGER NOT NULL);";
         sqLiteDatabase.execSQL(sqlCreateReadLaterTable);
 
         final String sqlCreateFtsTable =

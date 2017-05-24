@@ -9,7 +9,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
+import android.util.StringBuilderPrinter;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
@@ -27,11 +29,13 @@ public class ReadLaterContentProvider extends ContentProvider {
     private static final int CODE_READLATER_ITEMS_WITH_ID = 101;
     /** Код запроса отдельного элемента по remoteId. */
     private static final int CODE_READLATER_ITEMS_WITH_REMOTE_ID = 102;
+    /** Код запроса обновления порядка у элемента. */
+    private static final int CODE_READLATER_ITEMS_UPDATE_ORDER = 103;
 
     /** Запрос для отдельного элемента по remoteId. */
     private static final String QUERY_REMOTE_ID = ReadLaterEntry.COLUMN_REMOTE_ID + "=?";
     /** Запрос для максимального значения порядка. */
-    private static final String QUERY_MAX_ORDER =
+    private static final String QUERY_MAX_ORDER_POSITION =
             "SELECT MAX(" + ReadLaterEntry.COLUMN_ORDER + ") FROM " + ReadLaterEntry.TABLE_NAME;
 
     /** Матчер для сравнения запрашиваемых uri. */
@@ -56,6 +60,8 @@ public class ReadLaterContentProvider extends ContentProvider {
                 CODE_READLATER_ITEMS_WITH_ID);
         matcher.addURI(authority, ReadLaterContract.PATH_ITEMS + "/" + ReadLaterContract.PATH_NOTE + "/#",
                 CODE_READLATER_ITEMS_WITH_REMOTE_ID);
+        matcher.addURI(authority, ReadLaterContract.PATH_ITEMS + "/#/" + ReadLaterContract.PATH_ORDER + "/#",
+                CODE_READLATER_ITEMS_UPDATE_ORDER);
 
         return matcher;
     }
@@ -171,15 +177,16 @@ public class ReadLaterContentProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS:
                 SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+
+                // SELECT MAX ORDER
+                Cursor maxOrderCursor = db.rawQuery(QUERY_MAX_ORDER_POSITION, null);
+                maxOrderCursor.moveToFirst();
+                int maxOrder = maxOrderCursor.getInt(0);
+                maxOrderCursor.close();
+                values.put(ReadLaterEntry.COLUMN_ORDER, maxOrder + 1);
+
                 db.beginTransaction();
                 try {
-                    // SELECT MAX ORDER
-                    Cursor maxOrderCursor = db.rawQuery(QUERY_MAX_ORDER, null);
-                    maxOrderCursor.moveToFirst();
-                    int maxOrder = maxOrderCursor.getInt(0);
-                    maxOrderCursor.close();
-                    values.put(ReadLaterEntry.COLUMN_ORDER, maxOrder);
-
                     // INSERT INTO TABLE_ITEMS
                     long id = db.insert(ReadLaterEntry.TABLE_NAME, null, values);
                     if (id > 0) {
@@ -222,15 +229,18 @@ public class ReadLaterContentProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS:
                 SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+
+                // SELECT MAX ORDER
+                Cursor maxOrderCursor = db.rawQuery(QUERY_MAX_ORDER_POSITION, null);
+                maxOrderCursor.moveToFirst();
+                int maxOrder = maxOrderCursor.getInt(0);
+                maxOrderCursor.close();
+
                 db.beginTransaction();
                 try {
-                    // SELECT MAX ORDER
-                    Cursor maxOrderCursor = db.rawQuery(QUERY_MAX_ORDER, null);
-                    maxOrderCursor.moveToFirst();
-                    int maxOrder = maxOrderCursor.getInt(0);
-                    maxOrderCursor.close();
-
                     for (ContentValues value : values) {
+                        maxOrder++;
+
                         // INSERT INTO TABLE_ITEMS
                         value.put(ReadLaterEntry.COLUMN_ORDER, maxOrder);
                         long id = db.insert(ReadLaterEntry.TABLE_NAME, null, value);
@@ -246,7 +256,6 @@ public class ReadLaterContentProvider extends ContentProvider {
                                 value.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
                         db.insert(ReadLaterEntry.TABLE_NAME_FTS, null, ftsValues);
                         inserted++;
-                        maxOrder++;
                     }
                     db.setTransactionSuccessful();
                 } finally {
@@ -268,30 +277,70 @@ public class ReadLaterContentProvider extends ContentProvider {
      */
     @Override
     public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+
         // Обработчик запросов update
-        int itemUpdated;
+        int itemUpdated = 0;
+        SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+        String itemIdString = uri.getPathSegments().get(1);
 
         // if (null == selection) selection = "1";
 
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS_WITH_ID:
-                String[] id = new String[] {uri.getPathSegments().get(1)};
-                SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
-                itemUpdated = db.update(ReadLaterEntry.TABLE_NAME, values, "_id=?", id);
-                boolean updateFts = false;
-                ContentValues ftsValues = new ContentValues();
-                if (values.containsKey(ReadLaterEntry.COLUMN_LABEL)) {
-                    ftsValues.put(ReadLaterEntry.COLUMN_LABEL,
-                            values.getAsString(ReadLaterEntry.COLUMN_LABEL));
-                    updateFts = true;
+                db.beginTransaction();
+                try {
+                    // INSERT INTO TABLE_ITEMS
+                    itemUpdated = db.update(ReadLaterEntry.TABLE_NAME, values, "_id=?", new String[] { itemIdString });
+
+                    // INSERT INTO TABLE_FTS
+                    boolean updateFts = false;
+                    ContentValues ftsValues = new ContentValues();
+                    if (values.containsKey(ReadLaterEntry.COLUMN_LABEL)) {
+                        ftsValues.put(ReadLaterEntry.COLUMN_LABEL,
+                                values.getAsString(ReadLaterEntry.COLUMN_LABEL));
+                        updateFts = true;
+                    }
+                    if (values.containsKey(ReadLaterEntry.COLUMN_DESCRIPTION)) {
+                        ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION,
+                                values.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
+                        updateFts = true;
+                    }
+                    if (updateFts) {
+                        db.update(ReadLaterEntry.TABLE_NAME_FTS, ftsValues, "docid=?", new String[] { itemIdString });
+                    }
+
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
                 }
-                if (values.containsKey(ReadLaterEntry.COLUMN_DESCRIPTION)) {
-                    ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION,
-                            values.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
-                    updateFts = true;
-                }
-                if (updateFts) {
-                    db.update(ReadLaterEntry.TABLE_NAME_FTS, ftsValues, "docid=?", id);
+                break;
+            case CODE_READLATER_ITEMS_UPDATE_ORDER:
+                final int newPosition = Integer.valueOf(uri.getPathSegments().get(3));
+                db.beginTransaction();
+                try {
+
+                    final String[] columnOrder = new String[] {ReadLaterEntry.COLUMN_ORDER};
+
+                    // Позиция элемента itemId
+                    Cursor curPosCursor = db.query(ReadLaterEntry.TABLE_NAME, columnOrder, "_id=?",
+                            new String[] { itemIdString }, null, null, null);
+                    if (curPosCursor.moveToFirst()) {
+                        final int oldPosition = curPosCursor.getInt(0);
+                        curPosCursor.close();
+
+                        // Если позиция изменилась, UPDATE
+                        if (oldPosition != newPosition) {
+                            db.execSQL(
+                                    getRawQueryForUpdateOrder(oldPosition, newPosition));
+                            ContentValues updateOrderVal = new ContentValues();
+                            updateOrderVal.put(ReadLaterEntry.COLUMN_ORDER, newPosition);
+                            db.update(ReadLaterEntry.TABLE_NAME, updateOrderVal, "_id=?", new String[] { itemIdString });
+                            itemUpdated = Math.abs(oldPosition - newPosition);
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
                 }
                 break;
             default:
@@ -304,4 +353,44 @@ public class ReadLaterContentProvider extends ContentProvider {
 
         return itemUpdated;
     }
+
+    /** Возвращает запрос на изменение порядка элемента.
+     * Пример:
+     *      getRawQueryForUpdateOrder(4, 1)
+     *      UPDATE items SET item_order = item_order + 1 WHERE item_order >= 1 AND item_order < 4;
+     * Если oldPosition == newPosition, возвращает пустую строку
+     *
+     * @param oldPosition старая позиция элемента
+     * @param newPosition новая позиция элемента
+     */
+    private @NonNull String getRawQueryForUpdateOrder(int oldPosition, int newPosition) {
+        if (oldPosition == newPosition) {
+            return "";
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("UPDATE ").append(ReadLaterEntry.TABLE_NAME)
+                .append(" SET ").append(ReadLaterEntry.COLUMN_ORDER).append('=').append(ReadLaterEntry.COLUMN_ORDER);
+        if (oldPosition < newPosition) {
+            builder.append("-1");
+        } else {
+            builder.append("+1");
+        }
+        builder.append(" WHERE ").append(ReadLaterEntry.COLUMN_ORDER);
+        if (oldPosition < newPosition) {
+            builder.append('>').append(oldPosition);
+        } else {
+            builder.append(">=").append(newPosition);
+        }
+        builder.append(" AND ").append(ReadLaterEntry.COLUMN_ORDER);
+        if (oldPosition < newPosition) {
+            builder.append("<=").append(newPosition);
+        } else {
+            builder.append('<').append(oldPosition);
+        }
+        Log.d("DATABASE", "QUERY: " + builder.toString());
+        return builder.toString();
+
+    }
+
 }

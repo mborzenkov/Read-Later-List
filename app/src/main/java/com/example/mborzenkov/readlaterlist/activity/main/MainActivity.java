@@ -322,6 +322,11 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    public void onDataChanged() {
+        mItemListFragment.onDataChanged();
+    }
+
+    @Override
     public void onRefreshToggled() {
         toggleSync();
     }

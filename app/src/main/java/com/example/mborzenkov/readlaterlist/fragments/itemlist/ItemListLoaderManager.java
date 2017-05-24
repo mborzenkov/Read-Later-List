@@ -7,7 +7,7 @@ import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
-import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 
 import java.util.ArrayList;
@@ -22,19 +22,20 @@ class ItemListLoaderManager  {
     static final int ITEM_LOADER_ID = 13;
     /** Запрос на заметки пользователя. */
     private static final String QUERY_USER_ID = String.format("%s = ?",
-            ReadLaterContract.ReadLaterEntry.COLUMN_USER_ID);
+            ReadLaterEntry.COLUMN_USER_ID);
 
     /** Используемые колонки базы данных. */
     private static final String[] MAIN_LIST_PROJECTION = {
-        ReadLaterContract.ReadLaterEntry._ID,
-        ReadLaterContract.ReadLaterEntry.COLUMN_LABEL,
-        ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION,
-        ReadLaterContract.ReadLaterEntry.COLUMN_COLOR,
-        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED,
-        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED,
-        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW,
-        ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL,
-        ReadLaterContract.ReadLaterEntry.COLUMN_REMOTE_ID
+        ReadLaterEntry._ID,
+        ReadLaterEntry.COLUMN_LABEL,
+        ReadLaterEntry.COLUMN_DESCRIPTION,
+        ReadLaterEntry.COLUMN_COLOR,
+        ReadLaterEntry.COLUMN_DATE_CREATED,
+        ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED,
+        ReadLaterEntry.COLUMN_DATE_LAST_VIEW,
+        ReadLaterEntry.COLUMN_IMAGE_URL,
+        ReadLaterEntry.COLUMN_REMOTE_ID,
+        ReadLaterEntry.COLUMN_ORDER
     };
 
     // Индексы для колонок из MAIN_LIST_PROJECTION, для упрощения
@@ -47,6 +48,7 @@ class ItemListLoaderManager  {
     // static final int INDEX_COLUMN_DATE_LAST_VIEW = 6;
     // static final int INDEX_COLUMN_IMAGE_URL = 7;
     // static final int INDEX_COLUMN_REMOTE_ID = 8;
+    static final int INDEX_COLUMN_ORDER = 9;
 
     /** Ссылка на ItemListFragment. */
     private final @NonNull ItemListFragment mItemListFragment;
@@ -85,13 +87,13 @@ class ItemListLoaderManager  {
                 selection.append(" AND ");
             }
             selection.append(String.format("_id IN (SELECT docid FROM %s WHERE %s MATCH ?)",
-                    ReadLaterContract.ReadLaterEntry.TABLE_NAME_FTS, ReadLaterContract.ReadLaterEntry.TABLE_NAME_FTS));
+                    ReadLaterEntry.TABLE_NAME_FTS, ReadLaterEntry.TABLE_NAME_FTS));
             selectionArgs.add(mSearchQuery);
         }
         Log.d("SELECTION", String.format("%s, %s", selection.toString(), Arrays.toString(selectionArgs.toArray())));
         Log.d("ORDERING", sortOrder);
         return new CursorLoader(mItemListFragment.getContext(),
-                ReadLaterContract.ReadLaterEntry.CONTENT_URI, MAIN_LIST_PROJECTION,
+                ReadLaterEntry.CONTENT_URI, MAIN_LIST_PROJECTION,
                 selection.toString(),
                 selectionArgs.toArray(new String[selectionArgs.size()]),
                 sortOrder);

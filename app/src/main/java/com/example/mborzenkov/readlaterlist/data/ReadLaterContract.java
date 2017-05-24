@@ -15,6 +15,8 @@ public class ReadLaterContract {
     public static final String PATH_ITEMS = "items";
     /** Путь к элементу по remoteId. */
     public static final String PATH_NOTE = "note";
+    /** Путь к обновлению порядка. */
+    public static final String PATH_ORDER = "setorder";
 
     /** Описание таблиц. */
     public static final class ReadLaterEntry implements BaseColumns {
@@ -71,6 +73,23 @@ public class ReadLaterContract {
                     .appendPath(String.valueOf(remoteId))
                     .build();
         }
-    }
+
+        /** Создает Uri для обновления COLUMN_ORDER элемента по его id.
+         * По этому Uri в update content provider обновляет позицию элемента и позиции всех промежуточных элементов
+         *      между старой позицией элемента и новой
+         *
+         * @param itemId внутренний идентификатор элемента, _id
+         * @param newPosition новая позиция (item_order)
+         * @return Uri для доступа
+         */
+        public static Uri buildUriForUpdateOrder(int itemId, int newPosition) {
+            return CONTENT_URI.buildUpon()
+                    .appendPath(String.valueOf(itemId))
+                    .appendPath(PATH_ORDER)
+                    .appendPath(String.valueOf(newPosition))
+                    .build();
+        }
+
+     }
 
 }

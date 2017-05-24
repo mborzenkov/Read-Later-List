@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
@@ -230,6 +231,17 @@ public class ReadLaterDbUtils {
                 QUERY_USER_ID,
                 new String[] { String.valueOf(UserInfo.getCurentUser(context).getUserId()) },
                 String.format(Locale.US, QUERY_RANGE, count, from));
+    }
+
+    /** Устанавливает позицию у элемента, изменяя позиции всех промежуточных элементов.
+     *
+     * @param context контекст для обращения к контент провайдеру
+     * @param itemLocalId внутренний идентификатор элемента
+     * @param newPosition новая позиция элемента, item_order
+     */
+    public static void changeItemOrder(Context context, int itemLocalId, int newPosition) {
+        context.getContentResolver()
+                .update(ReadLaterEntry.buildUriForUpdateOrder(itemLocalId, newPosition), null, null, null);
     }
 
 }
