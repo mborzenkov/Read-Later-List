@@ -9,9 +9,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.util.Log;
-import android.util.StringBuilderPrinter;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
@@ -199,7 +196,8 @@ public class ReadLaterContentProvider extends ContentProvider {
                     ContentValues ftsValues = new ContentValues();
                     ftsValues.put("docid", id);
                     ftsValues.put(ReadLaterEntry.COLUMN_LABEL, values.getAsString(ReadLaterEntry.COLUMN_LABEL));
-                    ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION, values.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
+                    ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION,
+                            values.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
                     db.insert(ReadLaterEntry.TABLE_NAME_FTS, null, ftsValues);
 
                     db.setTransactionSuccessful();
@@ -224,7 +222,6 @@ public class ReadLaterContentProvider extends ContentProvider {
     public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
         // Обработчик зарпосов bullk insert
         int inserted = 0;
-        Log.d("INSERTING", String.valueOf(values.length));
 
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS:
@@ -334,7 +331,8 @@ public class ReadLaterContentProvider extends ContentProvider {
                                     getRawQueryForUpdateOrder(oldPosition, newPosition));
                             ContentValues updateOrderVal = new ContentValues();
                             updateOrderVal.put(ReadLaterEntry.COLUMN_ORDER, newPosition);
-                            db.update(ReadLaterEntry.TABLE_NAME, updateOrderVal, "_id=?", new String[] { itemIdString });
+                            db.update(ReadLaterEntry.TABLE_NAME,
+                                    updateOrderVal, "_id=?", new String[] { itemIdString });
                             itemUpdated = Math.abs(oldPosition - newPosition);
                         }
                     }
@@ -388,7 +386,6 @@ public class ReadLaterContentProvider extends ContentProvider {
         } else {
             builder.append('<').append(oldPosition);
         }
-        Log.d("DATABASE", "QUERY: " + builder.toString());
         return builder.toString();
 
     }

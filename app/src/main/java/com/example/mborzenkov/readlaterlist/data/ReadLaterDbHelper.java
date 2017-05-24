@@ -4,9 +4,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
-import com.example.mborzenkov.readlaterlist.fragments.sync.SyncAsyncTask;
 
 /** Класс для доступа к базе данных. */
 class ReadLaterDbHelper extends SQLiteOpenHelper {

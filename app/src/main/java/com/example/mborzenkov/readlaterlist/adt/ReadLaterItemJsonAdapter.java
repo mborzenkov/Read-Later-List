@@ -30,6 +30,8 @@ public class ReadLaterItemJsonAdapter {
             + "  \"viewed\": \"%s\",%n"
             + "  \"imageUrl\": \"%s\"%n"
             + "}";
+    /** Размерность HEX. */
+    private static final int HEX = 16;
 
     /** Конструктор по умолчанию. */
     public ReadLaterItemJsonAdapter() { }
@@ -72,7 +74,7 @@ public class ReadLaterItemJsonAdapter {
         ReadLaterItem result = null;
         try {
             ReadLaterItem.Builder resultBuilder = new ReadLaterItem.Builder(json.title)
-                    .color((int) Long.parseLong(json.color.substring(1), 16))
+                    .color((int) Long.parseLong(json.color.substring(1), HEX))
                     .dateCreated(dateFormatter.parse(json.created).getTime())
                     .dateModified(dateFormatter.parse(json.edited).getTime())
                     .dateViewed(dateFormatter.parse(json.viewed).getTime());

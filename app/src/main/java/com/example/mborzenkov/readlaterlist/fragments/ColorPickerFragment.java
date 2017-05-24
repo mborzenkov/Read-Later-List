@@ -1,7 +1,6 @@
 package com.example.mborzenkov.readlaterlist.fragments;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
@@ -24,8 +23,6 @@ import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -38,7 +35,6 @@ import android.widget.TextView;
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
-import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 
 import java.math.BigInteger;
@@ -56,6 +52,7 @@ import java.util.Locale;
  *          интерфейс ColorPickerCallbacks.
  */
 public class ColorPickerFragment extends Fragment implements View.OnTouchListener, View.OnLongClickListener {
+
 
     /////////////////////////
     // Константы
@@ -79,6 +76,17 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
     private static final int TIMEOUT_VIBRATE = 1000; // 1 сек
     /** Продолжительность вибрации. */
     private static final int VIBRATE_LENGTH = 50; // 0.05 сек
+
+    /** Размерность Color HSV. */
+    private static final int HSV_SIZE = 3;
+    /** Модификатор изменений HUE. */
+    private static final int DIV_HUE_MODIFIER = 10;
+    /** Модификатор изменений VAL. */
+    private static final int DIV_VAL_MODIFIER = 500;
+    /** Маска для затемнения градиента. */
+    private static final int GRADIENT_FADE_MASK = 25;
+    /** Максимальное возможное значение HUE. */
+    private static final int HUE_MAX = 360;
 
 
     /////////////////////////
@@ -139,8 +147,8 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
      * @return Шаг step*numberOfSquares ~= hue(endColor) - hue(startColor)
      */
     private static int countStep(int startColor, int endColor, int numberOfSquares) {
-        float[] startColorHsv = new float[3];
-        float[] endColorHsv = new float[3];
+        float[] startColorHsv = new float[HSV_SIZE];
+        float[] endColorHsv = new float[HSV_SIZE];
         Color.colorToHSV(startColor, startColorHsv);
         Color.colorToHSV(endColor, endColorHsv);
 
@@ -152,7 +160,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
      * @param colorFrom Цвет в формате HSV,
      */
     private static float[] copyOfColor(@NonNull float[] colorFrom) {
-        return Arrays.copyOf(colorFrom, 3);
+        return Arrays.copyOf(colorFrom, HSV_SIZE);
     }
 
     /** Возвращает новый Drawable для последующей установки в нем цвета.
@@ -188,6 +196,8 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
             case RIGHT:
                 tmpColor[0] += (stepHue / 2);
                 break;
+            default:
+                break;
         }
         return Color.HSVToColor(tmpColor);
     }
@@ -214,8 +224,6 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
     /** Скорость перетягивания по вертикали. */
     private int mDivVal;
 
-    /** Цвет по умолчанию в формате sRGB в этом фрагменте. */
-    private int mDefaultColor;
     /** Список цветов у квадратов по умолчанию в формате HSV. */
     private @NonNull List<float[]> mSquareStandardColorsHsv = Collections.emptyList();
     /** Список текущих цветов у квадратов в формате HSV. */
@@ -223,7 +231,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
     /** Список любимых цветов в формате Color. */
     private @NonNull int[] mFavoriteColors = new int[0];
     /** Выбранный цвет в формате HSV. */
-    private @NonNull @Size(3) float[] mChosenColorHsv = new float[3];
+    private @NonNull @Size(HSV_SIZE) float[] mChosenColorHsv = new float[HSV_SIZE];
 
     /** Объект для колбеков о событиях во фрагменте. */
     private @Nullable ColorPickerCallbacks mCallbacks = null;
@@ -276,7 +284,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
                 throw new AssertionError(
                         String.format(ERROR_INVARIANT_FAIL,
                                 "mSquareColorsHsv.size() != mSquareStandardColorsHsv.size()"));
-            } else if (mChosenColorHsv.length != 3) {
+            } else if (mChosenColorHsv.length != HSV_SIZE) {
                 throw new AssertionError(
                         String.format(ERROR_INVARIANT_FAIL, "mChosenColorHsv.length != 3"));
             }
@@ -284,7 +292,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
             // mSquareStandardColorsHsv.size() == mSquareColorsHsv.size(), поэтому пройдемся одним циклом по обоим
             for (int i = 0, size = mSquareStandardColorsHsv.size(); i < size; i++) {
                 float[] colorStd = mSquareStandardColorsHsv.get(i);
-                if (colorStd.length != 3) {
+                if (colorStd.length != HSV_SIZE) {
                     throw new AssertionError(
                             String.format(ERROR_INVARIANT_FAIL,
                                     "Element.length of mSquareStandardColorsHsv != 3, element: "
@@ -305,7 +313,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
                 }
 
                 float[] colorCurrent = mSquareColorsHsv.get(i);
-                if (colorCurrent.length != 3) {
+                if (colorCurrent.length != HSV_SIZE) {
                     throw new AssertionError(
                             String.format(ERROR_INVARIANT_FAIL,
                                     "Element.length of mSquareColorsHsv != 3, element: "
@@ -345,7 +353,8 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
                     "Error @ ColorPickerFragment.onCreate: !Bundle.containsKey(BUNDLE_DEFAULTCOLOR_KEY)");
         }
 
-        mDefaultColor = args.getInt(BUNDLE_DEFAULTCOLOR_KEY);
+        /* Цвет по умолчанию в формате sRGB в этом фрагменте. */
+        int defaultColor = args.getInt(BUNDLE_DEFAULTCOLOR_KEY);
 
         // Скорость перетягивания зависит от дисплея
         DisplayMetrics dm = new DisplayMetrics();
@@ -354,8 +363,8 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
         int height = dm.heightPixels;
         double wi = (double) width / (double) dm.xdpi;
         double hi = (double) height / (double) dm.ydpi;
-        mDivHue = (int) (wi * 10);
-        mDivVal = (int) (hi * 500);
+        mDivHue = (int) (wi * DIV_HUE_MODIFIER);
+        mDivVal = (int) (hi * DIV_VAL_MODIFIER);
 
         // Контекст, максимальное количество Favorites, общее число квадратиков
         Context context = getContext();
@@ -389,9 +398,9 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
                         "Error @ ColorPickerFragment.calculateGradient: mStepHue == " + mStepHue);
             }
 
-            float[] transparentColorHsv = new float[3];
+            float[] transparentColorHsv = new float[HSV_SIZE];
             Color.colorToHSV(Color.TRANSPARENT, transparentColorHsv);
-            float[] curColorHsv = new float[3];
+            float[] curColorHsv = new float[HSV_SIZE];
             Color.colorToHSV(colorGradientStart, curColorHsv);
             curColorHsv[0] += mStepHue / 2;
             for (int i = 0; i < numberOfSquares; i++) {
@@ -400,8 +409,8 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
                 curColorHsv[0] += mStepHue;
             }
 
-            float[] defaultColorHsv = new float[3];
-            Color.colorToHSV(mDefaultColor, defaultColorHsv);
+            float[] defaultColorHsv = new float[HSV_SIZE];
+            Color.colorToHSV(defaultColor, defaultColorHsv);
             mChosenColorHsv = copyOfColor(defaultColorHsv);
 
         }
@@ -443,7 +452,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
 
             // Восстановление из SavedInstanceState
             float[] savedChosenColor = savedInstanceState.getFloatArray(SAVEDINSTANCE_CHOSENCOLOR_KEY);
-            if ((savedChosenColor != null) && (savedChosenColor.length == 3)) {
+            if ((savedChosenColor != null) && (savedChosenColor.length == HSV_SIZE)) {
                 mChosenColorHsv = savedChosenColor;
             } else {
                 throw new IllegalStateException(
@@ -455,7 +464,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
             if ((savedGradientColors != null) && (savedGradientColors.size() == numberOfSquares)) {
                 for (int i = 0; i < numberOfSquares; i++) {
                     int color = savedGradientColors.get(i);
-                    float[] hsvColor = new float[3];
+                    float[] hsvColor = new float[HSV_SIZE];
                     Color.colorToHSV(color, hsvColor);
                     mSquareColorsHsv.set(i, hsvColor);
                 }
@@ -737,7 +746,8 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
                     int position = (Integer) v.getTag();
                     changeMainColor(mSquareColorsHsv.get(position), false);
                     // Затеняем градиент
-                    mColorsLinearLayout.getBackground().setColorFilter(Color.argb(25, 0, 0, 0), PorterDuff.Mode.DARKEN);
+                    mColorsLinearLayout.getBackground().setColorFilter(
+                            Color.argb(GRADIENT_FADE_MASK, 0, 0, 0), PorterDuff.Mode.DARKEN);
                     vibrate();
                 }
                 break;
@@ -765,11 +775,11 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
      * При вызове меняет цвет у главного квадратика, надписей вокруг него и строки меню
      * @param view Квадратик
      */
-    public void clickOnFavSquare(@NonNull View view) {
+    private void clickOnFavSquare(@NonNull View view) {
         if (view.getTag() != null) {
             final int position = (Integer) view.getTag();
             if (mFavoriteColors[position] != 0) {
-                float[] colorOfSquare = new float[3];
+                float[] colorOfSquare = new float[HSV_SIZE];
                 Color.colorToHSV(mFavoriteColors[position], colorOfSquare);
                 changeMainColor(colorOfSquare, true);
             }
@@ -780,7 +790,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
      * При вызове закрывает Activity и возвращает цвет
      * @param view ImageButton выбранный цвет
      */
-    public void clickOnChosenSquare(@NonNull View view) {
+    private void clickOnChosenSquare(@NonNull View view) {
         if (view.getId() == R.id.imageButton_chosen) {
             if (mCallbacks != null) {
                 mCallbacks.onColorPicked(Color.HSVToColor(mChosenColorHsv));
@@ -839,7 +849,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
      * @param colorHsv Цвет в HSV, float[] размерностью 3
      * @param saveAsChosen Признак, нужно ли сохранить цвет
      */
-    private void changeMainColor(@NonNull @Size(3) float[] colorHsv, boolean saveAsChosen) {
+    private void changeMainColor(@NonNull @Size(HSV_SIZE) float[] colorHsv, boolean saveAsChosen) {
         if (saveAsChosen) {
             mChosenColorHsv = copyOfColor(colorHsv);
         }
@@ -866,7 +876,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
         float leftBorderHue = standardColorHsv[0];
         float rightBorderHue = standardColorHsv[0];
         leftBorderHue = Math.max(leftBorderHue - mStepHue, 0);
-        rightBorderHue = Math.min(rightBorderHue + mStepHue, 360);
+        rightBorderHue = Math.min(rightBorderHue + mStepHue, HUE_MAX);
         float topVal = Math.min(standardColorHsv[2] + (standardColorHsv[2] / 4), 1);
         float bottomVal = Math.max(standardColorHsv[2] - (standardColorHsv[2] / 4), 0);
 

@@ -3,14 +3,11 @@ package com.example.mborzenkov.readlaterlist.fragments.itemlist;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.drawable.GradientDrawable;
-import android.os.Handler;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.Size;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,9 +34,6 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
 
     /** Формат выводимых дат. */
     private static final String FORMAT_DATE = "dd.MM.yy HH:mm";
-
-    /** Таг для хандлер треда. */
-    private static final String HANDLERTHREAD_TAG = "handlerthread_itemlistadapter";
 
 
     /////////////////////////
@@ -120,8 +114,7 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
     /** Контекст. */
     private final @NonNull Context mContext;
     /** Обработчик событий в адаптере. */
-    private final @NonNull
-    ItemListAdapterEventHandler mEventHandler;
+    private final @NonNull ItemListAdapterEventHandler mEventHandler;
     /** Текущий курсор. */
     private @Nullable Cursor mCursor;
 

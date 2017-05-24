@@ -49,6 +49,11 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
     /** Формат даты для вывода на формах Drawer. */
     private static final String FORMAT_DATE = "dd/MM/yy";
 
+    // Константы времени
+    private static final int LAST_HOUR = 23;
+    private static final int LAST_MINUTE = 59;
+    private static final int LAST_SECOND = 59;
+
 
     /////////////////////////
     // Static
@@ -189,7 +194,7 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
             // Нажатие на "сменить пользователя"
             EditText inputNumber = new EditText(getActivity());
             inputNumber.setInputType(InputType.TYPE_CLASS_NUMBER);
-            inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(8)}); // Не более 8 цифр
+            inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(UserInfo.USER_ID_MAX_LENGTH)});
             inputNumber.setText(mCurrentUserTextView.getText().toString());
             ActivityUtils.showInputTextDialog(
                     getContext(),
@@ -202,7 +207,8 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                         int number = Integer.parseInt(input);
                         if (number != UserInfo.getCurentUser(getContext()).getUserId()) {
                             UserInfo.changeCurrentUser(getContext(), number);
-                            mCurrentUserTextView.setText(String.valueOf(UserInfo.getCurentUser(getContext()).getUserId()));
+                            mCurrentUserTextView.setText(String.valueOf(
+                                    UserInfo.getCurentUser(getContext()).getUserId()));
                             if (mCallbacks != null) {
                                 mCallbacks.onUserChanged();
                             }
@@ -296,7 +302,7 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
     // Методы для перезагрузки данных в layout
 
     /** Обновляет Drawer в соответствии с выбранным фильтром. */
-    public void reloadDataFromCurrentFilter() {
+    private void reloadDataFromCurrentFilter() {
 
         MainListFilter currentFilter = MainListFilterUtils.getCurrentFilter();
 
@@ -379,9 +385,7 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                             editText,
                             getString(R.string.mainlist_drawer_filters_save_question_title),
                             null,
-                        (String input) -> {
-                            saveFilter(input);
-                        },
+                        (String input) -> saveFilter(input),
                         () -> resetSavedFilterSelection());
 
                 } else if (position == indexSavedDelete) {
@@ -396,8 +400,8 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                             getContext(),
                             getString(R.string.mainlist_drawer_filters_remove_question_title),
                             getString(R.string.mainlist_drawer_filters_remove_question_text),
-                            () -> removeSavedFilter(),
-                            () -> resetSavedFilterSelection());
+                        () -> removeSavedFilter(),
+                        () -> resetSavedFilterSelection());
                 } else {
                     Log.d("FILTER", "CREATION w position: " + position);
                     // Остальные варианты - выбираем
@@ -567,9 +571,9 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                 mCalendar.set(Calendar.SECOND, 0);
                 filter.setDateFrom(date);
             } else {
-                mCalendar.set(Calendar.HOUR_OF_DAY, 23);
-                mCalendar.set(Calendar.MINUTE, 59);
-                mCalendar.set(Calendar.SECOND, 59);
+                mCalendar.set(Calendar.HOUR_OF_DAY, LAST_HOUR);
+                mCalendar.set(Calendar.MINUTE, LAST_MINUTE);
+                mCalendar.set(Calendar.SECOND, LAST_SECOND);
                 filter.setDateTo(date);
             }
         }

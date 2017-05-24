@@ -13,6 +13,8 @@ public class UserInfo {
     private static final String LAST_USER_KEY = "lastuser";
     /** Идентификатор пользователя по умолачнию. */
     private static final int DEFAULT_USER_ID = 0;
+    /** Максимальная длина USER ID. */
+    public static final int USER_ID_MAX_LENGTH = 8;
 
     /** Текущий пользователь. */
     private static UserInfo curentUser = null;

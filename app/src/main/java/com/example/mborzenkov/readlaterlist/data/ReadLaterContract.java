@@ -90,6 +90,6 @@ public class ReadLaterContract {
                     .build();
         }
 
-     }
+    }
 
 }

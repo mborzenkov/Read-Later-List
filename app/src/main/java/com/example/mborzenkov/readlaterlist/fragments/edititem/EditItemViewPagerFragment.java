@@ -40,9 +40,9 @@ public class EditItemViewPagerFragment extends Fragment
     public static final String TAG = "fragment_edititem_viewpager";
 
     /** Ключ для Bundle с позицией элемента. */
-    public static final String BUNDLE_ITEMPOSITION_KEY = "item_position";
+    private static final String BUNDLE_ITEMPOSITION_KEY = "item_position";
     /** Ключ для Bundle с общим количеством элементов. */
-    public static final String BUNDLE_TOTALITEMS_KEY = "total_items";
+    private static final String BUNDLE_TOTALITEMS_KEY = "total_items";
 
     /** Offset Limit для ViewPager. */
     private static final int OFFSET_LIMIT = 3;

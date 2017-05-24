@@ -22,6 +22,8 @@ public class ReadLaterItem {
     private static final String FORMAT_COLOR = "#%s";
     /** Цвет по умолчанию. */
     private static final int DEFAULT_COLOR = 16761095;
+    /** Размерность HEX. */
+    private static final int HEX = 16;
 
     // -- Builder
     /** Создает новый объект ReadLaterItem.
@@ -404,7 +406,7 @@ public class ReadLaterItem {
         StringBuilder result = new StringBuilder(String.format("%s%n%s%n(%s)%nC: %s%nM: %s%nV: %s",
                 label,
                 description,
-                String.format(FORMAT_COLOR, Integer.toString(color, 16)),
+                String.format(FORMAT_COLOR, Integer.toString(color, HEX)),
                 dateFormatter.format(dateCreated),
                 dateFormatter.format(dateModified),
                 dateFormatter.format(dateViewed)));

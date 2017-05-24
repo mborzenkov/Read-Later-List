@@ -17,6 +17,9 @@ import org.junit.Test;
 @SuppressWarnings("FieldCanBeLocal") // Поля вынесены на уровень класса для улучшенной читаемости"
 public class ReadLaterItemTest {
 
+    /** Размерность HEX. */
+    private static final int HEX = 16;
+
     /*
      * Стратегия тестирования
      *
@@ -272,7 +275,7 @@ public class ReadLaterItemTest {
         String assertedString = String.format("%s%n%s%n(#%s)%nC: %s%nM: %s%nV: %s%nimage: %s",
                 normalLabel,
                 normalDescription,
-                Integer.toString(normalColor, 16),
+                Integer.toString(normalColor, HEX),
                 dateFormatter.format(zero),
                 dateFormatter.format(currentTime),
                 dateFormatter.format(currentTime),
@@ -292,7 +295,7 @@ public class ReadLaterItemTest {
         assertedString = String.format("%s%n%s%n(#%s)%nC: %s%nM: %s%nV: %s",
                 normalLabel,
                 normalDescription,
-                Integer.toString(normalColor, 16),
+                Integer.toString(normalColor, HEX),
                 dateFormatter.format(zero),
                 dateFormatter.format(currentTime),
                 dateFormatter.format(currentTime));
@@ -309,7 +312,7 @@ public class ReadLaterItemTest {
         assertedString = String.format("%s%n%s%n(#%s)%nC: %s%nM: %s%nV: %s%nimage: %s%nremoteId: %s",
                 normalLabel,
                 normalDescription,
-                Integer.toString(normalColor, 16),
+                Integer.toString(normalColor, HEX),
                 dateFormatter.format(zero),
                 dateFormatter.format(currentTime),
                 dateFormatter.format(currentTime),
@@ -330,7 +333,7 @@ public class ReadLaterItemTest {
         assertedString = String.format("%s%n%s%n(#%s)%nC: %s%nM: %s%nV: %s%nremoteId: %s",
                 normalLabel,
                 normalDescription,
-                Integer.toString(normalColor, 16),
+                Integer.toString(normalColor, HEX),
                 dateFormatter.format(zero),
                 dateFormatter.format(currentTime),
                 dateFormatter.format(currentTime),

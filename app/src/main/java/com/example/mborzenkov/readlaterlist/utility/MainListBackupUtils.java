@@ -41,7 +41,12 @@ public class MainListBackupUtils {
     private static final int FILE_MAX_SIZE = 10000;
     /** Отсечка для показывания оповещений. */
     private static final int NOTIFICATION_FROM_FILES_COUNT = 1;
-
+    /** Максимальное количество процентов в нотификейшене. */
+    private static final int NOTIFICATION_PERCENTAGE_MAX = 100;
+    /** Число процентов в нотификейшене для чтения файлов. */
+    private static final int NOTIFICATION_PERCENTAGE_LOAD_FILES = 20;
+    /** Число процентов в нотификейшене для разбора и записи данных. */
+    private static final int NOTIFICATION_PERCENTAGE_SAVE_DATA = 80;
 
     private static final FilenameFilter FILENAME_FILTER = (dir, name) ->
             dir.toString().contains(FOLDER_NAME) && name.matches(FILE_NAME_REGEX);
@@ -66,7 +71,7 @@ public class MainListBackupUtils {
 
             // Создаем папки, если их еще нет
             if (!backupFolder.exists() && !backupFolder.mkdirs()) {
-                Log.d("Folders creation fail", String.format(FORMAT_ERROR, "Не удалось создать папку",
+                Log.e("Folders creation fail", String.format(FORMAT_ERROR, "Не удалось создать папку",
                         backupFolder.toString()));
                 return; // Не удалось создать папки
             }
@@ -97,7 +102,8 @@ public class MainListBackupUtils {
                 String json = jsonStrings.get(i);
                 writeStringToFile(backupFolder, String.format(FILE_NAME_FORMAT, i), json);
                 if (showNotification) {
-                    LongTaskNotifications.showNotificationWithProgress((100 / jsonSize) * (i + 1), false);
+                    LongTaskNotifications.showNotificationWithProgress(
+                            (NOTIFICATION_PERCENTAGE_MAX / jsonSize) * (i + 1), false);
                 }
             }
 
@@ -155,7 +161,7 @@ public class MainListBackupUtils {
     private static void writeStringToFile(File folder, String fileName, String content) {
         File backupFile = new File(folder, fileName);
         if (backupFile.exists() && !backupFile.delete()) {
-            Log.d("File remove fail", String.format(FORMAT_ERROR, "Не удалось перезаписать файл",
+            Log.e("File remove fail", String.format(FORMAT_ERROR, "Не удалось перезаписать файл",
                     backupFile.toString()));
             return; // Не удалось удалить существующий файл
         }
@@ -222,7 +228,7 @@ public class MainListBackupUtils {
             // Получаем путь к папке
             File backupFolder = getBackupFolder();
             if (!backupFolder.exists()) {
-                Log.d("Folder not exist", String.format(FORMAT_ERROR, "Не удалось найти папку с бэкапами",
+                Log.e("Folder not exist", String.format(FORMAT_ERROR, "Не удалось найти папку с бэкапами",
                         backupFolder.toString()));
                 return; // Нет папки? :(
             }
@@ -317,7 +323,8 @@ public class MainListBackupUtils {
 
             if (showNotification) {
                 // Все чтение файлов как 20%
-                LongTaskNotifications.showNotificationWithProgress(((20 / totalFiles) * (i + 1)), false);
+                LongTaskNotifications.showNotificationWithProgress(
+                        ((NOTIFICATION_PERCENTAGE_LOAD_FILES / totalFiles) * (i + 1)), false);
             }
         }
 
@@ -364,7 +371,8 @@ public class MainListBackupUtils {
 
                 if (showNotification) {
                     // Все чтение строк как 80% начиная с 20%
-                    LongTaskNotifications.showNotificationWithProgress(20 + ((80 / totalStrings) * (i + 1)), false);
+                    LongTaskNotifications.showNotificationWithProgress(NOTIFICATION_PERCENTAGE_LOAD_FILES
+                            + ((NOTIFICATION_PERCENTAGE_SAVE_DATA / totalStrings) * (i + 1)), false);
                 }
             }
         }
