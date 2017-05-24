@@ -216,14 +216,13 @@ public class ItemListFragment extends Fragment implements
 
         inflater.inflate(R.menu.menu_mainlist, menu);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Создание меню поиска
-            SearchManager searchManager = (SearchManager) getContext().getSystemService(Context.SEARCH_SERVICE);
-            SearchView searchView = (SearchView) menu.findItem(R.id.mainlist_action_search).getActionView();
-            searchView.setSearchableInfo(searchManager.getSearchableInfo(getActivity().getComponentName()));
-            searchView.setSubmitButtonEnabled(true);
-            searchView.setOnQueryTextListener(this);
-        }
+        // Создание меню поиска
+        SearchManager searchManager = (SearchManager) getContext().getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView = (SearchView) menu.findItem(R.id.mainlist_action_search).getActionView();
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getActivity().getComponentName()));
+        searchView.setSubmitButtonEnabled(true);
+        searchView.setOnQueryTextListener(this);
+
 
         if (mCallbacks == null) {
             menu.findItem(R.id.mainlist_action_refresh).setVisible(false);
