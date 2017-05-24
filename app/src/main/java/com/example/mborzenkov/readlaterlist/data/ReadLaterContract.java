@@ -28,7 +28,7 @@ public class ReadLaterContract {
         public static final String TABLE_NAME = "items";
         /** Имя таблицы FTS. */
         public static final String TABLE_NAME_FTS = "items_fts";
-        // /** Имя колонки с id пользователя. */
+        /** Имя колонки с id пользователя. */
         public static final String COLUMN_USER_ID = "user_id";
         /** Имя колонки с внешним id заметки. */
         public static final String COLUMN_REMOTE_ID = "remote_id";
@@ -46,6 +46,8 @@ public class ReadLaterContract {
         public static final String COLUMN_DATE_LAST_VIEW = "last_view";
         /** Имя колонки с url картинки. */
         public static final String COLUMN_IMAGE_URL = "image_url";
+        /** Имя колонки с ручным порядом в таблице порядокв. */
+        public static final String COLUMN_ORDER = "item_order";
 
         /** Создает Uri для доступа к одному элменту по id.
          *

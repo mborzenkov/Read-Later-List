@@ -4,7 +4,9 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
+import com.example.mborzenkov.readlaterlist.fragments.sync.SyncAsyncTask;
 
 /** Класс для доступа к базе данных. */
 class ReadLaterDbHelper extends SQLiteOpenHelper {
@@ -12,7 +14,7 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
     /** Имя базы данных. */
     private static final String DATABASE_NAME = "readlaterlist.db";
     /** Версия базы данных. */
-    private static final int DATABASE_VERSION = 8; // Текущая: 8
+    private static final int DATABASE_VERSION = 9; // Текущая: 9
 
     public ReadLaterDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -33,14 +35,15 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
                     + ReadLaterEntry.COLUMN_DATE_CREATED       + " INTEGER NOT NULL, "
                     + ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED + " INTEGER NOT NULL, "
                     + ReadLaterEntry.COLUMN_DATE_LAST_VIEW     + " INTEGER NOT NULL, "
-                    + ReadLaterEntry.COLUMN_IMAGE_URL          + " TEXT);";
+                    + ReadLaterEntry.COLUMN_IMAGE_URL          + " TEXT, "
+                    + ReadLaterEntry.COLUMN_ORDER              + " INTEGER NOT NULL UNIQUE);";
         sqLiteDatabase.execSQL(sqlCreateReadLaterTable);
 
         final String sqlCreateFtsTable =
                 "CREATE VIRTUAL TABLE " + ReadLaterEntry.TABLE_NAME_FTS + " USING fts4 ("
-                        + "content='" + ReadLaterEntry.TABLE_NAME + "', "
-                        + ReadLaterEntry.COLUMN_LABEL              + ", "
-                        + ReadLaterEntry.COLUMN_DESCRIPTION        + ");";
+                        + "content='" + ReadLaterEntry.TABLE_NAME   + "', "
+                        + ReadLaterEntry.COLUMN_LABEL               + ", "
+                        + ReadLaterEntry.COLUMN_DESCRIPTION         + ");";
         sqLiteDatabase.execSQL(sqlCreateFtsTable);
     }
 
@@ -61,6 +64,6 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // TODO: onDowngrade не должно быть в Release
         // Тут он нужен для тестирования, чтобы не увеличивать бесконечно версию БД
-        onUpgrade(db, 0, 3);
+        onUpgrade(db, 0, DATABASE_VERSION);
     }
 }

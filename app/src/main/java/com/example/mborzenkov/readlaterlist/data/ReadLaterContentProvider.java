@@ -30,6 +30,9 @@ public class ReadLaterContentProvider extends ContentProvider {
 
     /** Запрос для отдельного элемента по remoteId. */
     private static final String QUERY_REMOTE_ID = ReadLaterEntry.COLUMN_REMOTE_ID + "=?";
+    /** Запрос для максимального значения порядка. */
+    private static final String QUERY_MAX_ORDER =
+            "SELECT MAX(" + ReadLaterEntry.COLUMN_ORDER + ") FROM " + ReadLaterEntry.TABLE_NAME;
 
     /** Матчер для сравнения запрашиваемых uri. */
     private static final UriMatcher sUriMatcher = buildUriMatcher();
@@ -168,16 +171,33 @@ public class ReadLaterContentProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS:
                 SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
-                long id = db.insert(ReadLaterEntry.TABLE_NAME, null, values);
-                ContentValues ftsValues = new ContentValues();
-                ftsValues.put("docid", id);
-                ftsValues.put(ReadLaterEntry.COLUMN_LABEL, values.getAsString(ReadLaterEntry.COLUMN_LABEL));
-                ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION, values.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
-                db.insert(ReadLaterEntry.TABLE_NAME_FTS, null, ftsValues);
-                if (id > 0) {
-                    returnUri =  ContentUris.withAppendedId(ReadLaterEntry.CONTENT_URI, id);
-                } else {
-                    throw new android.database.SQLException(mContext.getString(R.string.db_error_insert) + uri);
+                db.beginTransaction();
+                try {
+                    // SELECT MAX ORDER
+                    Cursor maxOrderCursor = db.rawQuery(QUERY_MAX_ORDER, null);
+                    maxOrderCursor.moveToFirst();
+                    int maxOrder = maxOrderCursor.getInt(0);
+                    maxOrderCursor.close();
+                    values.put(ReadLaterEntry.COLUMN_ORDER, maxOrder);
+
+                    // INSERT INTO TABLE_ITEMS
+                    long id = db.insert(ReadLaterEntry.TABLE_NAME, null, values);
+                    if (id > 0) {
+                        returnUri =  ContentUris.withAppendedId(ReadLaterEntry.CONTENT_URI, id);
+                    } else {
+                        throw new android.database.SQLException(mContext.getString(R.string.db_error_insert) + uri);
+                    }
+
+                    // INSERT INTO TABLE_FTS
+                    ContentValues ftsValues = new ContentValues();
+                    ftsValues.put("docid", id);
+                    ftsValues.put(ReadLaterEntry.COLUMN_LABEL, values.getAsString(ReadLaterEntry.COLUMN_LABEL));
+                    ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION, values.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
+                    db.insert(ReadLaterEntry.TABLE_NAME_FTS, null, ftsValues);
+
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
                 }
                 break;
             default:
@@ -204,8 +224,21 @@ public class ReadLaterContentProvider extends ContentProvider {
                 SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
                 db.beginTransaction();
                 try {
+                    // SELECT MAX ORDER
+                    Cursor maxOrderCursor = db.rawQuery(QUERY_MAX_ORDER, null);
+                    maxOrderCursor.moveToFirst();
+                    int maxOrder = maxOrderCursor.getInt(0);
+                    maxOrderCursor.close();
+
                     for (ContentValues value : values) {
+                        // INSERT INTO TABLE_ITEMS
+                        value.put(ReadLaterEntry.COLUMN_ORDER, maxOrder);
                         long id = db.insert(ReadLaterEntry.TABLE_NAME, null, value);
+                        if (id < 0) {
+                            throw new android.database.SQLException(mContext.getString(R.string.db_error_insert) + uri);
+                        }
+
+                        // INSERT INTO TABLE_FTS
                         ContentValues ftsValues = new ContentValues();
                         ftsValues.put("docid", id);
                         ftsValues.put(ReadLaterEntry.COLUMN_LABEL, value.getAsString(ReadLaterEntry.COLUMN_LABEL));
@@ -213,6 +246,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                                 value.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
                         db.insert(ReadLaterEntry.TABLE_NAME_FTS, null, ftsValues);
                         inserted++;
+                        maxOrder++;
                     }
                     db.setTransactionSuccessful();
                 } finally {
