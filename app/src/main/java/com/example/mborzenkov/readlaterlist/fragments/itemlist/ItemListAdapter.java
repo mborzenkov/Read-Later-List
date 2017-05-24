@@ -3,11 +3,14 @@ package com.example.mborzenkov.readlaterlist.fragments.itemlist;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Handler;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.Size;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,13 +21,16 @@ import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
+import com.example.mborzenkov.readlaterlist.utility.ItemTouchHelperCallback;
+import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 /** Адаптер для ItemList типа {@link android.support.v7.widget.RecyclerView}.
  */
-class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewHolder> {
+class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewHolder> implements
+        ItemTouchHelperCallback.ItemTouchHelperAdapter {
 
     /////////////////////////
     // Константы
@@ -32,12 +38,15 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
     /** Формат выводимых дат. */
     private static final String FORMAT_DATE = "dd.MM.yy HH:mm";
 
+    /** Таг для хандлер треда. */
+    private static final String HANDLERTHREAD_TAG = "handlerthread_itemlistadapter";
+
 
     /////////////////////////
     // Static
 
     /** Интерфейс для обработчика нажатий. */
-    interface ItemListAdapterOnClickHandler {
+    interface ItemListAdapterEventHandler {
 
         /** Вызывается при клике на элемент списка.
          *
@@ -53,6 +62,9 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
                          @NonNull ReadLaterItem item,
                          @IntRange(from = 0) int localId,
                          @NonNull ImageView sharedElement);
+
+        /** Оповещает о том, что данные в адаптере изменились. */
+        void onDataChanged();
 
     }
 
@@ -90,7 +102,7 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
                 ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
                 ViewCompat.setTransitionName(colorImageView,
                         MainActivity.SHARED_ELEMENT_COLOR_TRANSITION_NAME);
-                mClickHandler.onItemClick(
+                mEventHandler.onItemClick(
                         position,
                         mCursor.getCount(),
                         dbAdapter.itemFromCursor(mCursor),
@@ -107,8 +119,9 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
 
     /** Контекст. */
     private final @NonNull Context mContext;
-    /** Обработчик нажатий. */
-    private final @NonNull ItemListAdapterOnClickHandler mClickHandler;
+    /** Обработчик событий в адаптере. */
+    private final @NonNull
+    ItemListAdapterEventHandler mEventHandler;
     /** Текущий курсор. */
     private @Nullable Cursor mCursor;
 
@@ -121,9 +134,9 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
      * @param context контекст (activity)
      * @param clickHandler интерфейс для колбеков
      */
-    ItemListAdapter(@NonNull Context context, @NonNull ItemListAdapterOnClickHandler clickHandler) {
+    ItemListAdapter(@NonNull Context context, @NonNull ItemListAdapterEventHandler clickHandler) {
         mContext = context;
-        mClickHandler = clickHandler;
+        mEventHandler = clickHandler;
     }
 
     @Override
@@ -179,5 +192,23 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
     @Nullable Cursor getCurrentCursor() {
         return mCursor;
     }
+
+
+    /////////////////////////
+    // Обработчики перемещений
+
+    @Override
+    public void onItemMove(int fromPosition, int toPosition) {
+        // Выполняет перемещение
+        if (mCursor != null) {
+            mCursor.moveToPosition(fromPosition);
+            final int localId = mCursor.getInt(ItemListLoaderManager.INDEX_COLUMN_ID);
+            mCursor.moveToPosition(toPosition);
+            final int newPosition = mCursor.getInt(ItemListLoaderManager.INDEX_COLUMN_ORDER);
+            ReadLaterDbUtils.changeItemOrder(mContext, localId, newPosition);
+            mEventHandler.onDataChanged();
+        }
+    }
+
 
 }

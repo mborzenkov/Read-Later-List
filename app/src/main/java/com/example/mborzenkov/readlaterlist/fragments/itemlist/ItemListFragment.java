@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
-import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -17,12 +16,12 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,7 +29,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.example.mborzenkov.readlaterlist.R;
@@ -39,6 +37,7 @@ import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.fragments.BasicFragmentCallbacks;
 import com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemFragmentActions;
+import com.example.mborzenkov.readlaterlist.utility.ItemTouchHelperCallback;
 
 /** Фрагмент со списком ReadLaterItem.
  * Activity, использующая фрагмент, должна реализовывать интерфейс ItemListCallbacks.
@@ -87,7 +86,7 @@ public class ItemListFragment extends Fragment implements
     /** Интерфейс для оповещений о событиях во фрагменте. */
     public interface ItemListCallbacks extends
             BasicFragmentCallbacks,
-            ItemListAdapter.ItemListAdapterOnClickHandler {
+            ItemListAdapter.ItemListAdapterEventHandler {
 
         /** Вызывается при нажатии на (+). */
         void onNewItemClick();
@@ -140,9 +139,19 @@ public class ItemListFragment extends Fragment implements
         mDrawerLayout = (DrawerLayout) rootView.findViewById(R.id.drawerlayout_itemlist);
         mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swiperefreshlayout_itemlist);
         mItemsRecyclerView = (RecyclerView) rootView.findViewById(R.id.listview_itemlist);
-        mItemsRecyclerView.setAdapter(mItemListAdapter);
-        mItemsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         mEmptyListView = (LinearLayout) rootView.findViewById(R.id.linearLayout_emptylist);
+
+        // Настройка RecyclerView
+        mItemsRecyclerView.setAdapter(mItemListAdapter);
+        mItemsRecyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+        mItemsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+        if (mItemListAdapter != null) {
+            ItemTouchHelperCallback itemTouchHelperCallback = new ItemTouchHelperCallback(mItemListAdapter);
+            ItemTouchHelper itemTouchHelper = new ItemTouchHelper(itemTouchHelperCallback);
+            itemTouchHelper.attachToRecyclerView(mItemsRecyclerView);
+            mItemsRecyclerView.setOnTouchListener(itemTouchHelperCallback);
+        }
+
 
         // Инициализация FilterFragment
         FragmentManager fragmentManager = getChildFragmentManager();

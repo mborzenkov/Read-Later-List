@@ -64,17 +64,6 @@ public class MainActivity extends AppCompatActivity implements
         FilterDrawerFragment.DrawerCallbacks,
         ColorPickerFragment.ColorPickerCallbacks {
 
-    // [v.0.7.0]
-    // TODO: Проверить все на выполнение не на UI Thread (missing frames - причина виртуалки или где-то косяки?)
-    // TODO: Проверить алгоритм синхронизации:
-    //          Есть явные проблемы, если нет доступа к интернету - не вызовется finishSync и не вызовется reload.
-    //          Они должны быть независимыми друг от друга (reload вызывать несколько раз видимо).
-    // TODO: Fatal Exception SQLiteQuery при редактировании и обратно и особенно при конфликтах
-    //          SELECT _id, label, description, color, created, last_modify, last_view,
-    //          image_url, remote_id FROM items WHERE user_id = ? ORDER BY last_modify DESC
-    // TODO: Serch работает только на 23
-    // TODO: Исключить обращение к synchronized методам из MainThread
-
     /////////////////////////
     // Константы
 
@@ -330,6 +319,11 @@ public class MainActivity extends AppCompatActivity implements
 
         openEditItemFragment(fragmentManager, editItem, sharedElement);
 
+    }
+
+    @Override
+    public void onDataChanged() {
+        mItemListFragment.onDataChanged();
     }
 
     @Override

@@ -127,11 +127,12 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
     private Spinner mDateFiltersSpinner;
     private EditText mDateFromEditText;
     private EditText mDateToEditText;
+    private Button mSortByManualOrderButton;
     private Button mSortByLabelButton;
     private Button mSortByDateCreatedButton;
     private Button mSortByDateModifiedButton;
     private Button mSortByDateViewedButton;
-    private TextView mCurrentUser;
+    private TextView mCurrentUserTextView;
 
     // Хэлперы
     /** Адаптер для SavedFilters. */
@@ -170,16 +171,17 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
         loaded = false;
 
         // Объекты layout
-        mFavLinearLayout = (LinearLayout) rootView.findViewById(R.id.linearlayout_filterdrawer_favorites);
-        mSavedFiltersSpinner = (Spinner) rootView.findViewById(R.id.spinner_filterdrawer_filter);
-        mDateFiltersSpinner = (Spinner) rootView.findViewById(R.id.spinner_filterdrawer_datefilter);
-        mDateFromEditText = (EditText) rootView.findViewById(R.id.edittext_filterdrawer_datefrom);
-        mDateToEditText = (EditText) rootView.findViewById(R.id.edittext_filterdrawer_dateto);
-        mSortByLabelButton = (Button) rootView.findViewById(R.id.button_filterdrawer_sortname);
-        mSortByDateCreatedButton = (Button) rootView.findViewById(R.id.button_filterdrawer_sortcreate);
-        mSortByDateModifiedButton = (Button) rootView.findViewById(R.id.button_filterdrawer_sortmodified);
-        mSortByDateViewedButton = (Button) rootView.findViewById(R.id.button_filterdrawer_sortview);
-        mCurrentUser = (TextView) rootView.findViewById(R.id.tv_filterdrawer_user_value);
+        mFavLinearLayout            = (LinearLayout) rootView.findViewById(R.id.linearlayout_filterdrawer_favorites);
+        mSavedFiltersSpinner        = (Spinner) rootView.findViewById(R.id.spinner_filterdrawer_filter);
+        mDateFiltersSpinner         = (Spinner) rootView.findViewById(R.id.spinner_filterdrawer_datefilter);
+        mDateFromEditText           = (EditText) rootView.findViewById(R.id.edittext_filterdrawer_datefrom);
+        mDateToEditText             = (EditText) rootView.findViewById(R.id.edittext_filterdrawer_dateto);
+        mSortByManualOrderButton    = (Button) rootView.findViewById(R.id.button_filterdrawer_sortmanual);
+        mSortByLabelButton          = (Button) rootView.findViewById(R.id.button_filterdrawer_sortname);
+        mSortByDateCreatedButton    = (Button) rootView.findViewById(R.id.button_filterdrawer_sortcreate);
+        mSortByDateModifiedButton   = (Button) rootView.findViewById(R.id.button_filterdrawer_sortmodified);
+        mSortByDateViewedButton     = (Button) rootView.findViewById(R.id.button_filterdrawer_sortview);
+        mCurrentUserTextView        = (TextView) rootView.findViewById(R.id.tv_filterdrawer_user_value);
 
         // Инициализируем поле смены пользователя
         TextView urlChangeUser = (TextView) rootView.findViewById(R.id.tv_filterdrawer_user_change);
@@ -188,7 +190,7 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
             EditText inputNumber = new EditText(getActivity());
             inputNumber.setInputType(InputType.TYPE_CLASS_NUMBER);
             inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(8)}); // Не более 8 цифр
-            inputNumber.setText(mCurrentUser.getText().toString());
+            inputNumber.setText(mCurrentUserTextView.getText().toString());
             ActivityUtils.showInputTextDialog(
                     getContext(),
                     inputNumber,
@@ -200,7 +202,7 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                         int number = Integer.parseInt(input);
                         if (number != UserInfo.getCurentUser(getContext()).getUserId()) {
                             UserInfo.changeCurrentUser(getContext(), number);
-                            mCurrentUser.setText(String.valueOf(UserInfo.getCurentUser(getContext()).getUserId()));
+                            mCurrentUserTextView.setText(String.valueOf(UserInfo.getCurentUser(getContext()).getUserId()));
                             if (mCallbacks != null) {
                                 mCallbacks.onUserChanged();
                             }
@@ -213,7 +215,7 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
         });
 
         // Устанавливаем текущего пользователя
-        mCurrentUser.setText(String.valueOf(UserInfo.getCurentUser(getContext()).getUserId()));
+        mCurrentUserTextView.setText(String.valueOf(UserInfo.getCurentUser(getContext()).getUserId()));
 
         // Заполняем варианты запомненных фильтров
         reloadSavedFiltersList();
@@ -233,6 +235,10 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
         FavoriteColorsUtils.inflateFavLayout(getContext(), inflater, mFavLinearLayout);
 
         // Инициализируем кнопки SortBy
+        mSortByManualOrderButton.setTag(MainListFilter.SortType.MANUAL);
+        mSortByManualOrderButton.setOnClickListener(this);
+        mSortButtonsNames.put(MainListFilter.SortType.MANUAL, mSortByManualOrderButton.getText().toString());
+
         mSortByLabelButton.setTag(MainListFilter.SortType.LABEL);
         mSortByLabelButton.setOnClickListener(this);
         mSortButtonsNames.put(MainListFilter.SortType.LABEL, mSortByLabelButton.getText().toString());
@@ -315,6 +321,9 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
         resetButtons();
         Button selectedSortButton = null;
         switch (currentFilter.getSortType()) {
+            case MANUAL:
+                selectedSortButton = mSortByManualOrderButton;
+                break;
             case LABEL:
                 selectedSortButton = mSortByLabelButton;
                 break;
@@ -332,8 +341,10 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
         }
         if (selectedSortButton != null) {
             selectedSortButton.setActivated(true);
-            selectedSortButton.setText(selectedSortButton.getText().toString()
-                    + " " + mSortOrderSymbols.get(currentFilter.getSortOrder()));
+            if (selectedSortButton != mSortByManualOrderButton) {
+                selectedSortButton.setText(selectedSortButton.getText().toString()
+                        + " " + mSortOrderSymbols.get(currentFilter.getSortOrder()));
+            }
         }
 
     }
@@ -446,6 +457,8 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
 
     /** Сбрасывает все кнопки SortBy. */
     private void resetButtons() {
+        mSortByManualOrderButton.setActivated(false);
+        // set text не нужен, так как не меняется
         mSortByLabelButton.setActivated(false);
         mSortByLabelButton.setText(mSortButtonsNames.get(MainListFilter.SortType.LABEL));
         mSortByDateCreatedButton.setActivated(false);
@@ -464,14 +477,20 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
     public void onClick(@NonNull View v) {
 
         switch (v.getId()) {
+            case R.id.button_filterdrawer_sortmanual:
+                if (v.isActivated()) {
+                    // Если уже активирована, то тут нет второго режима
+                    return;
+                }
+                // fall through
             case R.id.button_filterdrawer_sortname:
-                // drop down
+                // fall through
             case R.id.button_filterdrawer_sortcreate:
-                // drop down
+                // fall through
             case R.id.button_filterdrawer_sortmodified:
-                // drop down
+                // fall through
             case R.id.button_filterdrawer_sortview:
-                // Нажатие на кнопку сортировки устанавливает меняет порядок сортировки или устанавливает новую
+                // Нажатие на кнопку сортировки устанавливает новый тип сортировки или меняет порядок текущей
                 if (v.getTag() != null) {
                     MainListFilter filter = MainListFilterUtils.getCurrentFilter();
                     if (v.isActivated()) {

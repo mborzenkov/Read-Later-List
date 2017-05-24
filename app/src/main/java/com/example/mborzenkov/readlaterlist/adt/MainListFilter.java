@@ -24,6 +24,7 @@ public class MainListFilter {
 
     /** Типы сортировок. */
     public enum SortType {
+        MANUAL(ReadLaterContract.ReadLaterEntry.COLUMN_ORDER),
         LABEL(ReadLaterContract.ReadLaterEntry.COLUMN_LABEL),
         DATE_CREATED(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED),
         DATE_MODIFIED(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED),
@@ -87,7 +88,7 @@ public class MainListFilter {
     /** Создает новый объект с данными по умолчанию. */
     public MainListFilter() {
         // default
-        sortBy = SortType.DATE_MODIFIED;
+        sortBy = SortType.MANUAL;
         sortOrder = SortOrder.DESC;
         selection = Selection.ALL;
         dateFrom = null;
@@ -236,7 +237,11 @@ public class MainListFilter {
 
     public void setSortType(SortType sortType) {
         sortBy = sortType;
-        sortOrder = SortOrder.ASC;
+        if (sortBy == SortType.MANUAL) {
+            sortOrder = SortOrder.DESC;
+        } else {
+            sortOrder = SortOrder.ASC;
+        }
     }
 
     public SortOrder getSortOrder() {
@@ -244,7 +249,9 @@ public class MainListFilter {
     }
 
     public void nextSortOrder() {
-        sortOrder = sortOrder == SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC;
+        if (sortBy != SortType.MANUAL) {
+            sortOrder = sortOrder == SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC;
+        }
     }
 
     public Selection getSelection() {

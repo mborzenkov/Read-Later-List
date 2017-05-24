@@ -2,6 +2,7 @@ package com.example.mborzenkov.readlaterlist.fragments.edititem;
 
 import android.content.Context;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
@@ -32,6 +33,7 @@ import com.example.mborzenkov.readlaterlist.R;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;

@@ -44,11 +44,12 @@
         <string name="mainlist_drawer_datefrom_hint"><font size="12">from</font></string>
         <string name="mainlist_drawer_dateto_hint"><font size="12">to</font></string>
         <string name="mainlist_drawer_color_title">Colors</string>
-        <string name="mainlist_drawer_sort_title">Sort by</string>
+        <string name="mainlist_drawer_sort_title">Order</string>
         <string name="mainlist_drawer_sort_label">Label</string>
         <string name="mainlist_drawer_sort_created">Created</string>
         <string name="mainlist_drawer_sort_modified">Modified</string>
         <string name="mainlist_drawer_sort_viewed">Viewed</string>
+        <string name="mainlist_drawer_sort_manual">Manual</string>
         <string name="mainlist_drawer_sort_symb_asc" translatable="false">↡</string>
         <string name="mainlist_drawer_sort_symb_desc" translatable="false">↑</string>
         <string name="mainlist_drawer_debug_title">Debug options</string>
