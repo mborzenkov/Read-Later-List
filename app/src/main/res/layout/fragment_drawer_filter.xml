@@ -159,7 +159,7 @@
         />
 
     <Button
-        android:id="@+id/button_filterdrawer_sortname"
+        android:id="@+id/button_filterdrawer_sortmanual"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="@dimen/marginhorizontal_normal"
@@ -167,6 +167,19 @@
         android:layout_marginTop="@dimen/marginvertical_small"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textview_filterdrawer_sorting"
+        android:text="@string/mainlist_drawer_sort_manual"
+        style="@style/Button"
+        />
+
+    <Button
+        android:id="@+id/button_filterdrawer_sortname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/marginhorizontal_normal"
+        android:layout_marginStart="@dimen/marginhorizontal_normal"
+        android:layout_marginTop="@dimen/marginvertical_small"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_filterdrawer_sortmanual"
         android:text="@string/mainlist_drawer_sort_label"
         style="@style/Button"
         />
@@ -179,7 +192,7 @@
         android:layout_marginStart="@dimen/marginhorizontal_normal"
         android:layout_marginTop="@dimen/marginvertical_small"
         app:layout_constraintLeft_toRightOf="@+id/button_filterdrawer_sortname"
-        app:layout_constraintTop_toBottomOf="@+id/textview_filterdrawer_sorting"
+        app:layout_constraintTop_toBottomOf="@+id/button_filterdrawer_sortmanual"
         android:text="@string/mainlist_drawer_sort_created"
         style="@style/Button"
         />
