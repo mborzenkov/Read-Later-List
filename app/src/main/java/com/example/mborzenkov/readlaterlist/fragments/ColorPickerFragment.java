@@ -24,6 +24,8 @@ import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -500,12 +502,6 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        checkRep(); // TODO: убрать эту проверку
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putFloatArray(SAVEDINSTANCE_CHOSENCOLOR_KEY, mChosenColorHsv);
@@ -514,6 +510,12 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
             mainGradientElements.add(Color.HSVToColor(elementColor));
         }
         outState.putIntegerArrayList(SAVEDINSTANCE_GRADIENTCOLORS_KEY, mainGradientElements);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        setHasOptionsMenu(false);
     }
 
     @Override

@@ -33,7 +33,6 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
@@ -41,7 +40,8 @@ import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.fragments.ColorPickerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
-import com.example.mborzenkov.readlaterlist.fragments.EditItemFragment;
+import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemFragmentActions;
+import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemViewPagerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncAsyncTask;
@@ -59,7 +59,8 @@ public class MainActivity extends AppCompatActivity implements
         SyncAsyncTask.SyncCallback,
         ConflictsFragment.ConflictsCallback,
         ItemListFragment.ItemListCallbacks,
-        EditItemFragment.EditItemCallbacks,
+        EditItemFragmentActions.EditItemCallbacks,
+        EditItemViewPagerFragment.EditItemViewPagerCallbacks,
         FilterDrawerFragment.DrawerCallbacks,
         ColorPickerFragment.ColorPickerCallbacks {
 
@@ -96,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements
     private IntentFilter mInternetChangedIntentFilter;
     private HandlerThread mHandlerThread;
     private Handler mHandlerThreadHandler;
+    private ItemListFragment mItemListFragment;
 
     // Элементы layout
     private FrameLayout mFragmentContainer;
@@ -127,15 +129,13 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toast.makeText(this, "WINDOW_WIDTH: " + String.valueOf(getResources().getDisplayMetrics().widthPixels / getResources().getDisplayMetrics().density), Toast.LENGTH_SHORT).show();
-
         // Инициализация объектов layout
         mFragmentContainer = (FrameLayout) findViewById(FRAGMENT_CONTAINER);
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_mainactivity_loading);
 
         // Инициализациия ItemListFragment
         FragmentManager fragmentManager = getSupportFragmentManager();
-        ItemListFragment itemListFragment = ItemListFragment.getInstance(fragmentManager);
+        mItemListFragment = ItemListFragment.getInstance(fragmentManager);
 
         // Инициализация SyncFragment
         mSyncFragment = SyncFragment.getInstance(fragmentManager);
@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements
         // Если это запуск с 0, добавляем itemlistFragment и синхронизируем activity
         if (savedInstanceState == null) {
             fragmentManager.beginTransaction()
-                    .add(FRAGMENT_CONTAINER, itemListFragment, ItemListFragment.TAG)
+                    .add(FRAGMENT_CONTAINER, mItemListFragment, ItemListFragment.TAG)
                     .commit();
         }
 
@@ -183,14 +183,14 @@ public class MainActivity extends AppCompatActivity implements
         boolean backHandled = false;
 
         FragmentManager fragmentManager = getSupportFragmentManager();
-        EditItemFragment editItemFragment =
-                (EditItemFragment) fragmentManager.findFragmentByTag(EditItemFragment.TAG);
-        if ((editItemFragment != null) && (editItemFragment.isVisible())) {
-            editItemFragment.onBackPressed();
+        EditItemViewPagerFragment editItem =
+                (EditItemViewPagerFragment) fragmentManager.findFragmentByTag(EditItemViewPagerFragment.TAG);
+        if ((editItem != null) && (editItem.isVisible())) {
+            editItem.onBackPressed();
             backHandled = true;
         } else {
             ColorPickerFragment colorPickerFragment =
-                    (ColorPickerFragment) fragmentManager.findFragmentByTag(ColorPickerFragment.TAG);;
+                    (ColorPickerFragment) fragmentManager.findFragmentByTag(ColorPickerFragment.TAG);
             if ((colorPickerFragment != null) && (colorPickerFragment.isVisible())) {
                 colorPickerFragment.onBackPressed();
                 backHandled = true;
@@ -301,7 +301,6 @@ public class MainActivity extends AppCompatActivity implements
                 actionBar.setDisplayHomeAsUpEnabled(true);
             }
         }
-        invalidateOptionsMenu();
     }
 
     /////////////////////////
@@ -309,31 +308,28 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onNewItemClick() {
+
+        // Открываем EditItemViewPagerFragment, без shared element, потому что новый
         FragmentManager fragmentManager = getSupportFragmentManager();
-        EditItemFragment editItemFragment = EditItemFragment.getInstance(
-                fragmentManager, null, EditItemFragment.UID_EMPTY);
-        fragmentManager.beginTransaction()
-                .replace(FRAGMENT_CONTAINER, editItemFragment, EditItemFragment.TAG)
-                .addToBackStack(null).commit();
+        EditItemViewPagerFragment editItem  = EditItemViewPagerFragment.getInstance(
+                fragmentManager, null, EditItemViewPagerFragment.UID_EMPTY, 0, 1);
+        openEditItemFragment(fragmentManager, editItem, null);
     }
 
     @Override
-    public void onItemClick(@NonNull ReadLaterItem item, int localId, @NonNull ImageView sharedElement) {
+    public void onItemClick(@IntRange(from = 0) int position,
+                            @IntRange(from = 1) int totalItems,
+                            @NonNull ReadLaterItem item,
+                            @IntRange(from = 0) int localId,
+                            @NonNull ImageView sharedElement) {
+
+        // Открываем EditItemViewPagerFragment, в нем есть shared element
         FragmentManager fragmentManager = getSupportFragmentManager();
-        EditItemFragment editItemFragment = EditItemFragment.getInstance(fragmentManager, item, localId);
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        EditItemViewPagerFragment editItem =
+                EditItemViewPagerFragment.getInstance(fragmentManager, item, localId, position, totalItems);
 
-        // Shared element
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            editItemFragment.setSharedElementEnterTransition(
-                    TransitionInflater.from(this).inflateTransition(android.R.transition.move));
-            editItemFragment.setEnterTransition(
-                    TransitionInflater.from(this).inflateTransition(android.R.transition.slide_right));
-            transaction.addSharedElement(sharedElement, SHARED_ELEMENT_COLOR_TRANSITION_NAME);
-        }
+        openEditItemFragment(fragmentManager, editItem, sharedElement);
 
-        transaction.replace(FRAGMENT_CONTAINER, editItemFragment, EditItemFragment.TAG)
-                .addToBackStack(null).commit();
     }
 
     @Override
@@ -454,16 +450,11 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onFilterChanged() {
-        ItemListFragment itemListFragment =
-                (ItemListFragment) getSupportFragmentManager().findFragmentByTag(ItemListFragment.TAG);
-        if (itemListFragment != null) {
-            itemListFragment.onDataChanged();
-        }
+        mItemListFragment.onDataChanged();
     }
 
     /////////////////////////
     // Колбеки EditItemFragment
-
     @Override
     public void onRequestColorPicker(int color, ImageView sharedElement) {
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -475,7 +466,7 @@ public class MainActivity extends AppCompatActivity implements
             colorPickerFragment.setSharedElementEnterTransition(
                     TransitionInflater.from(this).inflateTransition(android.R.transition.move));
             colorPickerFragment.setEnterTransition(
-                    TransitionInflater.from(this).inflateTransition(android.R.transition.slide_right));
+                    TransitionInflater.from(this).inflateTransition(android.R.transition.fade));
             transaction.addSharedElement(sharedElement, SHARED_ELEMENT_COLOR_TRANSITION_NAME);
         }
 
@@ -506,7 +497,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onExitWithoutModifying(@Nullable ReadLaterItem item,
-                                       @IntRange(from = EditItemFragment.UID_EMPTY) int localId) {
+                                       @IntRange(from = EditItemViewPagerFragment.UID_EMPTY) int localId) {
 
         if (item != null) {
             // Этот блок вызывается при простом просмотре без изменений
@@ -518,15 +509,30 @@ public class MainActivity extends AppCompatActivity implements
 
 
     /////////////////////////
+    // Колбеки EditItemViewPagerFragment
+
+    @Override
+    public @Nullable ReadLaterItem getItemAt(@IntRange(from = 0) int position) {
+        return mItemListFragment.getItemAt(position);
+    }
+
+    @Override
+    public int getItemLocalIdAt(@IntRange(from = 0) int position) {
+        return mItemListFragment.getItemLocalIdAt(position);
+    }
+
+
+    /////////////////////////
     // Колбеки ColorPickerCallbacks
 
     @Override
     public void onColorPicked(int newColor) {
         popFragmentFromBackstack();
         FragmentManager fragmentManager = getSupportFragmentManager();
-        EditItemFragment editItemFragment = (EditItemFragment) fragmentManager.findFragmentByTag(EditItemFragment.TAG);
-        if (editItemFragment != null) {
-            editItemFragment.setColor(newColor);
+        EditItemViewPagerFragment editItem = (EditItemViewPagerFragment)
+                fragmentManager.findFragmentByTag(EditItemViewPagerFragment.TAG);
+        if (editItem != null) {
+            editItem.setColor(newColor);
         }
     }
 
@@ -545,10 +551,8 @@ public class MainActivity extends AppCompatActivity implements
      */
     private void toggleSync() {
         if (!MainActivityLongTask.isActive()) {
-            ItemListFragment itemListFragment =
-                    (ItemListFragment) getSupportFragmentManager().findFragmentByTag(ItemListFragment.TAG);
-            if ((itemListFragment != null) && itemListFragment.isVisible()) {
-                itemListFragment.setRefreshing(true);
+            if (mItemListFragment.isVisible()) {
+                mItemListFragment.setRefreshing(true);
             }
             mSyncFragment.startFullSync();
         }
@@ -569,13 +573,11 @@ public class MainActivity extends AppCompatActivity implements
     /** Завершает синхронизацию. */
     private void finishSync() {
         mSyncFragment.stopSync();
-        ItemListFragment itemListFragment =
-                (ItemListFragment) getSupportFragmentManager().findFragmentByTag(ItemListFragment.TAG);
-        if ((itemListFragment != null) && itemListFragment.isVisible()) {
-            itemListFragment.setRefreshing(false);
+        if (mItemListFragment.isVisible()) {
+            mItemListFragment.setRefreshing(false);
             // Оповещаем itemListFragment об изменениях, если не запущен лонг таск
             if (!MainActivityLongTask.isActive()) {
-                itemListFragment.onDataChanged();
+                mItemListFragment.onDataChanged();
             }
         }
     }
@@ -586,12 +588,8 @@ public class MainActivity extends AppCompatActivity implements
 
     /** Колбек для MainActivityLongTask об окончании работ. */
     void onLongTaskFinished() {
-        ItemListFragment itemListFragment =
-                (ItemListFragment) getSupportFragmentManager().findFragmentByTag(ItemListFragment.TAG);
-        if (itemListFragment != null) {
-            // Оповещаем itemListFragment об изменениях
-            itemListFragment.onDataChanged();
-        }
+        // Оповещаем itemListFragment об изменениях
+        mItemListFragment.onDataChanged();
         showData();
     }
 
@@ -623,6 +621,27 @@ public class MainActivity extends AppCompatActivity implements
             mgr.hideSoftInputFromWindow(focus.getWindowToken(), 0);
         }
         getSupportFragmentManager().popBackStackImmediate();
+    }
+
+    private void openEditItemFragment(@NonNull FragmentManager fragmentManager,
+                                      @NonNull EditItemViewPagerFragment fragment,
+                                      @Nullable ImageView sharedElement) {
+
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+
+        // Shared element
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            fragment.setSharedElementEnterTransition(
+                    TransitionInflater.from(this).inflateTransition(android.R.transition.move));
+            fragment.setEnterTransition(
+                    TransitionInflater.from(this).inflateTransition(android.R.transition.fade));
+            if (sharedElement != null) {
+                transaction.addSharedElement(sharedElement, SHARED_ELEMENT_COLOR_TRANSITION_NAME);
+            }
+        }
+
+        transaction.replace(FRAGMENT_CONTAINER, fragment, EditItemViewPagerFragment.TAG)
+                .addToBackStack(null).commit();
     }
 
 }

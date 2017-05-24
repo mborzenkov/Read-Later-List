@@ -3,6 +3,7 @@ package com.example.mborzenkov.readlaterlist.fragments.itemlist;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.drawable.GradientDrawable;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewCompat;
@@ -10,7 +11,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -18,7 +18,6 @@ import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
-import com.example.mborzenkov.readlaterlist.fragments.EditItemFragment;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -40,14 +39,21 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
     /** Интерфейс для обработчика нажатий. */
     interface ItemListAdapterOnClickHandler {
 
-        /** Вызывается при нажатии на элемент.
+        /** Вызывается при клике на элемент списка.
          *
-         * @param item элемент, на который нажали
-         * @param itemLocalId внутренний идентификатор элемента (_id)
+         * @param position позиция элемента, на который нажали
+         * @param totalItems общее число элементов в массиве данных
+         * @param item элемент списка в формате ReadLaterItem
+         * @param localId _id этого элемента, > 0
          * @param sharedElement shared element для использования при открытии фрагмента редактирования,
          *                      не null, у него обязательно установлен transition name
          */
-        void onClick(@NonNull ReadLaterItem item, int itemLocalId, @NonNull ImageView sharedElement);
+        void onItemClick(@IntRange(from = 0) int position,
+                         @IntRange(from = 1) int totalItems,
+                         @NonNull ReadLaterItem item,
+                         @IntRange(from = 0) int localId,
+                         @NonNull ImageView sharedElement);
+
     }
 
 
@@ -79,11 +85,14 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
         @Override
         public void onClick(@NonNull View view) {
             if (mCursor != null) {
-                mCursor.moveToPosition(getAdapterPosition());
+                int position = getAdapterPosition();
+                mCursor.moveToPosition(position);
                 ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
                 ViewCompat.setTransitionName(colorImageView,
                         MainActivity.SHARED_ELEMENT_COLOR_TRANSITION_NAME);
-                mClickHandler.onClick(
+                mClickHandler.onItemClick(
+                        position,
+                        mCursor.getCount(),
                         dbAdapter.itemFromCursor(mCursor),
                         mCursor.getInt(ItemListLoaderManager.INDEX_COLUMN_ID),
                         colorImageView);
@@ -161,6 +170,14 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
     void swapCursor(@Nullable Cursor newCursor) {
         mCursor = newCursor;
         notifyDataSetChanged();
+    }
+
+    /** Возвращает текущий курсор в адаптере.
+     *
+     * @return текущий курсор
+     */
+    @Nullable Cursor getCurrentCursor() {
+        return mCursor;
     }
 
 }
