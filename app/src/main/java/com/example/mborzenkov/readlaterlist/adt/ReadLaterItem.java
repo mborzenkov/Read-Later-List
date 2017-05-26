@@ -17,7 +17,7 @@ import java.util.Locale;
 public class ReadLaterItem {
 
     /** Формат дат. */
-    private static final String FORMAT_DATE = "yyyy-MM-dd'T'hh:mm:ss.SSSZ";
+    private static final String FORMAT_DATE = "yyyy-MM-dd'T'hh:mm:ssZZZZZ";
     /** Формат цвета. */
     private static final String FORMAT_COLOR = "#%s";
     /** Цвет по умолчанию. */
@@ -385,7 +385,7 @@ public class ReadLaterItem {
      *
      * @return Строковое представление состоит из всех полей объекта, где:
      *                  color - цвет в HEX,
-     *                  даты формата yyyy-MM-dd'T'hh:mm:ss.SSSZ,
+     *                  даты формата yyyy-MM-dd'T'hh:mm:ss.SSSZZZZZ,
      *                  \nimage: нет, если imageUrl == null
      *                  \nremoteId: нет, если remoteId == 0
      *

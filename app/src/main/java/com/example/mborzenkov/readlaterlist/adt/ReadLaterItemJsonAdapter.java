@@ -16,7 +16,7 @@ import java.util.Locale;
 public class ReadLaterItemJsonAdapter {
 
     /** Формат дат в JSON. */
-    private static final String FORMAT_DATE = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+    private static final String FORMAT_DATE = "yyyy-MM-dd'T'HH:mm:ssZZZZZ";
     /** Формат цвета в JSON. */
     private static final String FORMAT_COLOR = "#%S";
     /** Формат toString объекта ReadLaterItemJson. */

@@ -269,7 +269,7 @@ public class ReadLaterItemTest {
 
     @Test
     public void testToString() {
-        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSZ", Locale.US);
+        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZZZZZ", Locale.US);
 
         // +url -remoteId
         String assertedString = String.format("%s%n%s%n(#%s)%nC: %s%nM: %s%nV: %s%nimage: %s",
