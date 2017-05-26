@@ -16,6 +16,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.adt.Conflict;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 
 import java.util.ArrayList;
@@ -50,9 +51,9 @@ public class ConflictsFragment extends DialogFragment {
 
     // TODO: issue #29
     /** Список конфликтов. */
-    private @NonNull List<ReadLaterItem[]> mConflictsList = new ArrayList<>();
-    /** Текущая редактируемая пара. */
-    private ReadLaterItem[] mCurrentConflict;
+    private @NonNull List<Conflict> mConflictsList = new ArrayList<>();
+    /** Текущий конфликт. */
+    private @NonNull Conflict mCurrentConflict;
     /** Колбек для оповещений о ходе синхронизации. */
     private @Nullable ConflictsCallback mConflictsCallback = null;
 
@@ -65,11 +66,11 @@ public class ConflictsFragment extends DialogFragment {
 
     /** Создает новый instance ConflictsFragment.
      *
-     * @param conflicts список конфликтов, не null и все элементы не null
+     * @param conflicts непустой список конфликтов
      * @return всегда новый объект ConflictsFragment
-     * @throws NullPointerException если conflicts - null или любой из элементов null
+     * @throws NullPointerException если conflicts - null или пустой
      */
-    public static ConflictsFragment getInstance(@NonNull List<ReadLaterItem[]> conflicts) {
+    public static ConflictsFragment getInstance(@NonNull List<Conflict> conflicts) {
         ConflictsFragment conflictFragment = new ConflictsFragment();
         conflictFragment.mConflictsList = conflicts;
         conflictFragment.mCurrentConflict = conflicts.get(0);
@@ -160,7 +161,7 @@ public class ConflictsFragment extends DialogFragment {
         mChosenOption.check(R.id.rb_conflict_item_left);
 
         // Читаем левый и правый элемент
-        ReadLaterItem leftItem  = mCurrentConflict[0];
+        ReadLaterItem leftItem  = mCurrentConflict.getLeft();
 
         // Устанавливаем заголовок и кнопку
         mConflictDescriptionTextView.setText(String.format(FORMAT_DESCRIPTION, leftItem.getRemoteId()));
@@ -170,7 +171,7 @@ public class ConflictsFragment extends DialogFragment {
         mProceedButton.setText(buttonText);
 
 
-        ReadLaterItem rightItem = mCurrentConflict[1];
+        ReadLaterItem rightItem = mCurrentConflict.getRight();
         // Устанавливаем сравнение
         mConflictLeftTextView.setText(leftItem.toString());
         mConflictRightTextView.setText(rightItem.toString());
@@ -181,14 +182,14 @@ public class ConflictsFragment extends DialogFragment {
         if (mConflictsCallback != null) {
             ReadLaterItem chosenItem;
             if (mChosenOption.getCheckedRadioButtonId() == R.id.rb_conflict_item_left) {
-                chosenItem = mCurrentConflict[0];
+                chosenItem = mCurrentConflict.getLeft();
             } else {
-                chosenItem = mCurrentConflict[1];
+                chosenItem = mCurrentConflict.getRight();
             }
             ReadLaterItem.Builder savingItemBuilder = new ReadLaterItem.Builder(chosenItem)
                     .dateModified(System.currentTimeMillis())
-                    .dateCreated(Math.min(mCurrentConflict[0].getDateCreated(), mCurrentConflict[1].getDateCreated()))
-                    .dateViewed(Math.max(mCurrentConflict[0].getDateViewed(), mCurrentConflict[1].getDateViewed()));
+                    .dateCreated(Math.min(mCurrentConflict.getLeft().getDateCreated(), mCurrentConflict.getRight().getDateCreated()))
+                    .dateViewed(Math.max(mCurrentConflict.getLeft().getDateViewed(), mCurrentConflict.getRight().getDateViewed()));
             mConflictsCallback.saveConflict(savingItemBuilder.build());
             mConflictsList.remove(0);
             if (mConflictsList.isEmpty()) {

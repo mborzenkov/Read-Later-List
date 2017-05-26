@@ -36,6 +36,7 @@ import android.widget.ProgressBar;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.adt.Conflict;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.fragments.ColorPickerFragment;
@@ -235,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onSyncWithConflicts(@NonNull @Size(min = 1) List<ReadLaterItem[]> conflicts, long syncStartTime) {
+    public void onSyncWithConflicts(@NonNull @Size(min = 1) List<Conflict> conflicts, long syncStartTime) {
         mLastSync = syncStartTime;
         ConflictsFragment conflictFragment =
                 ConflictsFragment.getInstance(conflicts);

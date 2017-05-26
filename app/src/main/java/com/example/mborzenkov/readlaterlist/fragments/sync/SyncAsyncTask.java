@@ -9,6 +9,7 @@ import android.support.annotation.Size;
 import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
+import com.example.mborzenkov.readlaterlist.adt.Conflict;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemJsonAdapter;
@@ -85,10 +86,10 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
 
         /** Выдыватеся, если синхронизация завершилась успешно, но с конфликтами.
          *
-         * @param conflicts список конфликтов, каждый элемент состоит из 2 объектов ReadLaterItem
+         * @param conflicts непустой список конфликтов
          * @param syncStartTime дата начала синхронизации для обновления даты последней синхронизации
          */
-        void onSyncWithConflicts(@NonNull @Size(min = 1) List<ReadLaterItem[]> conflicts, long syncStartTime);
+        void onSyncWithConflicts(@NonNull @Size(min = 1) List<Conflict> conflicts, long syncStartTime);
 
     }
 
@@ -273,8 +274,8 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
         /** Признак успешности синхронизации. */
         private final boolean isSuccessful;
 
-        /** Список конфликтов, каждый элемент состоит из 2 объектов ReadLaterItem. */
-        private final @NonNull List<ReadLaterItem[]> conflicts;
+        /** Список конфликтов. */
+        private final @NonNull List<Conflict> conflicts;
 
         /** Создает новый объект SyncResult с ошибкой. */
         private SyncResult() {
@@ -284,9 +285,9 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
 
         /** Создает новый объект SyncResult с успешным принаком и списком конфликтов.
          *
-         * @param conflicts список конфликтов, каждый элемент состоит из 2 объектов ReadLaterItem.
+         * @param conflicts список конфликтов.
          */
-        private SyncResult(@NonNull List<ReadLaterItem[]> conflicts) {
+        private SyncResult(@NonNull List<Conflict> conflicts) {
             this.isSuccessful = true;
             this.conflicts = conflicts;
         }
@@ -333,7 +334,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
 
         // Список всех идентификаторов заметок на сервере
         List<Integer> allServerIds = new ArrayList<>();
-        List<ReadLaterItem[]> conflicts = new ArrayList<>();
+        List<Conflict> conflicts = new ArrayList<>();
         {
             // Получили список всех заметок с сервера, сохранили
             List<ReadLaterItem> itemsOnServer = getAllItemsOnServer(cloudApi, userId);
@@ -364,7 +365,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
                                 // Server: есть, изменен; Local: есть, изменен
                                 if (!itemLocal.equalsByContent(itemServer)) {
                                     // Разбор конфликтов пользователем происходит только если не равны содержательно
-                                    conflicts.add(new ReadLaterItem[]{itemServer, itemLocal});
+                                    conflicts.add(new Conflict(itemServer, itemLocal));
                                 } else {
                                     // Если они равны содержательно, но все таки изменены, то запишем в оба места
                                     //      меньшую дату создания и большие даты изменения и просмотра
