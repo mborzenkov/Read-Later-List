@@ -53,7 +53,6 @@ import java.util.Locale;
  */
 public class ColorPickerFragment extends Fragment implements View.OnTouchListener, View.OnLongClickListener {
 
-
     /////////////////////////
     // Константы
 

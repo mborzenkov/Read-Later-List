@@ -41,7 +41,9 @@ public class ReadLaterItemDbAdapter {
      * @throws IllegalArgumentException если cursor не соответствует требованиям
      * @see ReadLaterItemCursorProjection
      */
-    private @Nullable ReadLaterItem itemFromCursor(@NonNull Cursor cursor, @NonNull ReadLaterItemCursorProjection projection) {
+    private @Nullable ReadLaterItem itemFromCursor(@NonNull Cursor cursor,
+                                                   @NonNull ReadLaterItemCursorProjection projection) {
+
         if (cursor.isClosed() || cursor.getCount() == 0) {
             return null;
         }
@@ -54,6 +56,7 @@ public class ReadLaterItemDbAdapter {
                 .imageUrl(cursor.getString(projection.indexImageUrl))
                 .remoteId(cursor.getInt(projection.indexRemoteId))
                 .build();
+
     }
 
     /** Преобразует Cursor в список ReadLaterItem.

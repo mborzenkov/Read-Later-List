@@ -188,8 +188,10 @@ public class ConflictsFragment extends DialogFragment {
             }
             ReadLaterItem.Builder savingItemBuilder = new ReadLaterItem.Builder(chosenItem)
                     .dateModified(System.currentTimeMillis())
-                    .dateCreated(Math.min(mCurrentConflict.getLeft().getDateCreated(), mCurrentConflict.getRight().getDateCreated()))
-                    .dateViewed(Math.max(mCurrentConflict.getLeft().getDateViewed(), mCurrentConflict.getRight().getDateViewed()));
+                    .dateCreated(Math.min(mCurrentConflict.getLeft().getDateCreated(),
+                            mCurrentConflict.getRight().getDateCreated()))
+                    .dateViewed(Math.max(mCurrentConflict.getLeft().getDateViewed(),
+                            mCurrentConflict.getRight().getDateViewed()));
             mConflictsCallback.saveConflict(savingItemBuilder.build());
             mConflictsList.remove(0);
             if (mConflictsList.isEmpty()) {

@@ -56,7 +56,6 @@ public class EditItemFragment extends Fragment implements
         View.OnClickListener,
         EditItemFragmentActions {
 
-
     /////////////////////////
     // Константы
 

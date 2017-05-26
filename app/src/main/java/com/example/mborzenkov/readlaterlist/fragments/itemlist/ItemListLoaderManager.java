@@ -6,9 +6,9 @@ import android.support.v4.content.CursorLoader;
 import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
-import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
+import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -38,10 +38,10 @@ import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.Conflict;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
-import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 import com.example.mborzenkov.readlaterlist.fragments.ColorPickerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
-import com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment;
+import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerCallbacks;
+import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemFragmentActions;
 import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemViewPagerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
@@ -52,6 +52,7 @@ import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
 import com.example.mborzenkov.readlaterlist.utility.LongTaskNotifications;
 import com.example.mborzenkov.readlaterlist.utility.MainListBackupUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
+import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 
 import java.util.List;
 
@@ -62,8 +63,9 @@ public class MainActivity extends AppCompatActivity implements
         ItemListFragment.ItemListCallbacks,
         EditItemFragmentActions.EditItemCallbacks,
         EditItemViewPagerFragment.EditItemViewPagerCallbacks,
-        FilterDrawerFragment.DrawerCallbacks,
+        FilterDrawerCallbacks,
         ColorPickerFragment.ColorPickerCallbacks {
+
 
     /////////////////////////
     // Константы
@@ -450,6 +452,7 @@ public class MainActivity extends AppCompatActivity implements
 
     /////////////////////////
     // Колбеки EditItemFragment
+
     @Override
     public void onRequestColorPicker(int color, ImageView sharedElement) {
         FragmentManager fragmentManager = getSupportFragmentManager();

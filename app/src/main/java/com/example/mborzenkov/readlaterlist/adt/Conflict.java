@@ -1,6 +1,5 @@
 package com.example.mborzenkov.readlaterlist.adt;
 
-
 import android.support.annotation.NonNull;
 
 /** Неизменяемый АТД, представляющий конфликт двух элементов ReadLaterItem.

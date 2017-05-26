@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.fragments;
+package com.example.mborzenkov.readlaterlist.fragments.filterdrawer;
 
 import android.app.DatePickerDialog;
 import android.content.Context;
@@ -7,8 +7,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.text.InputFilter;
-import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,18 +16,14 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.Spinner;
-import android.widget.TextView;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
-import com.example.mborzenkov.readlaterlist.adt.UserInfo;
-import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
+import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -55,7 +49,6 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
     private static final int LAST_MINUTE = 59;
     private static final int LAST_SECOND = 59;
 
-
     /////////////////////////
     // Static
 
@@ -68,35 +61,11 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
      * @return новый объект FilterDrawerFragment
      */
     public static FilterDrawerFragment getInstance(FragmentManager fragmentManager) {
-
         FilterDrawerFragment fragment = (FilterDrawerFragment) fragmentManager.findFragmentByTag(TAG);
-
         if (fragment == null) {
             fragment = new FilterDrawerFragment();
         }
-
         return fragment;
-
-    }
-
-    /** Интерфейс для оповещений о событиях в Drawer. */
-    public interface DrawerCallbacks {
-
-        /** Вызывается, когда выбран новый пользователь.
-         * Если выбран тот же самый пользователь, не вызывается.
-         */
-        void onUserChanged();
-
-        /** Вызывается при нажатии на одну из кнопок действий.
-         * Нажатие на кнопки только вызывает этот колбек, не показывает окон и не закрывает Drawer.
-         *
-          * @param action действие
-         */
-        void onActionToggled(DrawerActions action);
-
-        /** Оповещает об изменениях фильтра. */
-        void onFilterChanged();
-
     }
 
     /** Перечисление действий в Drawer. */
@@ -125,20 +94,10 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
     // Поля объекта
 
     /** Объект для колбеков о событиях во фрагменте. */
-    private @Nullable DrawerCallbacks mCallbacks = null;
+    private @Nullable FilterDrawerCallbacks mCallbacks = null;
 
-    // Объекты Layout
-    private LinearLayout mFavLinearLayout;
-    private Spinner mSavedFiltersSpinner;
-    private Spinner mDateFiltersSpinner;
-    private EditText mDateFromEditText;
-    private EditText mDateToEditText;
-    private Button mSortByManualOrderButton;
-    private Button mSortByLabelButton;
-    private Button mSortByDateCreatedButton;
-    private Button mSortByDateModifiedButton;
-    private Button mSortByDateViewedButton;
-    private TextView mCurrentUserTextView;
+    /** ViewHolder. */
+    FilterDrawerViewHolder mViewHolder;
 
     // Хэлперы
     /** Адаптер для SavedFilters. */
@@ -160,8 +119,8 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof DrawerCallbacks) {
-            mCallbacks = (DrawerCallbacks) context;
+        if (context instanceof FilterDrawerCallbacks) {
+            mCallbacks = (FilterDrawerCallbacks) context;
         }
     }
 
@@ -174,53 +133,21 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
         View rootView = inflater.inflate(R.layout.fragment_drawer_filter, container, false);
         loaded = false;
 
-        // Объекты layout
-        mFavLinearLayout            = (LinearLayout) rootView.findViewById(R.id.linearlayout_filterdrawer_favorites);
-        mSavedFiltersSpinner        = (Spinner) rootView.findViewById(R.id.spinner_filterdrawer_filter);
-        mDateFiltersSpinner         = (Spinner) rootView.findViewById(R.id.spinner_filterdrawer_datefilter);
-        mDateFromEditText           = (EditText) rootView.findViewById(R.id.edittext_filterdrawer_datefrom);
-        mDateToEditText             = (EditText) rootView.findViewById(R.id.edittext_filterdrawer_dateto);
-        mSortByManualOrderButton    = (Button) rootView.findViewById(R.id.button_filterdrawer_sortmanual);
-        mSortByLabelButton          = (Button) rootView.findViewById(R.id.button_filterdrawer_sortname);
-        mSortByDateCreatedButton    = (Button) rootView.findViewById(R.id.button_filterdrawer_sortcreate);
-        mSortByDateModifiedButton   = (Button) rootView.findViewById(R.id.button_filterdrawer_sortmodified);
-        mSortByDateViewedButton     = (Button) rootView.findViewById(R.id.button_filterdrawer_sortview);
-        mCurrentUserTextView        = (TextView) rootView.findViewById(R.id.tv_filterdrawer_user_value);
+        mViewHolder = new FilterDrawerViewHolder(rootView);
 
         // Инициализируем поле смены пользователя
-        TextView urlChangeUser = (TextView) rootView.findViewById(R.id.tv_filterdrawer_user_change);
-        urlChangeUser.setOnClickListener((View v) -> {
-            // Нажатие на "сменить пользователя"
-            EditText inputNumber = new EditText(getActivity());
-            inputNumber.setInputType(InputType.TYPE_CLASS_NUMBER);
-            inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(UserInfo.USER_ID_MAX_LENGTH)});
-            inputNumber.setText(mCurrentUserTextView.getText().toString());
-            ActivityUtils.showInputTextDialog(
-                    getContext(),
-                    inputNumber,
-                    getString(R.string.mainlist_user_change_question_title),
-                    getString(R.string.mainlist_user_change_question_text),
-                (input) -> {
-                    try {
-                        // Смотрим введенное значение
-                        int number = Integer.parseInt(input);
-                        if (number != UserInfoUtils.getCurentUser(getContext()).getUserId()) {
-                            UserInfoUtils.changeCurrentUser(getContext(), number);
-                            mCurrentUserTextView.setText(String.valueOf(
-                                    UserInfoUtils.getCurentUser(getContext()).getUserId()));
-                            if (mCallbacks != null) {
-                                mCallbacks.onUserChanged();
-                            }
-                        }
-                    } catch (ClassCastException e) {
-                        Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
-                    }
-                },
-                    null);
+        mViewHolder.mUrlChangeUser.setOnClickListener((View v) -> {
+            UserInfoUtils.showDialogAndChangeUser(getActivity(), () -> {
+                mViewHolder.mCurrentUserTextView.setText(String.valueOf(
+                        UserInfoUtils.getCurentUser(getContext()).getUserId()));
+                if (mCallbacks != null) {
+                    mCallbacks.onUserChanged();
+                }
+            });
         });
 
         // Устанавливаем текущего пользователя
-        mCurrentUserTextView.setText(String.valueOf(UserInfoUtils.getCurentUser(getContext()).getUserId()));
+        mViewHolder.mCurrentUserTextView.setText(String.valueOf(UserInfoUtils.getCurentUser(getContext()).getUserId()));
 
         // Заполняем варианты запомненных фильтров
         reloadSavedFiltersList();
@@ -231,57 +158,58 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
         // DatePicker на полях с датами
         View.OnClickListener onDateClick = this::openDatePickerDialog;
         long zeroLong = 0; // В таги лучше сразу записать long, чтобы потом не конвертировать
-        mDateFromEditText.setOnClickListener(onDateClick);
-        mDateFromEditText.setTag(zeroLong);
-        mDateToEditText.setOnClickListener(onDateClick);
-        mDateToEditText.setTag(zeroLong);
+        mViewHolder.mDateFromEditText.setOnClickListener(onDateClick);
+        mViewHolder.mDateFromEditText.setTag(zeroLong);
+        mViewHolder.mDateToEditText.setOnClickListener(onDateClick);
+        mViewHolder.mDateToEditText.setTag(zeroLong);
 
         // Добавляем Favorites на Drawer Layout
-        FavoriteColorsUtils.inflateFavLayout(getContext(), inflater, mFavLinearLayout);
+        FavoriteColorsUtils.inflateFavLayout(getContext(), inflater, mViewHolder.mFavLinearLayout);
 
         // Инициализируем кнопки SortBy
-        mSortByManualOrderButton.setTag(MainListFilter.SortType.MANUAL);
-        mSortByManualOrderButton.setOnClickListener(this);
-        mSortButtonsNames.put(MainListFilter.SortType.MANUAL, mSortByManualOrderButton.getText().toString());
+        mViewHolder.mSortByManualOrderButton.setTag(MainListFilter.SortType.MANUAL);
+        mViewHolder.mSortByManualOrderButton.setOnClickListener(this);
+        mSortButtonsNames.put(MainListFilter.SortType.MANUAL,
+                mViewHolder.mSortByManualOrderButton.getText().toString());
 
-        mSortByLabelButton.setTag(MainListFilter.SortType.LABEL);
-        mSortByLabelButton.setOnClickListener(this);
-        mSortButtonsNames.put(MainListFilter.SortType.LABEL, mSortByLabelButton.getText().toString());
+        mViewHolder.mSortByLabelButton.setTag(MainListFilter.SortType.LABEL);
+        mViewHolder.mSortByLabelButton.setOnClickListener(this);
+        mSortButtonsNames.put(MainListFilter.SortType.LABEL,
+                mViewHolder.mSortByLabelButton.getText().toString());
 
-        mSortByDateCreatedButton.setTag(MainListFilter.SortType.DATE_CREATED);
-        mSortByDateCreatedButton.setOnClickListener(this);
-        mSortButtonsNames.put(MainListFilter.SortType.DATE_CREATED, mSortByDateCreatedButton.getText().toString());
+        mViewHolder.mSortByDateCreatedButton.setTag(MainListFilter.SortType.DATE_CREATED);
+        mViewHolder.mSortByDateCreatedButton.setOnClickListener(this);
+        mSortButtonsNames.put(MainListFilter.SortType.DATE_CREATED,
+                mViewHolder.mSortByDateCreatedButton.getText().toString());
 
-        mSortByDateModifiedButton.setTag(MainListFilter.SortType.DATE_MODIFIED);
-        mSortByDateModifiedButton.setOnClickListener(this);
-        mSortButtonsNames.put(MainListFilter.SortType.DATE_MODIFIED, mSortByDateModifiedButton.getText().toString());
+        mViewHolder.mSortByDateModifiedButton.setTag(MainListFilter.SortType.DATE_MODIFIED);
+        mViewHolder.mSortByDateModifiedButton.setOnClickListener(this);
+        mSortButtonsNames.put(MainListFilter.SortType.DATE_MODIFIED,
+                mViewHolder.mSortByDateModifiedButton.getText().toString());
 
-        mSortByDateViewedButton.setTag(MainListFilter.SortType.DATE_VIEWED);
-        mSortByDateViewedButton.setOnClickListener(this);
-        mSortButtonsNames.put(MainListFilter.SortType.DATE_VIEWED, mSortByDateViewedButton.getText().toString());
+        mViewHolder.mSortByDateViewedButton.setTag(MainListFilter.SortType.DATE_VIEWED);
+        mViewHolder.mSortByDateViewedButton.setOnClickListener(this);
+        mSortButtonsNames.put(MainListFilter.SortType.DATE_VIEWED,
+                mViewHolder.mSortByDateViewedButton.getText().toString());
 
         mSortOrderSymbols.put(MainListFilter.SortOrder.ASC, getString(R.string.mainlist_drawer_sort_symb_asc));
         mSortOrderSymbols.put(MainListFilter.SortOrder.DESC, getString(R.string.mainlist_drawer_sort_symb_desc));
 
         // Ставим клик листенер и таги на кнопки бэкап
-        Button backupSaveButton = (Button) rootView.findViewById(R.id.button_filterdrawer_backupsave);
-        backupSaveButton.setOnClickListener(this);
-        backupSaveButton.setTag(DrawerActions.BACKUP_SAVE);
-        Button backupRestoreButton = (Button) rootView.findViewById(R.id.button_filterdrawer_backuprestore);
-        backupRestoreButton.setOnClickListener(this);
-        backupRestoreButton.setTag(DrawerActions.BACKUP_RESTORE);
+        mViewHolder.mBackupSaveButton.setOnClickListener(this);
+        mViewHolder.mBackupSaveButton.setTag(DrawerActions.BACKUP_SAVE);
+        mViewHolder.mBackupRestoreButton.setOnClickListener(this);
+        mViewHolder.mBackupRestoreButton.setTag(DrawerActions.BACKUP_RESTORE);
 
         // Специальные возможности создаются только в DEBUG, ставим клик листенеры и таги
-        Button fillPlaceholdersButton = (Button) rootView.findViewById(R.id.button_filterdrawer_fillplaceholders);
-        fillPlaceholdersButton.setOnClickListener(this);
-        fillPlaceholdersButton.setTag(DrawerActions.FILL_PLACEHOLDERS);
-        Button deleteAllButton = (Button) rootView.findViewById(R.id.button_filterdrawer_deleteall);
-        deleteAllButton.setOnClickListener(this);
-        deleteAllButton.setTag(DrawerActions.DELETE_ALL);
+        mViewHolder.mFillWithPlaceHoldersButton.setOnClickListener(this);
+        mViewHolder.mFillWithPlaceHoldersButton.setTag(DrawerActions.FILL_PLACEHOLDERS);
+        mViewHolder.mDeleteAllButton.setOnClickListener(this);
+        mViewHolder.mDeleteAllButton.setTag(DrawerActions.DELETE_ALL);
         if (!BuildConfig.DEBUG) {
             rootView.findViewById(R.id.textview_filterdrawer_debug).setVisibility(View.INVISIBLE);
-            fillPlaceholdersButton.setVisibility(View.INVISIBLE);
-            deleteAllButton.setVisibility(View.INVISIBLE);
+            mViewHolder.mFillWithPlaceHoldersButton.setVisibility(View.INVISIBLE);
+            mViewHolder.mDeleteAllButton.setVisibility(View.INVISIBLE);
         }
 
         reloadDataFromCurrentFilter();
@@ -307,49 +235,47 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
 
         Log.d("CURRENT_FILTER", currentFilter.toString());
 
-        mDateFiltersSpinner.setSelection(currentFilter.getSelection().getPosition(), false);
-        mDateFromEditText.setText(currentFilter.getDateFrom());
-        mDateToEditText.setText(currentFilter.getDateTo());
-        switch (mDateFiltersSpinner.getSelectedItemPosition()) {
+        mViewHolder.mDateFiltersSpinner.setSelection(currentFilter.getSelection().getPosition(), false);
+        mViewHolder.mDateFromEditText.setText(currentFilter.getDateFrom());
+        mViewHolder.mDateToEditText.setText(currentFilter.getDateTo());
+        switch (mViewHolder.mDateFiltersSpinner.getSelectedItemPosition()) {
             case MainListFilterUtils.INDEX_DATE_ALL:
-                mDateFromEditText.setVisibility(View.GONE);
-                mDateToEditText.setVisibility(View.GONE);
+                mViewHolder.mDateFromEditText.setVisibility(View.GONE);
+                mViewHolder.mDateToEditText.setVisibility(View.GONE);
                 break;
             default:
-                mDateFromEditText.setVisibility(View.VISIBLE);
-                mDateToEditText.setVisibility(View.VISIBLE);
+                mViewHolder.mDateFromEditText.setVisibility(View.VISIBLE);
+                mViewHolder.mDateToEditText.setVisibility(View.VISIBLE);
                 break;
         }
-        favColors = FavoriteColorsUtils.updateFavLayoutFromSharedPreferences(getContext(), mFavLinearLayout, null,
-                this, currentFilter.getColorFilter());
+        favColors = FavoriteColorsUtils.updateFavLayoutFromSharedPreferences(getContext(), mViewHolder.mFavLinearLayout,
+                null, this, currentFilter.getColorFilter());
 
         resetButtons();
         Button selectedSortButton = null;
         switch (currentFilter.getSortType()) {
             case MANUAL:
-                selectedSortButton = mSortByManualOrderButton;
+                selectedSortButton = mViewHolder.mSortByManualOrderButton;
                 break;
             case LABEL:
-                selectedSortButton = mSortByLabelButton;
+                selectedSortButton = mViewHolder.mSortByLabelButton;
                 break;
             case DATE_CREATED:
-                selectedSortButton = mSortByDateCreatedButton;
+                selectedSortButton = mViewHolder.mSortByDateCreatedButton;
                 break;
             case DATE_MODIFIED:
-                selectedSortButton = mSortByDateModifiedButton;
+                selectedSortButton = mViewHolder.mSortByDateModifiedButton;
                 break;
             case DATE_VIEWED:
-                selectedSortButton = mSortByDateViewedButton;
+                selectedSortButton = mViewHolder.mSortByDateViewedButton;
                 break;
             default:
                 break;
         }
-        if (selectedSortButton != null) {
-            selectedSortButton.setActivated(true);
-            if (selectedSortButton != mSortByManualOrderButton) {
-                selectedSortButton.setText(selectedSortButton.getText().toString()
-                        + " " + mSortOrderSymbols.get(currentFilter.getSortOrder()));
-            }
+        selectedSortButton.setActivated(true);
+        if (selectedSortButton != mViewHolder.mSortByManualOrderButton) {
+            selectedSortButton.setText(selectedSortButton.getText().toString()
+                    + " " + mSortOrderSymbols.get(currentFilter.getSortOrder()));
         }
 
     }
@@ -363,10 +289,10 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
             mSavedFiltersAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item);
         }
         mSavedFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mSavedFiltersSpinner.setAdapter(mSavedFiltersAdapter);
+        mViewHolder.mSavedFiltersSpinner.setAdapter(mSavedFiltersAdapter);
 
         // Устанавливаем онклик слушатель
-        mSavedFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        mViewHolder.mSavedFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
                 if (!loaded) {
@@ -392,7 +318,7 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                     // Показываем окно подтверждения, удаляем при положительном ответе
                     final int currentIndex = MainListFilterUtils.getIndexSavedCurrent();
                     if (currentIndex == MainListFilterUtils.INDEX_SAVED_DEFAULT) {
-                        mSavedFiltersSpinner.setSelection(currentIndex);
+                        mViewHolder.mSavedFiltersSpinner.setSelection(currentIndex);
                         return;
                     }
                     ActivityUtils.showAlertDialog(
@@ -431,10 +357,10 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                 new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item);
         dateFiltersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         dateFiltersAdapter.addAll(MainListFilterUtils.getsDateFiltersList(getContext()));
-        mDateFiltersSpinner.setAdapter(dateFiltersAdapter);
+        mViewHolder.mDateFiltersSpinner.setAdapter(dateFiltersAdapter);
 
         // Устанавливаем онклик слушатель
-        mDateFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        mViewHolder.mDateFiltersSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
                 // Скрываем или показываем поле выбора дат
@@ -442,12 +368,12 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                 filter.setSelection(MainListFilterUtils.getDateFilterSelection(position));
                 switch (position) {
                     case MainListFilterUtils.INDEX_DATE_ALL:
-                        mDateFromEditText.setVisibility(View.GONE);
-                        mDateToEditText.setVisibility(View.GONE);
+                        mViewHolder.mDateFromEditText.setVisibility(View.GONE);
+                        mViewHolder.mDateToEditText.setVisibility(View.GONE);
                         break;
                     default:
-                        mDateFromEditText.setVisibility(View.VISIBLE);
-                        mDateToEditText.setVisibility(View.VISIBLE);
+                        mViewHolder.mDateFromEditText.setVisibility(View.VISIBLE);
+                        mViewHolder.mDateToEditText.setVisibility(View.VISIBLE);
                         break;
                 }
             }
@@ -460,16 +386,16 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
 
     /** Сбрасывает все кнопки SortBy. */
     private void resetButtons() {
-        mSortByManualOrderButton.setActivated(false);
+        mViewHolder.mSortByManualOrderButton.setActivated(false);
         // set text не нужен, так как не меняется
-        mSortByLabelButton.setActivated(false);
-        mSortByLabelButton.setText(mSortButtonsNames.get(MainListFilter.SortType.LABEL));
-        mSortByDateCreatedButton.setActivated(false);
-        mSortByDateCreatedButton.setText(mSortButtonsNames.get(MainListFilter.SortType.DATE_CREATED));
-        mSortByDateModifiedButton.setActivated(false);
-        mSortByDateModifiedButton.setText(mSortButtonsNames.get(MainListFilter.SortType.DATE_MODIFIED));
-        mSortByDateViewedButton.setActivated(false);
-        mSortByDateViewedButton.setText(mSortButtonsNames.get(MainListFilter.SortType.DATE_VIEWED));
+        mViewHolder.mSortByLabelButton.setActivated(false);
+        mViewHolder.mSortByLabelButton.setText(mSortButtonsNames.get(MainListFilter.SortType.LABEL));
+        mViewHolder.mSortByDateCreatedButton.setActivated(false);
+        mViewHolder.mSortByDateCreatedButton.setText(mSortButtonsNames.get(MainListFilter.SortType.DATE_CREATED));
+        mViewHolder.mSortByDateModifiedButton.setActivated(false);
+        mViewHolder.mSortByDateModifiedButton.setText(mSortButtonsNames.get(MainListFilter.SortType.DATE_MODIFIED));
+        mViewHolder.mSortByDateViewedButton.setActivated(false);
+        mViewHolder.mSortByDateViewedButton.setText(mSortButtonsNames.get(MainListFilter.SortType.DATE_VIEWED));
     }
 
 
@@ -617,10 +543,10 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
 
         // Устанавливаем ограничители дат
         if (mDateEditor.getId() == R.id.edittext_filterdrawer_dateto) {
-            picker.setMinDate((long) mDateFromEditText.getTag());
+            picker.setMinDate((long) mViewHolder.mDateFromEditText.getTag());
             picker.setMaxDate(System.currentTimeMillis());
         } else {
-            long timeAfter = (long) mDateToEditText.getTag();
+            long timeAfter = (long) mViewHolder.mDateToEditText.getTag();
             if (timeAfter > 0) {
                 picker.setMaxDate(timeAfter);
             } else {
@@ -647,7 +573,7 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
 
     /** Сбрасывает текущий выбор фильтра в списке сохраненных. */
     private void resetSavedFilterSelection() {
-        mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
+        mViewHolder.mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
     }
 
     /** Сохраняет текущий фильтр в список сохраненных.
@@ -660,7 +586,7 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                 && !input.equals(getString(R.string.mainlist_drawer_filters_default))) {
             MainListFilterUtils.saveFilter(getContext(), input);
             reloadSavedFiltersList();
-            mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
+            mViewHolder.mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
         }
         resetSavedFilterSelection();
     }
