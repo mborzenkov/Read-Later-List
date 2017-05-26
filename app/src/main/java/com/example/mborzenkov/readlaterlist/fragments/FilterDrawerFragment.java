@@ -143,8 +143,6 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
     // Хэлперы
     /** Адаптер для SavedFilters. */
     private @Nullable ArrayAdapter<String> mSavedFiltersAdapter = null;
-    /** Календарь для выбора. */
-    private final Calendar mCalendar = Calendar.getInstance();
     /** Редактируемое поле даты. */
     private @Nullable EditText mDateEditor = null;
     /** Оригинальные названия кнопок сортировки. */
@@ -558,24 +556,36 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
     @SuppressWarnings("UnusedParameters") // Используется как лямбда
     private void setDate(@Nullable DatePicker picker, int year, int month, int day) {
         if (mDateEditor != null) {
-            mCalendar.set(Calendar.YEAR, year);
-            mCalendar.set(Calendar.MONTH, month);
-            mCalendar.set(Calendar.DAY_OF_MONTH, day);
-            SimpleDateFormat sdf = new SimpleDateFormat(FORMAT_DATE, Locale.US);
-            mDateEditor.setText(sdf.format(mCalendar.getTime()));
+            // Получаем новый календарь и устанавливаем в нем выбранную дату
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(year, month, day);
+
+            // Правим время на начало (если from) или конец (если to) и правим фильтр
             MainListFilter filter = MainListFilterUtils.getCurrentFilter();
-            long date = mCalendar.getTimeInMillis();
-            mDateEditor.setTag(date);
+            long date;
             if (mDateEditor.getId() == R.id.edittext_filterdrawer_datefrom) {
-                mCalendar.set(Calendar.HOUR_OF_DAY, 0);
-                mCalendar.set(Calendar.MINUTE, 0);
-                mCalendar.set(Calendar.SECOND, 0);
+                calendar.set(Calendar.HOUR_OF_DAY, 0);
+                calendar.set(Calendar.MINUTE, 0);
+                calendar.set(Calendar.SECOND, 0);
+                date = calendar.getTimeInMillis();
                 filter.setDateFrom(date);
             } else {
-                mCalendar.set(Calendar.HOUR_OF_DAY, LAST_HOUR);
-                mCalendar.set(Calendar.MINUTE, LAST_MINUTE);
-                mCalendar.set(Calendar.SECOND, LAST_SECOND);
+                calendar.set(Calendar.HOUR_OF_DAY, LAST_HOUR);
+                calendar.set(Calendar.MINUTE, LAST_MINUTE);
+                calendar.set(Calendar.SECOND, LAST_SECOND);
+                date = calendar.getTimeInMillis();
                 filter.setDateTo(date);
+            }
+
+            // Ставим выбранную дату в нужное поле и запоминаем таг, чтобы на парсить потом
+            SimpleDateFormat sdf = new SimpleDateFormat(FORMAT_DATE, Locale.US);
+            mDateEditor.setText(sdf.format(calendar.getTime()));
+            mDateEditor.setTag(date);
+
+            // Обновляем данные
+            reloadDataFromCurrentFilter();
+            if (mCallbacks != null) {
+                mCallbacks.onFilterChanged();
             }
         }
     }
@@ -591,16 +601,17 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
 
         // Открываем Dialog, установив заранее выбранную дату и границы
         long timeSelected = (long) mDateEditor.getTag();
+        Calendar calendar = Calendar.getInstance();
         if (timeSelected > 0) {
-            mCalendar.setTimeInMillis(timeSelected);
+            calendar.setTimeInMillis(timeSelected);
         }
 
         DatePickerDialog dialog = new DatePickerDialog(
                 getContext(), // где открываем
                 this::setDate, // что делать после выбора
-                mCalendar.get(Calendar.YEAR), // текущее значение
-                mCalendar.get(Calendar.MONTH),
-                mCalendar.get(Calendar.DAY_OF_MONTH));
+                calendar.get(Calendar.YEAR), // текущее значение
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH));
 
         DatePicker picker = dialog.getDatePicker();
 
