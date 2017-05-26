@@ -342,10 +342,10 @@ public class ItemListFragment extends Fragment implements
      *
      * @see com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemViewPagerFragment.EditItemViewPagerCallbacks
      */
-    public ReadLaterItem getItemAt(int position) {
+    public @Nullable ReadLaterItem getItemAt(int position) {
         if (mItemListAdapter != null) {
             Cursor cursor = mItemListAdapter.getCurrentCursor();
-            if (cursor != null) {
+            if (cursor != null && !cursor.isClosed() && (cursor.getCount() != 0)) {
                 int prevPosition = cursor.getPosition();
                 cursor.moveToPosition(position);
                 ReadLaterItem item = (new ReadLaterItemDbAdapter()).itemFromCursor(cursor);
@@ -363,7 +363,7 @@ public class ItemListFragment extends Fragment implements
     public int getItemLocalIdAt(int position) {
         if (mItemListAdapter != null) {
             Cursor cursor = mItemListAdapter.getCurrentCursor();
-            if (cursor != null) {
+            if (cursor != null && !cursor.isClosed() && (cursor.getCount() != 0)) {
                 int prevPosition = cursor.getPosition();
                 cursor.moveToPosition(position);
                 int localId = cursor.getInt(ItemListLoaderManager.INDEX_COLUMN_ID);

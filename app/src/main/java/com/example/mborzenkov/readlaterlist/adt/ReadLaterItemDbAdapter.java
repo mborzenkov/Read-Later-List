@@ -3,6 +3,7 @@ package com.example.mborzenkov.readlaterlist.adt;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 
@@ -18,11 +19,13 @@ public class ReadLaterItemDbAdapter {
     /** Преобразует текущую позицию cursor в объект ReadLaterItem.
      *
      * @param cursor курсор, как в ReadLaterItemCursorProjection
-     * @return объект ReadLaterItem, соответствующий текущей позиции курсора
+     *
+     * @return объект ReadLaterItem, соответствующий текущей позиции курсора или null, если курсор закрыт или пустой
+     *
      * @throws IllegalArgumentException если cursor не соответствует требованиям
      * @see ReadLaterItemCursorProjection
      */
-    public ReadLaterItem itemFromCursor(@NonNull Cursor cursor) {
+    public @Nullable ReadLaterItem itemFromCursor(@NonNull Cursor cursor) {
         ReadLaterItemCursorProjection projection = new ReadLaterItemCursorProjection(cursor);
         return itemFromCursor(cursor, projection);
     }
@@ -32,11 +35,16 @@ public class ReadLaterItemDbAdapter {
      *
      * @param cursor курсор, как в ReadLaterItemCursorProjection
      * @param projection объект, содержащий индексы колонок
-     * @return объект ReadLaterItem, соответствующий текущей позиции курсора
+     *
+     * @return объект ReadLaterItem, соответствующий текущей позиции курсора или null, если курсор закрыт или пустой
+     *
      * @throws IllegalArgumentException если cursor не соответствует требованиям
      * @see ReadLaterItemCursorProjection
      */
-    private ReadLaterItem itemFromCursor(Cursor cursor, @NonNull ReadLaterItemCursorProjection projection) {
+    private @Nullable ReadLaterItem itemFromCursor(@NonNull Cursor cursor, @NonNull ReadLaterItemCursorProjection projection) {
+        if (cursor.isClosed() || cursor.getCount() == 0) {
+            return null;
+        }
         return new ReadLaterItem.Builder(cursor.getString(projection.indexLabel))
                 .description(cursor.getString(projection.indexDescription))
                 .color(cursor.getInt(projection.indexColor))
