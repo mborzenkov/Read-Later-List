@@ -26,6 +26,7 @@ import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
+import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
@@ -205,10 +206,10 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
                     try {
                         // Смотрим введенное значение
                         int number = Integer.parseInt(input);
-                        if (number != UserInfo.getCurentUser(getContext()).getUserId()) {
-                            UserInfo.changeCurrentUser(getContext(), number);
+                        if (number != UserInfoUtils.getCurentUser(getContext()).getUserId()) {
+                            UserInfoUtils.changeCurrentUser(getContext(), number);
                             mCurrentUserTextView.setText(String.valueOf(
-                                    UserInfo.getCurentUser(getContext()).getUserId()));
+                                    UserInfoUtils.getCurentUser(getContext()).getUserId()));
                             if (mCallbacks != null) {
                                 mCallbacks.onUserChanged();
                             }
@@ -221,7 +222,7 @@ public class FilterDrawerFragment extends Fragment implements View.OnClickListen
         });
 
         // Устанавливаем текущего пользователя
-        mCurrentUserTextView.setText(String.valueOf(UserInfo.getCurentUser(getContext()).getUserId()));
+        mCurrentUserTextView.setText(String.valueOf(UserInfoUtils.getCurentUser(getContext()).getUserId()));
 
         // Заполняем варианты запомненных фильтров
         reloadSavedFiltersList();

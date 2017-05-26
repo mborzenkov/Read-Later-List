@@ -13,7 +13,7 @@ import com.example.mborzenkov.readlaterlist.adt.Conflict;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemJsonAdapter;
-import com.example.mborzenkov.readlaterlist.adt.UserInfo;
+import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiYufimtsev;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
@@ -123,7 +123,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
     /** Обновляет заметку на сервере.
      *  Делает записи в Log.e в случае ошибок.
      *
-     * @param userId идентификатор пользователя, UserInfo.getCurrentUser().getId()
+     * @param userId идентификатор пользователя, UserInfoUtils.getCurrentUser().getId()
      * @param remoteId внешний идентификатор заметки
      * @param item заметка в формате ReadLaterItem
      * @return true - если обновление прошло успешно, false иначе
@@ -157,7 +157,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
      *  Делает записи в Log.e в случае ошибок.
      *
      * @param cloudApi API, полученный из prepareApi
-     * @param userId идентификатор пользователя, UserInfo.getCurrentUser().getId()
+     * @param userId идентификатор пользователя, UserInfoUtils.getCurrentUser().getId()
      * @return все записи на сервере в формате списка из элементов ReadLaterItem, null в случае ошибок
      */
     private static @Nullable List<ReadLaterItem> getAllItemsOnServer(@NonNull CloudApiYufimtsev cloudApi, int userId) {
@@ -187,7 +187,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
      *  Делает записи в Log.e в случае ошибок.
      *
      * @param cloudApi API, полученный из prepareApi
-     * @param userId идентификатор пользователя, UserInfo.getCurrentUser().getId()
+     * @param userId идентификатор пользователя, UserInfoUtils.getCurrentUser().getId()
      * @param item заметка в формате ReadLaterItem
      * @return внешний идентификатор заметки на сервере, null в случае ошибок
      */
@@ -219,7 +219,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
     /** Удаляет заметку с сервера.
      *  Делает записи в Log.e в случае ошибок.
      * @param cloudApi API, полученный из prepareApi
-     * @param userId идентификатор пользователя, UserInfo.getCurrentUser().getId()
+     * @param userId идентификатор пользователя, UserInfoUtils.getCurrentUser().getId()
      * @param remoteId внешний идентификатор заметки
      * @return true - если обновление прошло успешно, false иначе
      */
@@ -330,7 +330,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
         // Запоминаем дату начала синхронизации, контекст приложения (для бд), объект для доступа к API и тек. польз.
         final Context appContext            = mSyncCallback.getApplicationContext();
         final CloudApiYufimtsev cloudApi    = prepareApi();
-        final int userId = UserInfo.getCurentUser(appContext).getUserId();
+        final int userId = UserInfoUtils.getCurentUser(appContext).getUserId();
 
         // Список всех идентификаторов заметок на сервере
         List<Integer> allServerIds = new ArrayList<>();

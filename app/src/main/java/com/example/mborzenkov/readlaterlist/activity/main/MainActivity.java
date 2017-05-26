@@ -38,7 +38,7 @@ import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.Conflict;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
-import com.example.mborzenkov.readlaterlist.adt.UserInfo;
+import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 import com.example.mborzenkov.readlaterlist.fragments.ColorPickerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
 import com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment;
@@ -225,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements
     public long getLastSync() {
         // Читаем дату последней синхронизации
         SharedPreferences sharedPreferences = getSharedPreferences(LAST_SYNC_KEY, Context.MODE_PRIVATE);
-        return sharedPreferences.getLong(String.valueOf(UserInfo.getCurentUser(this).getUserId()), 0);
+        return sharedPreferences.getLong(String.valueOf(UserInfoUtils.getCurentUser(this).getUserId()), 0);
     }
 
     @Override
@@ -264,7 +264,7 @@ public class MainActivity extends AppCompatActivity implements
         final int remoteId = item.getRemoteId();
         if (remoteId > 0) {
             mHandlerThreadHandler.post(() -> {
-                final int userId = UserInfo.getCurentUser(MainActivity.this).getUserId();
+                final int userId = UserInfoUtils.getCurentUser(MainActivity.this).getUserId();
                 if (mSyncFragment.updateOneItem(item, userId, remoteId)) {
                     ReadLaterDbUtils.updateItem(this, item, userId, remoteId);
                 }
@@ -560,7 +560,7 @@ public class MainActivity extends AppCompatActivity implements
     private void updateLastSyncDate(long lastSyncDate) {
         SharedPreferences.Editor sharedPreferencesEditor =
                 getSharedPreferences(LAST_SYNC_KEY, Context.MODE_PRIVATE).edit();
-        sharedPreferencesEditor.putLong(String.valueOf(UserInfo.getCurentUser(this).getUserId()), lastSyncDate);
+        sharedPreferencesEditor.putLong(String.valueOf(UserInfoUtils.getCurentUser(this).getUserId()), lastSyncDate);
         sharedPreferencesEditor.apply();
         mLastSync = lastSyncDate;
     }

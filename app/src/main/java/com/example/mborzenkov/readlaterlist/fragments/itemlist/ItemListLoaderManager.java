@@ -6,7 +6,7 @@ import android.support.v4.content.CursorLoader;
 import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
-import com.example.mborzenkov.readlaterlist.adt.UserInfo;
+import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 
@@ -72,7 +72,7 @@ class ItemListLoaderManager  {
         MainListFilter filter = MainListFilterUtils.getCurrentFilter();
         StringBuilder selection = new StringBuilder(QUERY_USER_ID);
         List<String> selectionArgs = new ArrayList<>();
-        selectionArgs.add(String.valueOf(UserInfo.getCurentUser(mItemListFragment.getContext()).getUserId()));
+        selectionArgs.add(String.valueOf(UserInfoUtils.getCurentUser(mItemListFragment.getContext()).getUserId()));
         String sortOrder = "";
         if (filter != null) {
             sortOrder = filter.getSqlSortOrder();
