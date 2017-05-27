@@ -14,8 +14,12 @@ import java.util.Locale;
 import org.junit.Test;
 
 /** Тестирует ReadLaterItem. */
-@SuppressWarnings("FieldCanBeLocal") // Поля вынесены на уровень класса для улучшенной читаемости"
+@SuppressWarnings("FieldCanBeLocal") // Поля вынесены на уровень класса для улучшенной читаемости
 public class ReadLaterItemTest {
+
+    // Запуск с покрытием:  ./gradlew jacocoTestReport
+    // Отчет теста:         ${buildDir}/reports/tests/testDebugUnitTest/index.html
+    // Отчет покрытия:      ${buildDir}/reports/jacoco/html/index.html
 
     /** Размерность HEX. */
     private static final int HEX = 16;
@@ -40,6 +44,7 @@ public class ReadLaterItemTest {
      * Builder
      *      description, color, dateCreated, dateModified, dateViewed, imageUrl, remoteId: не заданы
      *      Builder.allDates
+     *      из объекта ReadLaterItem
      *
      * Throws
      *      label: пустой, многострочный
@@ -263,10 +268,31 @@ public class ReadLaterItemTest {
                 .build();
         assertFalse(item1.equals(item2));
 
+        item1 = new ReadLaterItem.Builder(normalLabel).imageUrl(normalImageUrl).allDates(futureTime).build();
+        item2 = new ReadLaterItem.Builder(normalLabel).imageUrl("").allDates(futureTime).build();
+        assertFalse(item1.equals(item2));
+
+        item1 = new ReadLaterItem.Builder(normalLabel).imageUrl(normalImageUrl).allDates(currentTime).build();
+        item2 = new ReadLaterItem.Builder(normalLabel).imageUrl(normalImageUrl).allDates(futureTime).build();
+        assertFalse(item1.equals(item2));
+
+        item1 = new ReadLaterItem.Builder(normalLabel).allDates(futureTime).build();
+        item2 = new ReadLaterItem.Builder(normalLabel).allDates(futureTime).dateModified(currentTime).build();
+        assertFalse(item1.equals(item2));
+        item2 = new ReadLaterItem.Builder(normalLabel).allDates(futureTime).dateCreated(currentTime).build();
+        assertFalse(item1.equals(item2));
+        item2 = new ReadLaterItem.Builder(normalLabel).allDates(futureTime).dateViewed(currentTime).build();
+        assertFalse(item1.equals(item2));
+        item2 = new ReadLaterItem.Builder(normalLabel).allDates(futureTime).remoteId(normalRemoteId).build();
+        assertFalse(item1.equals(item2));
+
         item1 = new ReadLaterItem.Builder(normalLabel).remoteId(0).build();
         item2 = new ReadLaterItem.Builder(normalLabel).build();
         assertEquals(item1, item2);
         assertEquals(item1.hashCode(), item2.hashCode());
+
+        Object obj = new Object();
+        assertFalse(item1.equals(obj));
     }
 
     @Test
@@ -448,11 +474,43 @@ public class ReadLaterItemTest {
     @SuppressWarnings("UnusedAssignment")
     @Test(expected = IllegalArgumentException.class)
     public void testRemoteIdIllegal() {
+        //noinspection Range
         ReadLaterItem item = new ReadLaterItem.Builder(normalLabel)
                 .remoteId(illegalRemoteId)
                 .build();
     }
 
-    // TODO: [v.0.7.0] Builder based on object
+    /* Покрывает Builder: из объекта ReadLaterItem */
+    @Test
+    public void testBuilderBasedOnObject() {
+        ReadLaterItem item = new ReadLaterItem.Builder(normalLabel).allDates(currentTime).build();
+        ReadLaterItem itemFromItem = new ReadLaterItem.Builder(item).build();
+        assertEquals(item, itemFromItem);
+    }
+
+    @Test
+    public void testEqualsByContent() {
+        ReadLaterItem item1 = new ReadLaterItem.Builder(normalLabel).color(normalColor).allDates(currentTime)
+                .remoteId(normalRemoteId).description(normalDescription).imageUrl(normalImageUrl).build();
+        ReadLaterItem item2 = new ReadLaterItem.Builder(item1).allDates(currentTime + MILLIS)
+                .remoteId(normalRemoteId + 1).build();
+        assertTrue(item1.equalsByContent(item2));
+        item2 = new ReadLaterItem.Builder(item1).label(normalLabel + "1").build();
+        assertFalse(item1.equalsByContent(item2));
+        item2 = new ReadLaterItem.Builder(item1).color(normalColor + 1).build();
+        assertFalse(item1.equalsByContent(item2));
+        item2 = new ReadLaterItem.Builder(item1).imageUrl("").build();
+        assertFalse(item1.equalsByContent(item2));
+        item2 = new ReadLaterItem.Builder(item1).description(normalDescription + "12").build();
+        assertFalse(item1.equalsByContent(item2));
+        item2 = new ReadLaterItem.Builder(item1).imageUrl("").build();
+        assertFalse(item1.equalsByContent(item2));
+        item2 = new ReadLaterItem.Builder(item1).imageUrl(ftpUrl).build();
+        assertFalse(item1.equalsByContent(item2));
+        assertFalse(item1.equalsByContent(null));
+        item1 = new ReadLaterItem.Builder(item1).imageUrl("").build();
+        item2 = new ReadLaterItem.Builder(item1).build();
+        assertTrue(item1.equalsByContent(item2));
+    }
 
 }

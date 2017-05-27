@@ -1,5 +1,6 @@
 package com.example.mborzenkov.readlaterlist.adt;
 
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -29,22 +30,25 @@ public class ReadLaterItem {
 
     // -- Builder
     /** Создает новый объект ReadLaterItem.
-     *  Пример использования:
+     *  Примеры использования:
+     *      Создает новый объект с заголовком, описанием, цветом и остальными полями по умолчанию -
      *      new ReadLaterItem.Builder("Заголовок однострочный непустой").description("descr").color(Color.RED).build();
+     *      Создает новый объект на основании имеющегося элемента с измененными датами.
+     *      new ReadLaterItem.Builder(item).allDates(System.currentTimeMillis()).build();
      */
     public static class Builder {
 
         // Обязательные параметры
-        private final String label;
+        private @NonNull String label;
 
         // Необязательные параметры
-        private String description      = "";
-        private int color               = DEFAULT_COLOR;
+        private @NonNull String description = "";
+        private int color = DEFAULT_COLOR;
         private long dateCreated;
         private long dateModified;
         private long dateViewed;
-        private @Nullable URL imageUrl  = null;
-        private int remoteId            = 0;
+        private @Nullable URL imageUrl = null;
+        private @IntRange(from = 0) int remoteId = 0;
 
         /** Начинает создание элемента.
          *  Заполняет все необязательные параметры значениями по умолчанию.
@@ -72,8 +76,10 @@ public class ReadLaterItem {
          * Заполняет все параметры значениями из объекта ReadLaterItem.
          *
          * @param item объект, на основании которого нужно создать Builder
+         *
+         * @throws NullPointerException если item == null
          */
-        public Builder(ReadLaterItem item) {
+        public Builder(@NonNull ReadLaterItem item) {
             label           = item.getLabel();
             description     = item.getDescription();
             color           = item.getColor();
@@ -82,6 +88,24 @@ public class ReadLaterItem {
             dateViewed      = item.getDateViewed();
             remoteId        = item.getRemoteId();
             this.imageUrl(item.getImageUrl());
+        }
+
+        /** Изменяет заголовок у элемента.
+         *
+         * @param label Заголовок элемента, непустой и однострочный
+         *              (содержит буквы, цифры или символы, не содержит переносов строки)
+         *
+         * @throws IllegalArgumentException если label пустой или многострочный
+         * @throws NullPointerException если label == null
+         */
+        public Builder label(@NonNull String label) {
+            if (label.trim().isEmpty()) {
+                throw new IllegalArgumentException("label == \"\"");
+            } else if (label.contains("\n")) {
+                throw new IllegalArgumentException("label.contains(\"\\n\")");
+            }
+            this.label = label;
+            return this;
         }
 
         /** Устанавливает описание у элемента.
@@ -155,6 +179,7 @@ public class ReadLaterItem {
          *
          * @param imageUrl Ссылка на картинку, должна быть корректно сформированным url, наличие картинки не проверяется
          *                 Может быть пустой строкой, тогда применяется значение по умолчанию.
+         *
          * @throws IllegalArgumentException если imageUrl не пустая строка и не является Url
          * @throws NullPointerException если imageUrl == null
          */
@@ -176,9 +201,10 @@ public class ReadLaterItem {
          *
          * @param remoteId Идентификатор элемента, число >= 0
          *                 0 означает, что remoteId не задан
+         *
          * @throws IllegalArgumentException если remoteId < 0
          */
-        public Builder remoteId(int remoteId) {
+        public Builder remoteId(@IntRange(from = 0) int remoteId) {
             if (remoteId < 0) {
                 throw new IllegalArgumentException("remoteId < 0");
             }
@@ -236,20 +262,6 @@ public class ReadLaterItem {
     // Потоковая безопасность:
     //      так как объект неизменяемый, он потокобезопасен
 
-    private void checkRep() {
-        if (BuildConfig.DEBUG) {
-            if (label.trim().isEmpty()) {
-                throw new AssertionError("Заголовок ReadLaterItem оказался пустым.");
-            }
-            if (label.contains("\n")) {
-                throw new AssertionError("Заголовок ReadLaterItem оказался многострочным.");
-            }
-            if (remoteId < 0) {
-                throw new AssertionError("Идентификатор ReadLaterItem оказался отрицательным.");
-            }
-        }
-    }
-
     private ReadLaterItem(Builder builder) {
         label           = builder.label;
         description     = builder.description;
@@ -259,7 +271,6 @@ public class ReadLaterItem {
         dateViewed      = MILLIS * (builder.dateViewed / MILLIS);
         imageUrl        = builder.imageUrl;
         remoteId        = builder.remoteId;
-        checkRep();
     }
 
     /** Возвращает заголовок элемента.
