@@ -1,5 +1,7 @@
 package com.example.mborzenkov.readlaterlist.adt;
 
+import android.support.annotation.IntRange;
+
 /** Неизменяемый АДТ, прсдатвляющий пользователя.
  * Пользователь обладает идентификатором.
  */
@@ -9,10 +11,10 @@ public class UserInfo {
     public static final int USER_ID_MAX_LENGTH = 8;
 
     /** Идентификатор пользователя. */
-    private final int userId;
+    private final @IntRange(from = 0) int userId;
 
     // Инвариант:
-    //      userId - идентификатор пользователя
+    //      userId - идентификатор пользователя, положительный и длиной не более USER_ID_MAX_LENGTH
     //
     // Абстрактная функция:
     //      представляет собой пользователя приложения, обладающего идентификатором
@@ -26,8 +28,16 @@ public class UserInfo {
     /** Создает новый объект UserInfo с указанным идентификатором.
      *
      * @param userId идентификатор пользователя
+     *
+     * @throws IllegalArgumentException если userId < 0
+     * @throws IllegalArgumentException если длина userId > USER_ID_MAX_LENGTH
      */
-    public UserInfo(int userId) {
+    public UserInfo(@IntRange(from = 0) int userId) {
+        if (userId < 0) {
+            throw new IllegalArgumentException("Error @ new UserInfo: userId == " + userId);
+        } else if (String.valueOf(userId).length() > USER_ID_MAX_LENGTH) {
+            throw new IllegalArgumentException("Error @ new UserInfo: userId.length > USER_ID_MAX_LENGTH: " + userId);
+        }
         this.userId = userId;
     }
 
