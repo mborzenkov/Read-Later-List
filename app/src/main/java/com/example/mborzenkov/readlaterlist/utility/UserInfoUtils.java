@@ -50,7 +50,7 @@ public class UserInfoUtils {
      * @param context контекст (для доступа к SharedPreferences)
      * @param newUserId идентификатор нового пользователя
      */
-    private static synchronized void changeCurrentUser(@NonNull Context context, int newUserId) {
+    public static synchronized void changeCurrentUser(@NonNull Context context, int newUserId) {
         SharedPreferences.Editor editor = context.getSharedPreferences(USERS_KEY, Context.MODE_PRIVATE).edit();
         editor.putInt(LAST_USER_KEY, newUserId);
         editor.apply();
