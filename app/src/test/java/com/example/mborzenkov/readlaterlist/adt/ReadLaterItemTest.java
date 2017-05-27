@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist;
+package com.example.mborzenkov.readlaterlist.adt;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

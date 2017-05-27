@@ -1,10 +1,11 @@
-package com.example.mborzenkov.readlaterlist;
+package com.example.mborzenkov.readlaterlist.adt;
 
 import static org.junit.Assert.assertEquals;
 
 import android.graphics.Color;
 import android.os.Parcel;
 
+import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 
