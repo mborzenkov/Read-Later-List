@@ -19,6 +19,8 @@ public class ReadLaterItemTest {
 
     /** Размерность HEX. */
     private static final int HEX = 16;
+    /** Количество миллисекунд в секундах. */
+    private static final int MILLIS = 1000;
 
     /*
      * Стратегия тестирования
@@ -55,7 +57,7 @@ public class ReadLaterItemTest {
     private static final int zero = 0;
     private static final int negativeColor = -1;
     private static final long longTimeAgo = -100000;
-    private static final long currentTime = System.currentTimeMillis();
+    private static final long currentTime = MILLIS * (System.currentTimeMillis() / MILLIS);
     private static final long futureTime = currentTime + 10000000;
     private static final String notImageUrl = "https://www.google.ru/";
     private static final String normalImageUrl = "http://i.imgur.com/TyCSG9A.png";

@@ -169,10 +169,20 @@ public class ItemListFragment extends Fragment implements
 
             // Инициализируем FloatingActionButton
             FloatingActionButton floatingAddButton = (FloatingActionButton) rootView.findViewById(R.id.fab_item_add);
-            floatingAddButton.setOnClickListener(view -> mCallbacks.onNewItemClick());
+            floatingAddButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mCallbacks.onNewItemClick();
+                }
+            });
 
             // Слушаем о потягивании refresh
-            mSwipeRefreshLayout.setOnRefreshListener(mCallbacks::onRefreshToggled);
+            mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    mCallbacks.onRefreshToggled();
+                }
+            });
 
         } else {
             mSwipeRefreshLayout.setEnabled(false);
@@ -324,7 +334,12 @@ public class ItemListFragment extends Fragment implements
     public void setRefreshing(boolean refreshing) {
         mSwipeRefreshLayout.setRefreshing(refreshing);
         if (refreshing) {
-            mSwipeRefreshLayout.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), SYNC_ICON_MAX_DURATION);
+            mSwipeRefreshLayout.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mSwipeRefreshLayout.setRefreshing(false);
+                }
+            }, SYNC_ICON_MAX_DURATION);
         }
     }
 

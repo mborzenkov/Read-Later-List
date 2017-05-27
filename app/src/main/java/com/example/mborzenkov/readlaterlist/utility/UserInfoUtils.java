@@ -63,7 +63,7 @@ public class UserInfoUtils {
      * @param activity активити для создания поля ввода
      * @param afterChangeAction действие после смены пользоваля или null, если действие не нужно
      */
-    public static void showDialogAndChangeUser(@NonNull Activity activity, @Nullable Runnable afterChangeAction) {
+    public static void showDialogAndChangeUser(@NonNull final Activity activity, @Nullable final Runnable afterChangeAction) {
 
         if (sCurrentUser == null) {
             return;
@@ -79,20 +79,23 @@ public class UserInfoUtils {
                 inputNumber,
                 activity.getString(R.string.mainlist_user_change_question_title),
                 activity.getString(R.string.mainlist_user_change_question_text),
-            (input) -> {
-                try {
-                    // Смотрим введенное значение
-                    int number = Integer.parseInt(input);
-                    if (number != currentUserId) {
-                        UserInfoUtils.changeCurrentUser(activity, number);
-                        if (afterChangeAction != null) {
-                            afterChangeAction.run();
+                new ActivityUtils.Consumer<String>() {
+                    @Override
+                    public void accept(final String param) {
+                        try {
+                            // Смотрим введенное значение
+                            int number = Integer.parseInt(param);
+                            if (number != currentUserId) {
+                                UserInfoUtils.changeCurrentUser(activity, number);
+                                if (afterChangeAction != null) {
+                                    afterChangeAction.run();
+                                }
+                            }
+                        } catch (ClassCastException e) {
+                            Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
                         }
                     }
-                } catch (ClassCastException e) {
-                    Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
-                }
-            },
+                },
                 null);
 
     }

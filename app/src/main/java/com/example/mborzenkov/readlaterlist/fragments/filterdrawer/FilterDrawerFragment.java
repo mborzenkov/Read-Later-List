@@ -1,5 +1,6 @@
 package com.example.mborzenkov.readlaterlist.fragments.filterdrawer;
 
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -129,7 +130,6 @@ public class FilterDrawerFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
 
         loaded = false;
-        Context context = getContext();
 
         View rootView = inflater.inflate(R.layout.fragment_drawer_filter, container, false);
 
@@ -147,14 +147,25 @@ public class FilterDrawerFragment extends Fragment {
                 if (position == indexSavedAdd) {
                     // Вариант 1: Клик на кнопку "+ Добавить"
                     // Показываем окно ввода текста, сохраняем при успешном вводе
+                    Context context = getContext();
                     final EditText editText = new EditText(context);
                     ActivityUtils.showInputTextDialog(
                             context,
                             editText,
                             context.getString(R.string.mainlist_drawer_filters_save_question_title),
                             null,
-                            FilterDrawerFragment.this::saveFilter,
-                            FilterDrawerFragment.this::resetSavedFilterSelection);
+                            new ActivityUtils.Consumer<String>() {
+                                @Override
+                                public void accept(String param) {
+                                    saveFilter(param);
+                                }
+                            },
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    resetSavedFilterSelection();
+                                }
+                            });
 
                 } else if (position == indexSavedDelete) {
                     // Вариант 2: Клик на кнопку "- Удалить"
@@ -168,8 +179,18 @@ public class FilterDrawerFragment extends Fragment {
                             getContext(),
                             getString(R.string.mainlist_drawer_filters_remove_question_title),
                             getString(R.string.mainlist_drawer_filters_remove_question_text),
-                            FilterDrawerFragment.this::removeSavedFilter,
-                            FilterDrawerFragment.this::resetSavedFilterSelection);
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    removeSavedFilter();
+                                }
+                            },
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    resetSavedFilterSelection();
+                                }
+                            });
                 } else {
                     Log.d("FILTER", "CREATION w position: " + position);
                     // Остальные варианты - выбираем
@@ -191,12 +212,32 @@ public class FilterDrawerFragment extends Fragment {
 
         // Заполняем все значениями по умолчанию
         mViewHolder.initializeWithDefaults(
-                context,
+                getContext(),
                 inflater,
-                this::onUserChangeClickListener,
-                this::onDateClickListener,
-                this::onSortButtonClickListener,
-                this::onActionButtonClickListener,
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        onUserChangeClickListener(v);
+                    }
+                },
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        onDateClickListener(v);
+                    }
+                },
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        onSortButtonClickListener(v);
+                    }
+                },
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        onActionButtonClickListener(v);
+                    }
+                },
                 onSavedFilterSelectedListener);
 
         // Запоминаем символы сортировок
@@ -241,7 +282,12 @@ public class FilterDrawerFragment extends Fragment {
                 break;
         }
         favColors = FavoriteColorsUtils.updateFavLayoutFromSharedPreferences(getContext(), mViewHolder.mFavLinearLayout,
-                null, this::onFavoriteColorClickListener, currentFilter.getColorFilter());
+                null, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        onFavoriteColorClickListener(v);
+                    }
+                }, currentFilter.getColorFilter());
 
         mViewHolder.resetButtons();
         Button selectedSortButton = null;
@@ -357,7 +403,7 @@ public class FilterDrawerFragment extends Fragment {
             return;
         }
         // Нажатие на "сменить пользователя"
-        Context context = getContext();
+        final Context context = getContext();
         EditText inputNumber = new EditText(getActivity());
         inputNumber.setInputType(InputType.TYPE_CLASS_NUMBER);
         inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(UserInfo.USER_ID_MAX_LENGTH)});
@@ -367,22 +413,25 @@ public class FilterDrawerFragment extends Fragment {
                 inputNumber,
                 getString(R.string.mainlist_user_change_question_title),
                 getString(R.string.mainlist_user_change_question_text),
-            (input) -> {
-                try {
-                    // Смотрим введенное значение
-                    int number = Integer.parseInt(input);
-                    if (number != UserInfoUtils.getCurentUser(context).getUserId()) {
-                        UserInfoUtils.changeCurrentUser(context, number);
-                        mViewHolder.mCurrentUserTextView.setText(String.valueOf(
-                                UserInfoUtils.getCurentUser(context).getUserId()));
-                        if (mCallbacks != null) {
-                            mCallbacks.onUserChanged();
+                new ActivityUtils.Consumer<String>() {
+                    @Override
+                    public void accept(String param) {
+                        try {
+                            // Смотрим введенное значение
+                            int number = Integer.parseInt(param);
+                            if (number != UserInfoUtils.getCurentUser(context).getUserId()) {
+                                UserInfoUtils.changeCurrentUser(context, number);
+                                mViewHolder.mCurrentUserTextView.setText(String.valueOf(
+                                        UserInfoUtils.getCurentUser(context).getUserId()));
+                                if (mCallbacks != null) {
+                                    mCallbacks.onUserChanged();
+                                }
+                            }
+                        } catch (ClassCastException e) {
+                            Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
                         }
                     }
-                } catch (ClassCastException e) {
-                    Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
-                }
-            },
+                },
                 null);
     }
 
@@ -410,7 +459,12 @@ public class FilterDrawerFragment extends Fragment {
                     }
                 }
                 ActivityUtils.openDatePickerDialog(getContext(), timeSelected, leftDateBorder, rightDateBorder,
-                        this::setDate);
+                        new DatePickerDialog.OnDateSetListener() {
+                            @Override
+                            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                                setDate(view, year, month, dayOfMonth);
+                            }
+                        });
                 break;
             default:
                 break;

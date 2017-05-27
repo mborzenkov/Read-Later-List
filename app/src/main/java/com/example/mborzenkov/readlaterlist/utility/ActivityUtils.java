@@ -49,14 +49,20 @@ public class ActivityUtils {
         if (message != null) {
             dialogBuilder.setMessage(message);
         }
-        dialogBuilder.setPositiveButton(android.R.string.yes, (DialogInterface dialog, int which) -> {
-            if (positiveAction != null) {
-                positiveAction.run();
+        dialogBuilder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (positiveAction != null) {
+                    positiveAction.run();
+                }
             }
         });
-        dialogBuilder.setNegativeButton(android.R.string.no, (DialogInterface dialog, int which) -> {
-            if (negativeAction != null) {
-                negativeAction.run();
+        dialogBuilder.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (negativeAction != null) {
+                    negativeAction.run();
+                }
             }
         });
         dialogBuilder.show();
@@ -91,14 +97,20 @@ public class ActivityUtils {
         if (message != null) {
             dialogBuilder.setMessage(message);
         }
-        dialogBuilder.setPositiveButton(android.R.string.ok, (DialogInterface dialog, int which) -> {
-            if (positiveAction != null) {
-                positiveAction.accept(editText.getText().toString().trim());
+        dialogBuilder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (positiveAction != null) {
+                    positiveAction.accept(editText.getText().toString().trim());
+                }
             }
         });
-        dialogBuilder.setNegativeButton(android.R.string.no, (DialogInterface dialog, int which) -> {
-            if (negativeAction != null) {
-                negativeAction.run();
+        dialogBuilder.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (negativeAction != null) {
+                    negativeAction.run();
+                }
             }
         });
         dialogBuilder.show();

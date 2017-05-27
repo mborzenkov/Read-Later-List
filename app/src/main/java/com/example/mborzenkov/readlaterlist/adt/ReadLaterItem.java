@@ -24,6 +24,8 @@ public class ReadLaterItem {
     private static final int DEFAULT_COLOR = 16761095;
     /** Размерность HEX. */
     private static final int HEX = 16;
+    /** Количество миллисекунд в секундах. */
+    private static final int MILLIS = 1000;
 
     // -- Builder
     /** Создает новый объект ReadLaterItem.
@@ -106,7 +108,8 @@ public class ReadLaterItem {
         /** Устанавливает дату создания у элемента.
          *  Значение по умолчанию: timestamp на момент вызова конструктора ReadLaterItem.Builder().
          *
-         * @param dateCreated Дата создания в формате timestamp (миллисекунд с 1 Января 1970 00:00:00 GMT)
+         * @param dateCreated Дата создания в формате timestamp (миллисекунд с 1 Января 1970 00:00:00 GMT),
+         *                          будет округлена в меньшую сторону до ближайшей секунды
          */
         public Builder dateCreated(long dateCreated) {
             this.dateCreated = dateCreated;
@@ -116,7 +119,8 @@ public class ReadLaterItem {
         /** Устанавливает дату изменения у элемента.
          *  Значение по умолчанию: timestamp на момент вызова конструктора ReadLaterItem.Builder().
          *
-         * @param dateModified Дата изменения в формате timestamp
+         * @param dateModified Дата изменения в формате timestamp,
+         *                          будет округлена в меньшую сторону до ближайшей секунды
          */
         public Builder dateModified(long dateModified) {
             this.dateModified = dateModified;
@@ -126,7 +130,8 @@ public class ReadLaterItem {
         /** Устанавливает дату просмотра у элемента.
          *  Значение по умолчанию: timestamp на момент вызова конструктора ReadLaterItem.Builder().
          *
-         * @param dateViewed Дата просмотра в формате timestamp
+         * @param dateViewed Дата просмотра в формате timestamp,
+         *                          будет округлена в меньшую сторону до ближайшей секунды
          */
         public Builder dateViewed(long dateViewed) {
             this.dateViewed = dateViewed;
@@ -136,7 +141,7 @@ public class ReadLaterItem {
         /** Устанавливает все даты у элемента (создания, редактирования, просмотра) сразу.
          *  Значение по умолчанию: timestamp на момент вызова конструктора ReadLaterItem.Builder().
          *
-         * @param date Дата в формате timestamp
+         * @param date Дата в формате timestamp, будут округлены в меньшую сторону до ближайшей секунды
          */
         public Builder allDates(long date) {
             this.dateCreated = date;
@@ -214,9 +219,10 @@ public class ReadLaterItem {
     //      label - непустая строка без переносов, заголовок элемента
     //      description - строка, описание элемента
     //      color - цвет в sRGB, где каждые 8 бит последовательно представляют: Alpha, Red, Green, Blue
-    //      created - дата создания в формате timestamp (миллисекунд с 1 Января 1970 00:00:00 GMT)
-    //      edited - дата изменения в формате timestamp
-    //      viewed - дата просмотра в формате timestamp
+    //      created - дата создания в формате timestamp (миллисекунд с 1 Января 1970 00:00:00 GMT),
+    //                      округленная в меньшую сторону до ближайшей секунды
+    //      edited - дата изменения в формате timestamp, округленная в меньшую сторону до ближайшей секунды
+    //      viewed - дата просмотра в формате timestamp, округленная в меньшую сторону до ближайшей секунды
     //      imageUrl - ссылка, может быть null
     //      remoteId - внешний идентификатор: >0, если установлен или 0 в противном случае
     //
@@ -248,9 +254,9 @@ public class ReadLaterItem {
         label           = builder.label;
         description     = builder.description;
         color           = builder.color;
-        dateCreated     = builder.dateCreated;
-        dateModified    = builder.dateModified;
-        dateViewed      = builder.dateViewed;
+        dateCreated     = MILLIS * (builder.dateCreated / MILLIS);
+        dateModified    = MILLIS * (builder.dateModified / MILLIS);
+        dateViewed      = MILLIS * (builder.dateViewed / MILLIS);
         imageUrl        = builder.imageUrl;
         remoteId        = builder.remoteId;
         checkRep();
@@ -394,9 +400,9 @@ public class ReadLaterItem {
      *              Длинное описание, возможно
      *              многострочное
      *              (#FFFFFF)
-     *              C: 2017-05-08T15:28:01.232+0400
-     *              M: 2017-05-08T15:28:01.232+0400
-     *              V: 2017-05-08T15:28:01.232+0400
+     *              C: 2017-05-08T15:28:01+0400
+     *              M: 2017-05-08T15:28:01+0400
+     *              V: 2017-05-08T15:28:01+0400
      *              image: https://s-media-cache-ak0.pinimg.com/736x/92/9d/3d/929d3d9f76f406b5ac6020323d2d32dc.jpg
      *              remoteId: 1010
      */

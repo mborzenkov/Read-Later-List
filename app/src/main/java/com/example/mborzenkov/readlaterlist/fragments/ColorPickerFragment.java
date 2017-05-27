@@ -482,7 +482,12 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
         mainElementDrawable.setColor(Color.HSVToColor(mChosenColorHsv));
         View mainElement = rootView.findViewById(R.id.imageButton_chosen);
         mainElement.setBackground(mainElementDrawable);
-        mainElement.setOnClickListener(this::clickOnChosenSquare);
+        mainElement.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clickOnChosenSquare(v);
+            }
+        });
         changeMainColor(mChosenColorHsv, false);
 
         // Shared element
@@ -568,7 +573,12 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
             squareButton.setOnLongClickListener(this);
             squareButton.setBackground(favoritesDrawable);
             squareButton.setTag(i);
-            squareButton.setOnClickListener(this::clickOnFavSquare);
+            squareButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    clickOnFavSquare(v);
+                }
+            });
             mFavLinearLayout.addView(favSquare);
 
         }
