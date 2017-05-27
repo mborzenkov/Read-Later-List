@@ -96,7 +96,12 @@ public class EditItemViewPagerFragment extends Fragment
                     mCurrentItemLocalId = mCallbacks.getItemLocalIdAt(position);
                 }
                 // Перезагружаем меню, потому что обычная загрузка не вписывается в сложный жизненный цикл ViewPager
-                mViewPager.post(() -> mCurrentFragment.reloadMenu(null));
+                mViewPager.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mCurrentFragment.reloadMenu(null);
+                    }
+                });
             }
             super.setPrimaryItem(container, position, object);
         }
@@ -297,13 +302,21 @@ public class EditItemViewPagerFragment extends Fragment
                         && (mCurrentItemPosition != position)
                         && (mCurrentFragment.isModified())) {
 
-                    int lastPosition = mCurrentItemPosition;
-                    EditItemFragment lastFragment = mCurrentFragment;
+                    final int lastPosition = mCurrentItemPosition;
+                    final EditItemFragment lastFragment = mCurrentFragment;
                     mCurrentFragment.showModifiedAlertWithOptions(
-                            () -> lastFragment.reloadDataFromItem(null), // reload data
-                            () -> mViewPager.setCurrentItem(lastPosition)
-                    );
-
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    lastFragment.reloadDataFromItem(null);
+                                }
+                            },
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    mViewPager.setCurrentItem(lastPosition);
+                                }
+                            });
                 }
             }
 
@@ -351,7 +364,7 @@ public class EditItemViewPagerFragment extends Fragment
      * Вызывается для текущего открытого фрагмента.
      */
     @Override
-    public void setColor(int newColor) {
+    public void setColor(final int newColor) {
         // Вызывается при возврате из ColorPickerFragment. В момент вызова, mCurrentFragment еще не вызвал onCreateView,
         //      а значит setColor упадет с ошибкой.
         // mViewPager.post гарантирует, что на момент вызова setColor уже пройдет onCreateView.
@@ -359,10 +372,13 @@ public class EditItemViewPagerFragment extends Fragment
         //      должен быть уже установлен, так как уже был вызыван setPrimaryItem. Но лучше перепроверить.
         // Также нужно перезагрузить меню, потому что оно не перезагрузится в SerPrimaryItem,
         //      потому что mCurrentFragment == object (текущий элемент не менялся).
-        mViewPager.post(() -> {
-            if (mCurrentFragment != null) {
-                mCurrentFragment.setColor(newColor);
-                mCurrentFragment.reloadMenu(null);
+        mViewPager.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mCurrentFragment != null) {
+                    mCurrentFragment.setColor(newColor);
+                    mCurrentFragment.reloadMenu(null);
+                }
             }
         });
     }

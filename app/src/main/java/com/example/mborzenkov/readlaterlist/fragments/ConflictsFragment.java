@@ -117,11 +117,22 @@ public class ConflictsFragment extends DialogFragment {
         mChosenOption = (RadioGroup) parentView.findViewById(R.id.rg_conflict_chosen);
         mConflictDescriptionTextView = (TextView) parentView.findViewById(R.id.tv_conflict_description);
         mConflictLeftTextView = (TextView) parentView.findViewById(R.id.tv_conflict_item_left);
-        mConflictLeftTextView.setOnClickListener(this::toggleSelection);
+        View.OnClickListener selectConflictListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleSelection(v);
+            }
+        };
+        mConflictLeftTextView.setOnClickListener(selectConflictListener);
         mConflictRightTextView = (TextView) parentView.findViewById(R.id.tv_conflict_item_right);
-        mConflictRightTextView.setOnClickListener(this::toggleSelection);
+        mConflictRightTextView.setOnClickListener(selectConflictListener);
         mProceedButton = (Button) parentView.findViewById(R.id.button_conflict_next);
-        mProceedButton.setOnClickListener((View v) -> saveSelectedData());
+        mProceedButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveSelectedData();
+            }
+        });
 
         fillFragmentWithData();
 
@@ -188,8 +199,10 @@ public class ConflictsFragment extends DialogFragment {
             }
             ReadLaterItem.Builder savingItemBuilder = new ReadLaterItem.Builder(chosenItem)
                     .dateModified(System.currentTimeMillis())
-                    .dateCreated(Math.min(mCurrentConflict.getLeft().getDateCreated(), mCurrentConflict.getRight().getDateCreated()))
-                    .dateViewed(Math.max(mCurrentConflict.getLeft().getDateViewed(), mCurrentConflict.getRight().getDateViewed()));
+                    .dateCreated(Math.min(mCurrentConflict.getLeft().getDateCreated(),
+                            mCurrentConflict.getRight().getDateCreated()))
+                    .dateViewed(Math.max(mCurrentConflict.getLeft().getDateViewed(),
+                            mCurrentConflict.getRight().getDateViewed()));
             mConflictsCallback.saveConflict(savingItemBuilder.build());
             mConflictsList.remove(0);
             if (mConflictsList.isEmpty()) {

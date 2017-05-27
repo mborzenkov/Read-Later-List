@@ -13,10 +13,10 @@ import com.example.mborzenkov.readlaterlist.adt.Conflict;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemJsonAdapter;
-import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiYufimtsev;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
+import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 import com.squareup.moshi.Moshi;
 
 import java.io.IOException;

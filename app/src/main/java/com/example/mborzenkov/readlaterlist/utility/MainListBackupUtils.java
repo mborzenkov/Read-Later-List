@@ -48,8 +48,12 @@ public class MainListBackupUtils {
     /** Число процентов в нотификейшене для разбора и записи данных. */
     private static final int NOTIFICATION_PERCENTAGE_SAVE_DATA = 80;
 
-    private static final FilenameFilter FILENAME_FILTER = (dir, name) ->
-            dir.toString().contains(FOLDER_NAME) && name.matches(FILE_NAME_REGEX);
+    private static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+            return dir.toString().contains(FOLDER_NAME) && name.matches(FILE_NAME_REGEX);
+        }
+    };
 
     private MainListBackupUtils() {
         throw new UnsupportedOperationException("Класс MainListBackupUtils - static util, не может иметь экземпляров");

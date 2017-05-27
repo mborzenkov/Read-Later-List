@@ -56,7 +56,6 @@ public class EditItemFragment extends Fragment implements
         View.OnClickListener,
         EditItemFragmentActions {
 
-
     /////////////////////////
     // Константы
 
@@ -327,15 +326,18 @@ public class EditItemFragment extends Fragment implements
                         getContext(),
                         getString(R.string.edititem_menu_delete_question_title),
                         getString(R.string.edititem_menu_delete_question_text),
-                    () -> {
-                        if (mCallbacks != null) {
-                            if (mFromItemLocalId > UID_EMPTY) {
-                                mCallbacks.onDeleteItem(mFromItemLocalId);
-                            } else {
-                                mCallbacks.onExitWithoutModifying(mFromItem, mFromItemLocalId);
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                if (mCallbacks != null) {
+                                    if (mFromItemLocalId > UID_EMPTY) {
+                                        mCallbacks.onDeleteItem(mFromItemLocalId);
+                                    } else {
+                                        mCallbacks.onExitWithoutModifying(mFromItem, mFromItemLocalId);
+                                    }
+                                }
                             }
-                        }
-                    },
+                        },
                         null);
                 return true;
             case R.id.edititem_action_save:
@@ -404,11 +406,14 @@ public class EditItemFragment extends Fragment implements
     private void onExitAttempt() {
         if (isModified()) {
             showModifiedAlertWithOptions(
-                () -> {
-                    if (mCallbacks != null) {
-                        mCallbacks.onExitWithoutModifying(mFromItem, mFromItemLocalId);
-                    }
-                },
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mCallbacks != null) {
+                                mCallbacks.onExitWithoutModifying(mFromItem, mFromItemLocalId);
+                            }
+                        }
+                    },
                     null);
         } else {
             if (mCallbacks != null) {

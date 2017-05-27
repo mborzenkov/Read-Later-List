@@ -1,5 +1,6 @@
 package com.example.mborzenkov.readlaterlist.adt;
 
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -24,25 +25,30 @@ public class ReadLaterItem {
     private static final int DEFAULT_COLOR = 16761095;
     /** Размерность HEX. */
     private static final int HEX = 16;
+    /** Количество миллисекунд в секундах. */
+    private static final int MILLIS = 1000;
 
     // -- Builder
     /** Создает новый объект ReadLaterItem.
-     *  Пример использования:
+     *  Примеры использования:
+     *      Создает новый объект с заголовком, описанием, цветом и остальными полями по умолчанию -
      *      new ReadLaterItem.Builder("Заголовок однострочный непустой").description("descr").color(Color.RED).build();
+     *      Создает новый объект на основании имеющегося элемента с измененными датами.
+     *      new ReadLaterItem.Builder(item).allDates(System.currentTimeMillis()).build();
      */
     public static class Builder {
 
         // Обязательные параметры
-        private final String label;
+        private @NonNull String label;
 
         // Необязательные параметры
-        private String description      = "";
-        private int color               = DEFAULT_COLOR;
+        private @NonNull String description = "";
+        private int color = DEFAULT_COLOR;
         private long dateCreated;
         private long dateModified;
         private long dateViewed;
-        private @Nullable URL imageUrl  = null;
-        private int remoteId            = 0;
+        private @Nullable URL imageUrl = null;
+        private @IntRange(from = 0) int remoteId = 0;
 
         /** Начинает создание элемента.
          *  Заполняет все необязательные параметры значениями по умолчанию.
@@ -70,8 +76,10 @@ public class ReadLaterItem {
          * Заполняет все параметры значениями из объекта ReadLaterItem.
          *
          * @param item объект, на основании которого нужно создать Builder
+         *
+         * @throws NullPointerException если item == null
          */
-        public Builder(ReadLaterItem item) {
+        public Builder(@NonNull ReadLaterItem item) {
             label           = item.getLabel();
             description     = item.getDescription();
             color           = item.getColor();
@@ -80,6 +88,24 @@ public class ReadLaterItem {
             dateViewed      = item.getDateViewed();
             remoteId        = item.getRemoteId();
             this.imageUrl(item.getImageUrl());
+        }
+
+        /** Изменяет заголовок у элемента.
+         *
+         * @param label Заголовок элемента, непустой и однострочный
+         *              (содержит буквы, цифры или символы, не содержит переносов строки)
+         *
+         * @throws IllegalArgumentException если label пустой или многострочный
+         * @throws NullPointerException если label == null
+         */
+        public Builder label(@NonNull String label) {
+            if (label.trim().isEmpty()) {
+                throw new IllegalArgumentException("label == \"\"");
+            } else if (label.contains("\n")) {
+                throw new IllegalArgumentException("label.contains(\"\\n\")");
+            }
+            this.label = label;
+            return this;
         }
 
         /** Устанавливает описание у элемента.
@@ -106,7 +132,8 @@ public class ReadLaterItem {
         /** Устанавливает дату создания у элемента.
          *  Значение по умолчанию: timestamp на момент вызова конструктора ReadLaterItem.Builder().
          *
-         * @param dateCreated Дата создания в формате timestamp (миллисекунд с 1 Января 1970 00:00:00 GMT)
+         * @param dateCreated Дата создания в формате timestamp (миллисекунд с 1 Января 1970 00:00:00 GMT),
+         *                          будет округлена в меньшую сторону до ближайшей секунды
          */
         public Builder dateCreated(long dateCreated) {
             this.dateCreated = dateCreated;
@@ -116,7 +143,8 @@ public class ReadLaterItem {
         /** Устанавливает дату изменения у элемента.
          *  Значение по умолчанию: timestamp на момент вызова конструктора ReadLaterItem.Builder().
          *
-         * @param dateModified Дата изменения в формате timestamp
+         * @param dateModified Дата изменения в формате timestamp,
+         *                          будет округлена в меньшую сторону до ближайшей секунды
          */
         public Builder dateModified(long dateModified) {
             this.dateModified = dateModified;
@@ -126,7 +154,8 @@ public class ReadLaterItem {
         /** Устанавливает дату просмотра у элемента.
          *  Значение по умолчанию: timestamp на момент вызова конструктора ReadLaterItem.Builder().
          *
-         * @param dateViewed Дата просмотра в формате timestamp
+         * @param dateViewed Дата просмотра в формате timestamp,
+         *                          будет округлена в меньшую сторону до ближайшей секунды
          */
         public Builder dateViewed(long dateViewed) {
             this.dateViewed = dateViewed;
@@ -136,7 +165,7 @@ public class ReadLaterItem {
         /** Устанавливает все даты у элемента (создания, редактирования, просмотра) сразу.
          *  Значение по умолчанию: timestamp на момент вызова конструктора ReadLaterItem.Builder().
          *
-         * @param date Дата в формате timestamp
+         * @param date Дата в формате timestamp, будут округлены в меньшую сторону до ближайшей секунды
          */
         public Builder allDates(long date) {
             this.dateCreated = date;
@@ -150,6 +179,7 @@ public class ReadLaterItem {
          *
          * @param imageUrl Ссылка на картинку, должна быть корректно сформированным url, наличие картинки не проверяется
          *                 Может быть пустой строкой, тогда применяется значение по умолчанию.
+         *
          * @throws IllegalArgumentException если imageUrl не пустая строка и не является Url
          * @throws NullPointerException если imageUrl == null
          */
@@ -171,9 +201,10 @@ public class ReadLaterItem {
          *
          * @param remoteId Идентификатор элемента, число >= 0
          *                 0 означает, что remoteId не задан
+         *
          * @throws IllegalArgumentException если remoteId < 0
          */
-        public Builder remoteId(int remoteId) {
+        public Builder remoteId(@IntRange(from = 0) int remoteId) {
             if (remoteId < 0) {
                 throw new IllegalArgumentException("remoteId < 0");
             }
@@ -214,9 +245,10 @@ public class ReadLaterItem {
     //      label - непустая строка без переносов, заголовок элемента
     //      description - строка, описание элемента
     //      color - цвет в sRGB, где каждые 8 бит последовательно представляют: Alpha, Red, Green, Blue
-    //      created - дата создания в формате timestamp (миллисекунд с 1 Января 1970 00:00:00 GMT)
-    //      edited - дата изменения в формате timestamp
-    //      viewed - дата просмотра в формате timestamp
+    //      created - дата создания в формате timestamp (миллисекунд с 1 Января 1970 00:00:00 GMT),
+    //                      округленная в меньшую сторону до ближайшей секунды
+    //      edited - дата изменения в формате timestamp, округленная в меньшую сторону до ближайшей секунды
+    //      viewed - дата просмотра в формате timestamp, округленная в меньшую сторону до ближайшей секунды
     //      imageUrl - ссылка, может быть null
     //      remoteId - внешний идентификатор: >0, если установлен или 0 в противном случае
     //
@@ -230,30 +262,15 @@ public class ReadLaterItem {
     // Потоковая безопасность:
     //      так как объект неизменяемый, он потокобезопасен
 
-    private void checkRep() {
-        if (BuildConfig.DEBUG) {
-            if (label.trim().isEmpty()) {
-                throw new AssertionError("Заголовок ReadLaterItem оказался пустым.");
-            }
-            if (label.contains("\n")) {
-                throw new AssertionError("Заголовок ReadLaterItem оказался многострочным.");
-            }
-            if (remoteId < 0) {
-                throw new AssertionError("Идентификатор ReadLaterItem оказался отрицательным.");
-            }
-        }
-    }
-
     private ReadLaterItem(Builder builder) {
         label           = builder.label;
         description     = builder.description;
         color           = builder.color;
-        dateCreated     = builder.dateCreated;
-        dateModified    = builder.dateModified;
-        dateViewed      = builder.dateViewed;
+        dateCreated     = MILLIS * (builder.dateCreated / MILLIS);
+        dateModified    = MILLIS * (builder.dateModified / MILLIS);
+        dateViewed      = MILLIS * (builder.dateViewed / MILLIS);
         imageUrl        = builder.imageUrl;
         remoteId        = builder.remoteId;
-        checkRep();
     }
 
     /** Возвращает заголовок элемента.
@@ -394,9 +411,9 @@ public class ReadLaterItem {
      *              Длинное описание, возможно
      *              многострочное
      *              (#FFFFFF)
-     *              C: 2017-05-08T15:28:01.232+0400
-     *              M: 2017-05-08T15:28:01.232+0400
-     *              V: 2017-05-08T15:28:01.232+0400
+     *              C: 2017-05-08T15:28:01+0400
+     *              M: 2017-05-08T15:28:01+0400
+     *              V: 2017-05-08T15:28:01+0400
      *              image: https://s-media-cache-ak0.pinimg.com/736x/92/9d/3d/929d3d9f76f406b5ac6020323d2d32dc.jpg
      *              remoteId: 1010
      */

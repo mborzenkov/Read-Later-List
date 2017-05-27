@@ -3,7 +3,6 @@ package com.example.mborzenkov.readlaterlist.fragments.itemlist;
 import android.app.SearchManager;
 import android.content.Context;
 import android.database.Cursor;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
@@ -35,7 +34,7 @@ import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.fragments.BasicFragmentCallbacks;
-import com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment;
+import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemFragmentActions;
 import com.example.mborzenkov.readlaterlist.utility.ItemTouchHelperCallback;
 
@@ -170,10 +169,20 @@ public class ItemListFragment extends Fragment implements
 
             // Инициализируем FloatingActionButton
             FloatingActionButton floatingAddButton = (FloatingActionButton) rootView.findViewById(R.id.fab_item_add);
-            floatingAddButton.setOnClickListener(view -> mCallbacks.onNewItemClick());
+            floatingAddButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mCallbacks.onNewItemClick();
+                }
+            });
 
             // Слушаем о потягивании refresh
-            mSwipeRefreshLayout.setOnRefreshListener(mCallbacks::onRefreshToggled);
+            mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    mCallbacks.onRefreshToggled();
+                }
+            });
 
         } else {
             mSwipeRefreshLayout.setEnabled(false);
@@ -325,7 +334,12 @@ public class ItemListFragment extends Fragment implements
     public void setRefreshing(boolean refreshing) {
         mSwipeRefreshLayout.setRefreshing(refreshing);
         if (refreshing) {
-            mSwipeRefreshLayout.postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), SYNC_ICON_MAX_DURATION);
+            mSwipeRefreshLayout.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mSwipeRefreshLayout.setRefreshing(false);
+                }
+            }, SYNC_ICON_MAX_DURATION);
         }
     }
 

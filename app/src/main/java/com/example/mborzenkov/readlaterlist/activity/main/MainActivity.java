@@ -38,10 +38,10 @@ import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.Conflict;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
-import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 import com.example.mborzenkov.readlaterlist.fragments.ColorPickerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
-import com.example.mborzenkov.readlaterlist.fragments.FilterDrawerFragment;
+import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerCallbacks;
+import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemFragmentActions;
 import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemViewPagerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
@@ -52,6 +52,7 @@ import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
 import com.example.mborzenkov.readlaterlist.utility.LongTaskNotifications;
 import com.example.mborzenkov.readlaterlist.utility.MainListBackupUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
+import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 
 import java.util.List;
 
@@ -62,8 +63,9 @@ public class MainActivity extends AppCompatActivity implements
         ItemListFragment.ItemListCallbacks,
         EditItemFragmentActions.EditItemCallbacks,
         EditItemViewPagerFragment.EditItemViewPagerCallbacks,
-        FilterDrawerFragment.DrawerCallbacks,
+        FilterDrawerCallbacks,
         ColorPickerFragment.ColorPickerCallbacks {
+
 
     /////////////////////////
     // Константы
@@ -251,7 +253,12 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onSyncSuccess(long syncStartTime) {
         mLastSync = syncStartTime;
-        mHandlerThreadHandler.post(() -> updateLastSyncDate(mLastSync));
+        mHandlerThreadHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                updateLastSyncDate(mLastSync);
+            }
+        });
         finishSync();
     }
 
@@ -260,13 +267,16 @@ public class MainActivity extends AppCompatActivity implements
     // Колбеки ConflictsFragment
 
     @Override
-    public void saveConflict(@NonNull ReadLaterItem item) {
+    public void saveConflict(@NonNull final ReadLaterItem item) {
         final int remoteId = item.getRemoteId();
         if (remoteId > 0) {
-            mHandlerThreadHandler.post(() -> {
-                final int userId = UserInfoUtils.getCurentUser(MainActivity.this).getUserId();
-                if (mSyncFragment.updateOneItem(item, userId, remoteId)) {
-                    ReadLaterDbUtils.updateItem(this, item, userId, remoteId);
+            mHandlerThreadHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    final int userId = UserInfoUtils.getCurentUser(MainActivity.this).getUserId();
+                    if (mSyncFragment.updateOneItem(item, userId, remoteId)) {
+                        ReadLaterDbUtils.updateItem(MainActivity.this, item, userId, remoteId);
+                    }
                 }
             });
         }
@@ -357,13 +367,19 @@ public class MainActivity extends AppCompatActivity implements
                         this,
                         getString(R.string.mainlist_drawer_backup_save_question_title),
                         getString(R.string.mainlist_drawer_backup_save_question_text),
-                    () -> {
-                        mSyncFragment.stopSync();
-                        MainActivityLongTask.startLongBackgroundTask(
-                            () -> MainListBackupUtils.saveEverythingAsJsonFile(this),
-                                this);
-                        showLoading();
-                    },
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                mSyncFragment.stopSync();
+                                MainActivityLongTask.startLongBackgroundTask(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        MainListBackupUtils.saveEverythingAsJsonFile(MainActivity.this);
+                                    }
+                                }, MainActivity.this);
+                                showLoading();
+                            }
+                        },
                         null);
                 break;
             case BACKUP_RESTORE:
@@ -373,13 +389,19 @@ public class MainActivity extends AppCompatActivity implements
                         this,
                         getString(R.string.mainlist_drawer_backup_restore_question_title),
                         getString(R.string.mainlist_drawer_backup_restore_question_text),
-                    () -> {
-                        mSyncFragment.stopSync();
-                        MainActivityLongTask.startLongBackgroundTask(
-                            () -> MainListBackupUtils.restoreEverythingFromJsonFile(this),
-                                this);
-                        showLoading();
-                    },
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                mSyncFragment.stopSync();
+                                MainActivityLongTask.startLongBackgroundTask(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        MainListBackupUtils.restoreEverythingFromJsonFile(MainActivity.this);
+                                    }
+                                }, MainActivity.this);
+                                showLoading();
+                            }
+                        },
                         null);
                 break;
             case FILL_PLACEHOLDERS:
@@ -394,20 +416,33 @@ public class MainActivity extends AppCompatActivity implements
                             inputNumber,
                             getString(R.string.mainlist_menu_add_placeholders_question_title),
                             getString(R.string.mainlist_menu_add_placeholders_question_text),
-                        (input) -> {
-                            try {
-                                // Смотрим введенное значение
-                                int count = Integer.parseInt(input);
-                                // Запускаем бэкграунд таск
-                                mSyncFragment.stopSync();
-                                MainActivityLongTask.startLongBackgroundTask(
-                                    () -> DebugUtils.addPlaceholdersToDatabase(this, count),
-                                        this);
-                                showLoading();
-                            } catch (NumberFormatException e) {
-                                Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
-                            }
-                        },
+                            new ActivityUtils.Consumer<String>() {
+                                @Override
+                                public void accept(String param) {
+                                    try {
+                                        // Смотрим введенное значение
+                                        final int count = Integer.parseInt(param);
+                                        // Запускаем бэкграунд таск
+                                        mSyncFragment.stopSync();
+                                        MainActivityLongTask.startLongBackgroundTask(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                MainListBackupUtils.restoreEverythingFromJsonFile(MainActivity.this);
+                                                showLoading();
+                                            }
+                                        }, MainActivity.this);
+                                        MainActivityLongTask.startLongBackgroundTask(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                DebugUtils.addPlaceholdersToDatabase(MainActivity.this, count);
+                                            }
+                                        }, MainActivity.this);
+                                        showLoading();
+                                    } catch (NumberFormatException e) {
+                                        Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
+                                    }
+                                }
+                            },
                             null);
                 }
                 break;
@@ -419,16 +454,20 @@ public class MainActivity extends AppCompatActivity implements
                             this,
                             getString(R.string.mainlist_menu_delete_all_question_title),
                             getString(R.string.mainlist_menu_delete_all_question_text),
-                        () -> {
-                            mSyncFragment.stopSync();
-                            MainActivityLongTask.startLongBackgroundTask(
-                                () -> {
-                                    ReadLaterDbUtils.deleteAll(this);
-                                    LongTaskNotifications.cancelNotification();
-                                },
-                                    this);
-                            showLoading();
-                        },
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    mSyncFragment.stopSync();
+                                    MainActivityLongTask.startLongBackgroundTask(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            ReadLaterDbUtils.deleteAll(MainActivity.this);
+                                            LongTaskNotifications.cancelNotification();
+                                        }
+                                    }, MainActivity.this);
+                                    showLoading();
+                                }
+                            },
                             null);
                 }
                 break;
@@ -450,6 +489,7 @@ public class MainActivity extends AppCompatActivity implements
 
     /////////////////////////
     // Колбеки EditItemFragment
+
     @Override
     public void onRequestColorPicker(int color, ImageView sharedElement) {
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -470,33 +510,53 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onCreateNewItem(@NonNull ReadLaterItem item) {
-        mHandlerThreadHandler.post(() -> ReadLaterDbUtils.insertItem(MainActivity.this, item));
+    public void onCreateNewItem(@NonNull final ReadLaterItem item) {
+        mHandlerThreadHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                ReadLaterDbUtils.insertItem(MainActivity.this, item);
+            }
+        });
         popFragmentFromBackstack();
         Snackbar.make(mFragmentContainer, getString(R.string.snackbar_item_added), Snackbar.LENGTH_LONG).show();
     }
 
     @Override
-    public void onSaveItem(@NonNull ReadLaterItem item, @IntRange(from = 0) int localId) {
-        mHandlerThreadHandler.post(() -> ReadLaterDbUtils.updateItem(MainActivity.this, item, localId));
+    public void onSaveItem(@NonNull final ReadLaterItem item, @IntRange(from = 0) final int localId) {
+        mHandlerThreadHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                ReadLaterDbUtils.updateItem(MainActivity.this, item, localId);
+            }
+        });
         popFragmentFromBackstack();
         Snackbar.make(mFragmentContainer, getString(R.string.snackbar_item_edited), Snackbar.LENGTH_LONG).show();
     }
 
     @Override
-    public void onDeleteItem(@IntRange(from = 0) int localId) {
-        mHandlerThreadHandler.post(() -> ReadLaterDbUtils.deleteItem(this, localId));
+    public void onDeleteItem(@IntRange(from = 0) final int localId) {
+        mHandlerThreadHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                ReadLaterDbUtils.deleteItem(MainActivity.this, localId);
+            }
+        });
         popFragmentFromBackstack();
         Snackbar.make(mFragmentContainer, getString(R.string.snackbar_item_removed), Snackbar.LENGTH_LONG).show();
     }
 
     @Override
     public void onExitWithoutModifying(@Nullable ReadLaterItem item,
-                                       @IntRange(from = EditItemViewPagerFragment.UID_EMPTY) int localId) {
+                                       @IntRange(from = EditItemViewPagerFragment.UID_EMPTY) final int localId) {
 
         if (item != null) {
             // Этот блок вызывается при простом просмотре без изменений
-            mHandlerThreadHandler.post(() -> ReadLaterDbUtils.updateItemViewDate(MainActivity.this, localId));
+            mHandlerThreadHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    ReadLaterDbUtils.updateItemViewDate(MainActivity.this, localId);
+                }
+            });
         }
         popFragmentFromBackstack();
 

@@ -1,5 +1,7 @@
 package com.example.mborzenkov.readlaterlist;
 
+import android.util.Log;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -59,68 +61,68 @@ public class CloudApiTest {
             Response<CloudApiYufimtsev.NewItemResponse> newItemResponse =
                     cloudApi.createItem(TEST_USER_ID, item1Builder.build()).execute();
             assertEquals(newItemResponse.code(), CloudApiYufimtsev.RESPONSE_CODE_SUCCESS);
-            NewItemResponse responseAllItemsData = newItemResponse.body();
-            assertTrue(responseAllItemsData != null);
-            assertEquals(responseAllItemsData.status, CloudApiYufimtsev.STATUS_SUCCESS);
-            assertEquals(responseAllItemsData.error, null);
-            assertTrue(responseAllItemsData.data != null);
-            assertTrue(responseAllItemsData.data > 0);
-            newItemId = responseAllItemsData.data;
+            NewItemResponse responseNewItemData = newItemResponse.body();
+            assertTrue(responseNewItemData != null);
+            assertEquals(responseNewItemData.status, CloudApiYufimtsev.STATUS_SUCCESS);
+            assertEquals(responseNewItemData.error, null);
+            assertTrue(responseNewItemData.data != null);
+            assertTrue(responseNewItemData.data > 0);
+            newItemId = responseNewItemData.data;
         }
 
         {
             Response<CloudApiYufimtsev.SingleItemResponse> singleItemResponse =
                     cloudApi.getItem(TEST_USER_ID, newItemId).execute();
             assertEquals(singleItemResponse.code(), CloudApiYufimtsev.RESPONSE_CODE_SUCCESS);
-            SingleItemResponse responseAllItemsData = singleItemResponse.body();
-            assertTrue(responseAllItemsData != null);
-            assertEquals(responseAllItemsData.status, CloudApiYufimtsev.STATUS_SUCCESS);
-            assertEquals(responseAllItemsData.error, null);
-            assertTrue(responseAllItemsData.data != null);
-            assertTrue(responseAllItemsData.data.equals(item1Builder.remoteId(newItemId).build()));
+            SingleItemResponse responseSingleItemData = singleItemResponse.body();
+            assertTrue(responseSingleItemData != null);
+            assertEquals(responseSingleItemData.status, CloudApiYufimtsev.STATUS_SUCCESS);
+            assertEquals(responseSingleItemData.error, null);
+            assertTrue(responseSingleItemData.data != null);
+            assertTrue(responseSingleItemData.data.equals(item1Builder.remoteId(newItemId).build()));
         }
 
         {
             Response<CloudApiYufimtsev.DefaultResponse> updateItemResponse =
                     cloudApi.updateItem(TEST_USER_ID, newItemId, item2Builder.build()).execute();
             assertEquals(updateItemResponse.code(), CloudApiYufimtsev.RESPONSE_CODE_SUCCESS);
-            DefaultResponse responseAllItemsData = updateItemResponse.body();
-            assertTrue(responseAllItemsData != null);
-            assertEquals(responseAllItemsData.status, CloudApiYufimtsev.STATUS_SUCCESS);
-            assertEquals(responseAllItemsData.error, null);
+            DefaultResponse responseUpdateItemData = updateItemResponse.body();
+            assertTrue(responseUpdateItemData != null);
+            assertEquals(responseUpdateItemData.status, CloudApiYufimtsev.STATUS_SUCCESS);
+            assertEquals(responseUpdateItemData.error, null);
         }
 
         {
             Response<CloudApiYufimtsev.SingleItemResponse> singleItemResponse =
                     cloudApi.getItem(TEST_USER_ID, newItemId).execute();
             assertEquals(singleItemResponse.code(), CloudApiYufimtsev.RESPONSE_CODE_SUCCESS);
-            SingleItemResponse responseAllItemsData = singleItemResponse.body();
-            assertTrue(responseAllItemsData != null);
-            assertEquals(responseAllItemsData.status, CloudApiYufimtsev.STATUS_SUCCESS);
-            assertEquals(responseAllItemsData.error, null);
-            assertTrue(responseAllItemsData.data != null);
-            assertTrue(responseAllItemsData.data.equals(item2Builder.remoteId(newItemId).build()));
+            SingleItemResponse responseSingleItemData = singleItemResponse.body();
+            assertTrue(responseSingleItemData != null);
+            assertEquals(responseSingleItemData.status, CloudApiYufimtsev.STATUS_SUCCESS);
+            assertEquals(responseSingleItemData.error, null);
+            assertTrue(responseSingleItemData.data != null);
+            assertTrue(responseSingleItemData.data.equals(item2Builder.remoteId(newItemId).build()));
         }
 
         {
-            Response<CloudApiYufimtsev.DefaultResponse> singleItemResponse =
+            Response<CloudApiYufimtsev.DefaultResponse> deleteItemResponse =
                     cloudApi.deleteItem(TEST_USER_ID, newItemId).execute();
-            assertEquals(singleItemResponse.code(), CloudApiYufimtsev.RESPONSE_CODE_SUCCESS);
-            DefaultResponse responseAllItemsData = singleItemResponse.body();
-            assertTrue(responseAllItemsData != null);
-            assertEquals(responseAllItemsData.status, CloudApiYufimtsev.STATUS_SUCCESS);
-            assertEquals(responseAllItemsData.error, null);
+            assertEquals(deleteItemResponse.code(), CloudApiYufimtsev.RESPONSE_CODE_SUCCESS);
+            DefaultResponse responseDeleteItemData = deleteItemResponse.body();
+            assertTrue(responseDeleteItemData != null);
+            assertEquals(responseDeleteItemData.status, CloudApiYufimtsev.STATUS_SUCCESS);
+            assertEquals(responseDeleteItemData.error, null);
         }
 
         {
             Response<CloudApiYufimtsev.SingleItemResponse> singleItemResponse =
                     cloudApi.getItem(TEST_USER_ID, newItemId).execute();
             assertEquals(singleItemResponse.code(), CloudApiYufimtsev.RESPONSE_CODE_SUCCESS);
-            SingleItemResponse responseAllItemsData = singleItemResponse.body();
-            assertTrue(responseAllItemsData != null);
-            assertEquals(responseAllItemsData.status, CloudApiYufimtsev.STATUS_ERROR);
-            assertTrue(responseAllItemsData.error != null);
-            assertTrue(responseAllItemsData.data == null);
+            SingleItemResponse responseSingleItemData = singleItemResponse.body();
+            assertTrue(responseSingleItemData != null);
+            assertEquals(responseSingleItemData.status, CloudApiYufimtsev.STATUS_ERROR);
+            assertTrue(responseSingleItemData.error != null);
+            assertTrue(responseSingleItemData.data == null);
         }
 
     }
