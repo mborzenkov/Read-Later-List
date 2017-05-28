@@ -45,7 +45,7 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(sqlCreateFtsTable);
     }
 
-    public void resetDb(SQLiteDatabase db) {
+    void resetDb(SQLiteDatabase db) {
         db.execSQL("DROP TABLE IF EXISTS " + ReadLaterEntry.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + ReadLaterEntry.TABLE_NAME_FTS);
         onCreate(db);

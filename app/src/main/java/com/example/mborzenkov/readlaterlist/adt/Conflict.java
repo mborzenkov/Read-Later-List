@@ -71,17 +71,20 @@ public class Conflict {
     @Override
     public int hashCode() {
         int result = 17;
-        result = 31 * result + leftItem.hashCode();
-        return 31 * result + rightItem.hashCode();
+        return 31 * result + (rightItem.hashCode() + leftItem.hashCode());
     }
 
+    /** Проверяет два объекта Conflict на равенство друг другу.
+     * Два объекта Conflict равны, если они содержат одинаковые элементы, причем левый может быть = правому и наоборот.
+     */
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof Conflict)) {
             return false;
         }
         Conflict thatObject = (Conflict) obj;
-        return thatObject.leftItem.equals(leftItem) && thatObject.rightItem.equals(rightItem);
+        return (thatObject.leftItem.equals(leftItem) || thatObject.leftItem.equals(rightItem))
+                && (thatObject.rightItem.equals(rightItem) || thatObject.rightItem.equals(leftItem));
     }
 
     @Override
