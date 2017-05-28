@@ -20,9 +20,12 @@ public class ReadLaterItemDbAdapter {
      *
      * @param cursor курсор, как в ReadLaterItemCursorProjection
      *
-     * @return объект ReadLaterItem, соответствующий текущей позиции курсора или null, если курсор закрыт или пустой
+     * @return объект ReadLaterItem, соответствующий текущей позиции курсора
+     *              или null, если курсор закрыт, пустой или cursor.getPosition() < 0 или >= cursor.getCount()
      *
-     * @throws IllegalArgumentException если cursor не соответствует требованиям
+     * @throws NullPointerException если cursor == null
+     * @throws IllegalArgumentException если cursor не содержит всех необходимых колонок
+     *
      * @see ReadLaterItemCursorProjection
      */
     public @Nullable ReadLaterItem itemFromCursor(@NonNull Cursor cursor) {
@@ -36,15 +39,19 @@ public class ReadLaterItemDbAdapter {
      * @param cursor курсор, как в ReadLaterItemCursorProjection
      * @param projection объект, содержащий индексы колонок
      *
-     * @return объект ReadLaterItem, соответствующий текущей позиции курсора или null, если курсор закрыт или пустой
+     * @return объект ReadLaterItem, соответствующий текущей позиции курсора
+     *              или null, если курсор закрыт, пустой или cursor.getPosition() < 0 или >= cursor.getCount()
      *
-     * @throws IllegalArgumentException если cursor не соответствует требованиям
+     * @throws NullPointerException если cursor или projection == null
+     * @throws IllegalArgumentException если cursor не содержит всех необходимых колонок
+     *
      * @see ReadLaterItemCursorProjection
      */
     private @Nullable ReadLaterItem itemFromCursor(@NonNull Cursor cursor,
                                                    @NonNull ReadLaterItemCursorProjection projection) {
 
-        if (cursor.isClosed() || cursor.getCount() == 0) {
+        if (cursor.isClosed() || (cursor.getCount() == 0) || (cursor.getPosition() < 0)
+                || (cursor.getPosition() >= cursor.getCount())) {
             return null;
         }
         return new ReadLaterItem.Builder(cursor.getString(projection.indexLabel))
@@ -64,8 +71,12 @@ public class ReadLaterItemDbAdapter {
      * Нельзя изменять позицию cursor параллельно с этим методом, иначе работа метода может быть нарушена.
      *
      * @param cursor курсор, как в ReadLaterItemCursorProjection
-     * @return список всех объектов ReadLaterItem, преобразованных из cursor
-     * @throws IllegalArgumentException если cursor не соответствует требованиям
+     * @return список всех объектов ReadLaterItem, преобразованных из cursor или пустой список, если не удалось получить
+     *              объекты из курсора (если курсор закрыт, пустой или не содержит необходимых колонок)
+     *
+     * @throws NullPointerException если cursor или projection == null
+     * @throws IllegalArgumentException если cursor не содержит всех необходимых колонок
+     *
      * @see ReadLaterItemCursorProjection
      */
     public List<ReadLaterItem> allItemsFromCursor(@NonNull Cursor cursor) {
@@ -83,7 +94,10 @@ public class ReadLaterItemDbAdapter {
     /** Возвращает ContentValues на основании ReadLaterItem.
      *
      * @param item ReadLaterItem, на основании которого нужно подготовить ContentValues
+     *
      * @return ContentValues
+     *
+     * @throws NullPointerException если item == null
      */
     public ContentValues contentValuesFromItem(@NonNull ReadLaterItem item) {
         ContentValues contentValues = new ContentValues();
@@ -113,7 +127,9 @@ public class ReadLaterItemDbAdapter {
          *
          * @param cur курсор, содержащий колонки из ReadLaterEnrty: COLUMN_LABEL, COLUMN_DESCRIPTION, COLUMN_COLOR,
          *               COLUMN_DATE_CREATED, COLUMN_DATE_LAST_MODIFIED, COLUMN_LAST_VIEW
+         *
          * @throws IllegalArgumentException если курсор не содержит какой либо колонки
+         *
          * @see com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry
          */
         private ReadLaterItemCursorProjection(@NonNull Cursor cur) {
