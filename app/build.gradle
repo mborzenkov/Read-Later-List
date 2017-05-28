@@ -49,13 +49,16 @@ dependencies {
     testCompile "org.mockito:mockito-core:2.7.22"
 }
 
-task jacocoTestReport(type: JacocoReport, dependsOn: "testDebugUnitTest") {
+task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', 'createDebugCoverageReport']) {
+
     group = "Reporting"
     description = "Generate Jacoco coverage reports"
+
     reports {
         xml.enabled = true
         html.enabled = true
     }
+
     def fileFilter = ['**/R.class',
                       '**/R$*.class',
                       '**/BuildConfig.*',
@@ -75,8 +78,11 @@ task jacocoTestReport(type: JacocoReport, dependsOn: "testDebugUnitTest") {
     ]
     def debugTree = fileTree(dir: "${buildDir}/intermediates/classes/debug", excludes: fileFilter)
     def mainSrc = "${project.projectDir}/src/main/java"
+
     sourceDirectories = files([mainSrc])
     classDirectories = files([debugTree])
-    executionData = fileTree(dir: project.projectDir, includes:
-            ['**/*.exec', '**/*.ec'])
+    executionData = fileTree(dir: "$buildDir", includes: [
+            "jacoco/testDebugUnitTest.exec",
+            "outputs/code-coverage/connected/*coverage.ec"
+    ])
 }

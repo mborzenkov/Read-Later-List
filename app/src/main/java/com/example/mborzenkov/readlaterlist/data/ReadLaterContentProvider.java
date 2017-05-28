@@ -6,9 +6,12 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
@@ -39,8 +42,6 @@ public class ReadLaterContentProvider extends ContentProvider {
     private static final UriMatcher sUriMatcher = buildUriMatcher();
     /** DbHelper для работы с базой. */
     private ReadLaterDbHelper mReadLaterDbHelper;
-    /** Контекст. */
-    private Context mContext;
 
     /** Создает новый UriMatcher.
      *
@@ -66,8 +67,7 @@ public class ReadLaterContentProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         // Создание DbHelper
-        mContext = getContext();
-        mReadLaterDbHelper = new ReadLaterDbHelper(mContext);
+        mReadLaterDbHelper = new ReadLaterDbHelper(getContext());
         return true;
     }
 
@@ -82,8 +82,8 @@ public class ReadLaterContentProvider extends ContentProvider {
      * @throws UnsupportedOperationException если uri не соответствует разрешенным
      */
     @Override
-    public Cursor query(@NonNull Uri uri, String[] projection, String selection,
-                        String[] selectionArgs, String sortOrder) {
+    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
+                        @Nullable String[] selectionArgs, @Nullable String sortOrder) {
         // Обработчик запросов select
         Cursor cursor;
         switch (sUriMatcher.match(uri)) {
@@ -97,11 +97,22 @@ public class ReadLaterContentProvider extends ContentProvider {
                         null,
                         sortOrder);
                 break;
+            case CODE_READLATER_ITEMS_WITH_ID:
+                String[] id = new String[] {uri.getPathSegments().get(1)};
+                cursor = mReadLaterDbHelper.getReadableDatabase().query(
+                        ReadLaterEntry.TABLE_NAME,
+                        projection,
+                        "_id=?",
+                        id,
+                        null,
+                        null,
+                        null);
+                break;
             case CODE_READLATER_ITEMS_WITH_REMOTE_ID:
                 StringBuilder newSelection = new StringBuilder(QUERY_REMOTE_ID);
                 List<String> newSelectionArgs = new ArrayList<>();
                 newSelectionArgs.add(uri.getPathSegments().get(2));
-                if (!selection.isEmpty()) {
+                if ((selection != null) && (selectionArgs != null) && (!selection.isEmpty())) {
                     newSelection.append(" AND ").append(selection);
                     newSelectionArgs.addAll(Arrays.asList(selectionArgs));
                 }
@@ -115,10 +126,9 @@ public class ReadLaterContentProvider extends ContentProvider {
                         sortOrder);
                 break;
             default:
-                throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
+                throw new UnsupportedOperationException("Error @ ReadLaterContentProvider.query: unknown uri " + uri);
         }
 
-        // cursor.setNotificationUri(mContext.getContentResolver(), uri);
         return cursor;
     }
 
@@ -127,7 +137,7 @@ public class ReadLaterContentProvider extends ContentProvider {
      * @throws UnsupportedOperationException если uri не соответствует разрешенным
      */
     @Override
-    public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
+    public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
         // Обработчик запросов delete
         int itemDeleted;
         SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
@@ -152,12 +162,8 @@ public class ReadLaterContentProvider extends ContentProvider {
                 db.delete(ReadLaterEntry.TABLE_NAME_FTS, "docid=?", id);
                 break;
             default:
-                throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
+                throw new UnsupportedOperationException("Error @ ReadLaterContentProvider.delete: unknown uri " + uri);
         }
-
-        //        if (itemDeleted != 0) {
-        //             mContext.getContentResolver().notifyChange(uri, null);
-        //        }
 
         return itemDeleted;
     }
@@ -165,9 +171,15 @@ public class ReadLaterContentProvider extends ContentProvider {
     /** {@inheritDoc}
      *
      * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     * @throws IllegalArgumentException если values == null или не содержит всех необходимых данных
      */
     @Override
-    public Uri insert(@NonNull Uri uri, ContentValues values) {
+    public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
+
+        if (values == null) {
+            throw new IllegalArgumentException("Error @ ReadLaterContentProvider.insert: ContentValues == null");
+        }
+
         // Обработчик зарпосов insert
         Uri returnUri;
 
@@ -189,7 +201,8 @@ public class ReadLaterContentProvider extends ContentProvider {
                     if (id > 0) {
                         returnUri =  ContentUris.withAppendedId(ReadLaterEntry.CONTENT_URI, id);
                     } else {
-                        throw new android.database.SQLException(mContext.getString(R.string.db_error_insert) + uri);
+                        throw new IllegalArgumentException("Error @ ReadLaterContentProvider.insert: when inserting "
+                                + values.toString());
                     }
 
                     // INSERT INTO TABLE_FTS
@@ -206,10 +219,8 @@ public class ReadLaterContentProvider extends ContentProvider {
                 }
                 break;
             default:
-                throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
+                throw new UnsupportedOperationException("Error @ ReadLaterContentProvider.insert: unknown uri " + uri);
         }
-
-        // mContext.getContentResolver().notifyChange(uri, null);
 
         return returnUri;
     }
@@ -217,9 +228,15 @@ public class ReadLaterContentProvider extends ContentProvider {
     /** {@inheritDoc}
      *
      * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     * @throws IllegalArgumentException если values == null
      */
     @Override
-    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
+    public int bulkInsert(@NonNull Uri uri, @Nullable ContentValues[] values) {
+
+        if (values == null) {
+            throw new IllegalArgumentException("Error @ ReadLaterContentProvider.bulkInsert: ContentValues == null");
+        }
+
         // Обработчик зарпосов bullk insert
         int inserted = 0;
 
@@ -242,7 +259,8 @@ public class ReadLaterContentProvider extends ContentProvider {
                         value.put(ReadLaterEntry.COLUMN_ORDER, maxOrder);
                         long id = db.insert(ReadLaterEntry.TABLE_NAME, null, value);
                         if (id < 0) {
-                            throw new android.database.SQLException(mContext.getString(R.string.db_error_insert) + uri);
+                            throw new IllegalArgumentException("Error @ ReadLaterContentProvider.bulkInsert: inserting "
+                                    + value.toString());
                         }
 
                         // INSERT INTO TABLE_FTS
@@ -260,10 +278,9 @@ public class ReadLaterContentProvider extends ContentProvider {
                 }
                 break;
             default:
-                throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
+                throw new UnsupportedOperationException("Error @ ReadLaterContentProvider.bulkInsert: unknown uri "
+                        + uri);
         }
-
-        // mContext.getContentResolver().notifyChange(uri, null);
 
         return inserted;
     }
@@ -271,19 +288,29 @@ public class ReadLaterContentProvider extends ContentProvider {
     /** {@inheritDoc}
      *
      * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     * @throws UnsupportedOperationException если uri == CODE_READLATER_ITEMS_UPDATE_ORDER и позиция < -1
+     * @throws IllegalArgumentException если uri != CODE_READLATER_ITEMS_UPDATE_ORDER и values == null
+     * @throws IllegalArgumentException если values не соответствуют контракту
+     * @throws IllegalArgumentException если uri == CODE_READLATER_ITEMS_UPDATE_ORDER и новая позиция > максимальной
      */
     @Override
-    public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+    public int update(@NonNull Uri uri, @Nullable ContentValues values,
+                      @Nullable String selection, @Nullable String[] selectionArgs) {
 
         // Обработчик запросов update
         int itemUpdated = 0;
         SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
-        String itemIdString = uri.getPathSegments().get(1);
-
-        // if (null == selection) selection = "1";
+        String itemIdString;
 
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS_WITH_ID:
+
+                if (values == null) {
+                    throw new IllegalArgumentException(
+                            "Error @ ReadLaterContentProvider.bulkInsert: ContentValues == null");
+                }
+
+                itemIdString = uri.getPathSegments().get(1);
                 db.beginTransaction();
                 try {
                     // INSERT INTO TABLE_ITEMS
@@ -307,12 +334,28 @@ public class ReadLaterContentProvider extends ContentProvider {
                     }
 
                     db.setTransactionSuccessful();
+                } catch (SQLiteConstraintException e) {
+                    throw new IllegalArgumentException("Error @ ReadLaterContentProvider.update: when inserting "
+                        + values.toString());
                 } finally {
                     db.endTransaction();
                 }
                 break;
             case CODE_READLATER_ITEMS_UPDATE_ORDER:
+                itemIdString = uri.getPathSegments().get(1);
                 final int newPosition = Integer.valueOf(uri.getPathSegments().get(3));
+
+                // SELECT MAX ORDER
+                Cursor maxOrderCursor = db.rawQuery(QUERY_MAX_ORDER_POSITION, null);
+                maxOrderCursor.moveToFirst();
+                int maxOrder = maxOrderCursor.getInt(0);
+                maxOrderCursor.close();
+
+                if (newPosition > maxOrder) {
+                    throw new IllegalArgumentException("Error @ ReadLaterContentProvider.update: position > MAX :: "
+                            + newPosition + ">" + maxOrder);
+                }
+
                 db.beginTransaction();
                 try {
 
@@ -333,7 +376,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                             updateOrderVal.put(ReadLaterEntry.COLUMN_ORDER, newPosition);
                             db.update(ReadLaterEntry.TABLE_NAME,
                                     updateOrderVal, "_id=?", new String[] { itemIdString });
-                            itemUpdated = Math.abs(oldPosition - newPosition);
+                            itemUpdated = Math.abs(oldPosition - newPosition) + 1;
                         }
                     }
                     db.setTransactionSuccessful();
@@ -342,12 +385,8 @@ public class ReadLaterContentProvider extends ContentProvider {
                 }
                 break;
             default:
-                throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
+                throw new UnsupportedOperationException("Error @ ReadLaterContentProvider.update: unknown uri " + uri);
         }
-
-        //        if (itemUpdated != 0) {
-        //           mContext.getContentResolver().notifyChange(uri, null);
-        //        }
 
         return itemUpdated;
     }
@@ -362,9 +401,6 @@ public class ReadLaterContentProvider extends ContentProvider {
      * @param newPosition новая позиция элемента
      */
     private @NonNull String getRawQueryForUpdateOrder(int oldPosition, int newPosition) {
-        if (oldPosition == newPosition) {
-            return "";
-        }
 
         StringBuilder builder = new StringBuilder();
         builder.append("UPDATE ").append(ReadLaterEntry.TABLE_NAME)
