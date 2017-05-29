@@ -11,6 +11,7 @@ import android.support.v4.app.FragmentManager;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncAsyncTask.SyncCallback;
+import com.example.mborzenkov.readlaterlist.networking.ReadLaterCloudApi;
 
 /** Фрагмент для фоновой синхронизации с Cloud API. */
 public class SyncFragment extends Fragment {
@@ -92,7 +93,7 @@ public class SyncFragment extends Fragment {
                     userId,
                     remoteId));
         }
-        return SyncAsyncTask.updateItemOnServer(SyncAsyncTask.prepareApi(), userId, remoteId, item);
+        return new ReadLaterCloudApi().updateItemOnServer(userId, remoteId, item);
 
     }
 

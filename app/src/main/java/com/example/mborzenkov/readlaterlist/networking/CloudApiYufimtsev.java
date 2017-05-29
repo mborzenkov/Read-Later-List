@@ -18,7 +18,7 @@ import retrofit2.http.POST;
 import retrofit2.http.Path;
 
 /** Класс описывает API для облачного сохранения списка ReadLaterList. */
-public interface CloudApiYufimtsev {
+interface CloudApiYufimtsev {
 
     /* Документация API
      *
