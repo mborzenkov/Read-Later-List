@@ -1,16 +1,10 @@
 package com.example.mborzenkov.readlaterlist.utility;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.text.InputFilter;
-import android.text.InputType;
-import android.util.Log;
-import android.widget.EditText;
 
-import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 
 /** Вспомогательный static класс для получения работы с UserInfo.
@@ -48,56 +42,18 @@ public class UserInfoUtils {
      *  Сохраняет нового пользователя как последнего в SharedPreferences.
      *
      * @param context контекст (для доступа к SharedPreferences)
-     * @param newUserId идентификатор нового пользователя
+     * @param newUserId идентификатор нового пользователя, >= 0
+     *
+     * @throws IllegalArgumentException если userId < 0
+     * @throws IllegalArgumentException если длина userId > UserInfo.USER_ID_MAX_LENGTH
+     *
+     * @see UserInfo
      */
-    public static synchronized void changeCurrentUser(@NonNull Context context, int newUserId) {
+    public static synchronized void changeCurrentUser(@NonNull Context context, @IntRange(from = 0) int newUserId) {
+        sCurrentUser = new UserInfo(newUserId);
         SharedPreferences.Editor editor = context.getSharedPreferences(USERS_KEY, Context.MODE_PRIVATE).edit();
         editor.putInt(LAST_USER_KEY, newUserId);
         editor.apply();
-        sCurrentUser = new UserInfo(newUserId);
-    }
-
-    /** Показывает диалог смены пользователя и меняет текущего пользователя, если был выбран другой пользователь.
-     * Если был выбран новый пользователь, не равный текущему, меняет текущего на новый и вызывает afterChangeAction.
-     *
-     * @param activity активити для создания поля ввода
-     * @param afterChangeAction действие после смены пользоваля или null, если действие не нужно
-     */
-    public static void showDialogAndChangeUser(@NonNull final Activity activity, @Nullable final Runnable afterChangeAction) {
-
-        if (sCurrentUser == null) {
-            return;
-        }
-
-        final int currentUserId = sCurrentUser.getUserId();
-        EditText inputNumber = new EditText(activity);
-        inputNumber.setInputType(InputType.TYPE_CLASS_NUMBER);
-        inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(UserInfo.USER_ID_MAX_LENGTH)});
-        inputNumber.setText(String.valueOf(currentUserId));
-        ActivityUtils.showInputTextDialog(
-                activity,
-                inputNumber,
-                activity.getString(R.string.mainlist_user_change_question_title),
-                activity.getString(R.string.mainlist_user_change_question_text),
-                new ActivityUtils.Consumer<String>() {
-                    @Override
-                    public void accept(final String param) {
-                        try {
-                            // Смотрим введенное значение
-                            int number = Integer.parseInt(param);
-                            if (number != currentUserId) {
-                                UserInfoUtils.changeCurrentUser(activity, number);
-                                if (afterChangeAction != null) {
-                                    afterChangeAction.run();
-                                }
-                            }
-                        } catch (ClassCastException e) {
-                            Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
-                        }
-                    }
-                },
-                null);
-
     }
 
     private UserInfoUtils() {

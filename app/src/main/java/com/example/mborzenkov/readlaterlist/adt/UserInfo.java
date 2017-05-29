@@ -27,7 +27,7 @@ public class UserInfo {
 
     /** Создает новый объект UserInfo с указанным идентификатором.
      *
-     * @param userId идентификатор пользователя
+     * @param userId идентификатор пользователя, >= 0 и длиной <= USER_ID_MAX_LENGTH
      *
      * @throws IllegalArgumentException если userId < 0
      * @throws IllegalArgumentException если длина userId > USER_ID_MAX_LENGTH
