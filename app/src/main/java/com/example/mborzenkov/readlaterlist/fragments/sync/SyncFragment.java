@@ -50,9 +50,11 @@ public class SyncFragment extends Fragment {
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        mSyncCallback = (SyncCallback) context;
-        if (mSyncTask != null) {
-            mSyncTask.setCallback(mSyncCallback);
+        if (context instanceof SyncCallback) {
+            mSyncCallback = (SyncCallback) context;
+            if (mSyncTask != null) {
+                mSyncTask.setCallback(mSyncCallback);
+            }
         }
     }
 
@@ -69,31 +71,6 @@ public class SyncFragment extends Fragment {
     public void onDestroy() {
         stopSync();
         super.onDestroy();
-    }
-
-    /** Обновляет одну запись на сервере.
-     * Выполняет работу в том же потоке, в котором вызван метод, поэтому должен быть вызван не в основном потоке.
-     *
-     * @param item запись для обновления. item.getRemoteId() должен быть > 0.
-     * @param userId идентификатор пользователя
-     * @param remoteId внешний идентификатор элемента
-     *
-     * @return true, если обновление прошло успешно, иначе false
-     *
-     * @throws android.os.NetworkOnMainThreadException если метод запущен на основном потоке
-     * @throws IllegalArgumentException если userId <= 0 или remoteId <= 0
-     */
-    public synchronized boolean updateOneItem(@NonNull ReadLaterItem item,
-                                            @IntRange(from = 1) int userId,
-                                            @IntRange(from = 1) int remoteId) {
-
-        if ((userId <= 0) || (remoteId <= 0)) {
-            throw new IllegalArgumentException(String.format("Error @ updateOneItem: userId = %s, remoteId = %s.",
-                    userId,
-                    remoteId));
-        }
-        return new ReadLaterCloudApi().updateItemOnServer(userId, remoteId, item);
-
     }
 
     /** Проверяет, запущена ли синхронизация.

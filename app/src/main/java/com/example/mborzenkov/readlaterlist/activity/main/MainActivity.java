@@ -45,8 +45,9 @@ import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerF
 import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemFragmentActions;
 import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemViewPagerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
-import com.example.mborzenkov.readlaterlist.fragments.sync.SyncAsyncTask;
+import com.example.mborzenkov.readlaterlist.fragments.sync.SyncCallback;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncFragment;
+import com.example.mborzenkov.readlaterlist.networking.ReadLaterCloudApi;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
 import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
 import com.example.mborzenkov.readlaterlist.utility.LongTaskNotifications;
@@ -58,7 +59,7 @@ import java.util.List;
 
 /** Главная Activity, представляющая собой список. */
 public class MainActivity extends AppCompatActivity implements
-        SyncAsyncTask.SyncCallback,
+        SyncCallback,
         ConflictsFragment.ConflictsCallback,
         ItemListFragment.ItemListCallbacks,
         EditItemFragmentActions.EditItemCallbacks,
@@ -274,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements
                 @Override
                 public void run() {
                     final int userId = UserInfoUtils.getCurentUser(MainActivity.this).getUserId();
-                    if (mSyncFragment.updateOneItem(item, userId, remoteId)) {
+                    if (new ReadLaterCloudApi().updateItemOnServer(userId, remoteId, item)) {
                         ReadLaterDbUtils.updateItem(MainActivity.this, item, userId, remoteId);
                     }
                 }

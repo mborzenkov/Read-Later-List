@@ -2,6 +2,10 @@ package com.example.mborzenkov.readlaterlist.fragments.filterdrawer;
 
 import android.app.DatePickerDialog;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.DrawableContainer;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -17,6 +21,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
@@ -31,6 +36,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /** Фрагмент, представляющий собой Drawer с фильтрами.
  * Оповещает о выборе нового пользователя и о нажатиях на кнопки.
@@ -281,8 +287,8 @@ public class FilterDrawerFragment extends Fragment {
                 mViewHolder.mDateToEditText.setVisibility(View.VISIBLE);
                 break;
         }
-        favColors = FavoriteColorsUtils.updateFavLayoutFromSharedPreferences(getContext(), mViewHolder.mFavLinearLayout,
-                null, new View.OnClickListener() {
+        favColors = updateFavLayoutFromSharedPreferences(getContext(), mViewHolder.mFavLinearLayout,
+                new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         onFavoriteColorClickListener(v);
@@ -572,6 +578,44 @@ public class FilterDrawerFragment extends Fragment {
             mViewHolder.mSavedFiltersSpinner.setSelection(MainListFilterUtils.getIndexSavedCurrent());
         }
         resetSavedFilterSelection();
+    }
+
+    /** Обновляет layout с любимыми кругами на основании данных в Shared Preferences.
+     *
+     * @param context Контекст
+     * @param layout Layout
+     * @param clickListener Ссылка на OnClickListener, который устанавливается для кругов
+     * @param colorFilter Фильтр цвета, если указан, то круги будут помечены .active
+     * @return Список любимых цветов, как getFavoriteColorsFromSharedPreferences(...)
+     */
+    public static int[] updateFavLayoutFromSharedPreferences(Context context,
+                                                             LinearLayout layout,
+                                                             @Nullable View.OnClickListener clickListener,
+                                                             @Nullable Set<Integer> colorFilter) {
+
+        int[] result = FavoriteColorsUtils.getFavoriteColorsFromSharedPreferences(context, null);
+
+        for (int i = 0; i < result.length; i++) {
+            int savedColor = result[i];
+            View favCircle = layout.getChildAt(i).findViewById(R.id.imageButton_favorite_color);
+            if (savedColor != Color.TRANSPARENT) {
+                Drawable[] children = ((DrawableContainer.DrawableContainerState) (
+                        favCircle.getBackground()).getConstantState()).getChildren();
+                ((GradientDrawable) children[0]).setColor(savedColor);
+                ((GradientDrawable) children[1]).setColor(savedColor);
+                ((GradientDrawable) children[2]).setColor(savedColor);
+                favCircle.setOnClickListener(clickListener);
+                favCircle.setClickable(true);
+                if (colorFilter != null) {
+                    favCircle.setActivated(colorFilter.contains(savedColor));
+                }
+            } else {
+                favCircle.setOnClickListener(null);
+                favCircle.setClickable(false);
+                favCircle.setActivated(false);
+            }
+        }
+        return result;
     }
 
 }

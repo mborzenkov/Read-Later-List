@@ -1,8 +1,10 @@
 package com.example.mborzenkov.readlaterlist.fragments.filterdrawer;
 
 import android.content.Context;
+import android.graphics.drawable.StateListDrawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -118,7 +120,7 @@ class FilterDrawerViewHolder {
         mDateToEditText.setTag(zeroLong);
 
         // Добавляем Favorites на Drawer Layout
-        FavoriteColorsUtils.inflateFavLayout(context, inflater, mFavLinearLayout);
+        inflateFavLayout(context, inflater, mFavLinearLayout);
 
         // Инициализируем кнопки SortBy
         mSortByManualOrderButton.setTag(MainListFilter.SortType.MANUAL);
@@ -243,6 +245,38 @@ class FilterDrawerViewHolder {
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) { }
         });
+
+    }
+
+    /** Добавляет Favorite кружки на layout.
+     *
+     * @param context контекст
+     * @param inflater инфлейтер для инфлейтинга
+     * @param layout Layout, в котором должны быть кружки
+     */
+    public static void inflateFavLayout(@NonNull Context context,
+                                        @NonNull LayoutInflater inflater,
+                                        @NonNull LinearLayout layout) {
+
+        final int maxFavorites = FavoriteColorsUtils.getMaxFavorites(context);
+
+        for (int i = 0; i < maxFavorites; i++) {
+            StateListDrawable circle =
+                    (StateListDrawable) ContextCompat.getDrawable(context, R.drawable.circle_default);
+            View favCircle = inflater.inflate(R.layout.fragment_drawer_filter_favorites, layout, false);
+            View circleButton = favCircle.findViewById(R.id.imageButton_favorite_color);
+            circleButton.setBackground(circle);
+            circleButton.setTag(i);
+
+            // + Видимо activated состояние получается не сразу при инфлейтинге, по какой то причине цвет потом
+            // не соответствует. Этот костыль позволяет добиться желаемого результата, но нужно поправить
+            // на более элегантное решение.
+            circleButton.setActivated(true);
+            circleButton.setActivated(false);
+            // -
+
+            layout.addView(favCircle);
+        }
 
     }
 
