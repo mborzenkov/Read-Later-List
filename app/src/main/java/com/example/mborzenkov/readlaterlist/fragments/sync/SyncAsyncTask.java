@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.Size;
 import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.adt.Conflict;
@@ -27,7 +26,7 @@ import java.util.Locale;
  *  Необходимо избегать вызова операций на основном потоке, если методы вызываются без AsyncTask.
  *  Методы могут вызывать NetworkOnMainThreadException если вызвана операция на основном потоке
  */
-public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResult> {
+class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResult> {
 
     // Тэги и тексты ошибок
     private static final String TAG_ERROR_NETWORK   = "Network Error";
@@ -35,55 +34,12 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
 
     private static final String ERROR_NETWORK       = "Network not connected";
 
-    /** Колбек для оповещений о результатах синхронизации. */
-    public interface SyncCallback {
-
-        /** Ключ для даты последней синхронизации в SharedPreferences.
-         *  Под этим ключем хранятся связи String-Long,
-         *      где ключ - идентификатор пользоватля, значение - дата и время последней синхронизации как timestamp
-         */
-        String LAST_SYNC_KEY = "com.example.mborzenkov.mainlist.sync.lastsync";
-
-        /** Проверяет, доступно ли подключение к интернету.
-         *
-         * @return true - если доступно, иначе false
-         */
-        boolean isNetworkConnected();
-
-        /** Возвращает дату последней синхронизации из SharedPreferences.
-         *
-         * @return дата последней синхронизации в формате timestamp или 0, если синхронизаций еще не было
-         */
-        long getLastSync();
-
-        /** Возвращает контекст приложения.
-         *
-         * @return контекст приложения
-         */
-        @NonNull Context getApplicationContext();
-
-        /** Вызывается, если синхронизация завершилась с ошибкой. */
-        void onSyncFailed();
-
-        /** Вызывается, если синхронизация завершилась успешно, без конфликтов.
-         *
-         * @param syncStartTime дата начала синхронизации для обновления даты последней синхронизации
-         */
-        void onSyncSuccess(long syncStartTime);
-
-        /** Выдыватеся, если синхронизация завершилась успешно, но с конфликтами.
-         *
-         * @param conflicts непустой список конфликтов
-         * @param syncStartTime дата начала синхронизации для обновления даты последней синхронизации
-         */
-        void onSyncWithConflicts(@NonNull @Size(min = 1) List<Conflict> conflicts, long syncStartTime);
-
-    }
-
 
     /////////////////////////
     // AsyncTask
 
+    /** Интерфейс сервера для обращений. */
+    private final ReadLaterCloudApi mCloudApi;
     /** Callback для оповещений о результатах синхронизации. */
     private @Nullable SyncCallback mSyncCallback;
     /** Дата последней синхронизации. */
@@ -91,8 +47,17 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
     /** Дата начала синхронизации. */
     private long syncStartTime = 0;
 
-    SyncAsyncTask(@Nullable SyncCallback callback) {
+    /** Создает новый AsyncTask.
+     *
+     * @param callback интерфейс для оповещения о результатах выполнения и получения необходимой в процессе информации
+     * @param cloudAPi API для связи с сервером, не null
+     *
+     * @throws NullPointerException если cloudApi == null
+     */
+    SyncAsyncTask(@Nullable SyncCallback callback, @NonNull ReadLaterCloudApi cloudAPi) {
+        cloudAPi.getClass(); // NPE
         mSyncCallback = callback;
+        mCloudApi = cloudAPi;
     }
 
     /** Устанавливает колбек для этого таска.
@@ -164,7 +129,6 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
 
         // Запоминаем дату начала синхронизации, контекст приложения (для бд), объект для доступа к API и тек. польз.
         final Context appContext = mSyncCallback.getApplicationContext();
-        final ReadLaterCloudApi cloudApi = new ReadLaterCloudApi();
         final int userId = UserInfoUtils.getCurentUser(appContext).getUserId();
 
         // Список всех идентификаторов заметок на сервере
@@ -172,7 +136,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
         List<Conflict> conflicts = new ArrayList<>();
         {
             // Получили список всех заметок с сервера, сохранили
-            List<ReadLaterItem> itemsOnServer = cloudApi.getAllItemsOnServer(userId);
+            List<ReadLaterItem> itemsOnServer = mCloudApi.getAllItemsOnServer(userId);
             if (itemsOnServer == null) {
                 return new SyncResult();
             }
@@ -212,7 +176,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
                                     itemBuilder.dateViewed(Math.max(
                                             itemLocal.getDateViewed(), itemServer.getDateViewed()));
                                     ReadLaterItem savingItem = itemBuilder.build();
-                                    cloudApi.updateItemOnServer(userId, remoteId, savingItem);
+                                    mCloudApi.updateItemOnServer(userId, remoteId, savingItem);
                                     ReadLaterDbUtils.updateItem(appContext, savingItem, userId, remoteId);
                                     Log.d(TAG_SYNC, "Auto merge: " + remoteId + ", item: " + itemServer.toString());
                                 }
@@ -223,7 +187,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
                             if (itemLocal == null) {
                                 // Server: есть, без изм.; Local: нет
                                 Log.d(TAG_SYNC, "Deleting Server: " + remoteId);
-                                if (!cloudApi.deleteItemOnServer(userId, remoteId)) {
+                                if (!mCloudApi.deleteItemOnServer(userId, remoteId)) {
                                     return new SyncResult();
                                 }
                             } else if (itemLocal.getDateModified() <= lastSync)  {
@@ -235,7 +199,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
                                 Log.d(TAG_SYNC, "Updating Server: " + itemLocal.toString());
                                 ReadLaterItem.Builder itemBuilder = new ReadLaterItem.Builder(itemLocal);
                                 itemBuilder.dateModified(System.currentTimeMillis());
-                                if (!cloudApi.updateItemOnServer(userId, remoteId, itemBuilder.build())) {
+                                if (!mCloudApi.updateItemOnServer(userId, remoteId, itemBuilder.build())) {
                                     return new SyncResult();
                                 }
                             }
@@ -276,7 +240,7 @@ public class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResul
                         itemBuilder.dateModified(System.currentTimeMillis());
                         ReadLaterItem savingItem = itemBuilder.build();
                         Log.d(TAG_SYNC, "Inserting Server: " + savingItem.toString());
-                        Integer newRemoteId = cloudApi.insertItemOnServer(userId, savingItem);
+                        Integer newRemoteId = mCloudApi.insertItemOnServer(userId, savingItem);
                         if (newRemoteId == null) {
                             return new SyncResult();
                         }

@@ -10,7 +10,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
-import com.example.mborzenkov.readlaterlist.fragments.sync.SyncAsyncTask.SyncCallback;
 import com.example.mborzenkov.readlaterlist.networking.ReadLaterCloudApi;
 
 /** Фрагмент для фоновой синхронизации с Cloud API. */
@@ -119,7 +118,7 @@ public class SyncFragment extends Fragment {
 
         // Устанавливаем индикатор запущенной синхронизации
         syncInAction = true;
-        mSyncTask = new SyncAsyncTask(mSyncCallback);
+        mSyncTask = new SyncAsyncTask(mSyncCallback, new ReadLaterCloudApi());
         mSyncTask.execute();
 
     }

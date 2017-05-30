@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.networking;
+package com.example.mborzenkov.readlaterlist.fragments.sync;
 
 import android.content.UriMatcher;
 import android.net.Uri;
@@ -19,7 +19,7 @@ import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.RecordedRequest;
 
-/** Класс {@link Dispatcher} для обработки запросов к fake-серверу.
+/** Класс {@link okhttp3.mockwebserver.Dispatcher} для обработки запросов к fake-серверу.
  */
 class CloudApiMockDispatcher extends Dispatcher {
 
@@ -146,12 +146,12 @@ class CloudApiMockDispatcher extends Dispatcher {
      *
      * @return true, если у указанного пользователя существует заметка с указанным id
      */
-    boolean isValidItemId(@IntRange(from = 0) int userId, int itemId) {
-        if (itemId < 0) {
+    private boolean isValidItemId(@IntRange(from = 0) int userId, int itemId) {
+        if (itemId <= 0) {
             return false;
         }
         List<ReadLaterItem> items = mCurrentItems.get(userId, new ArrayList<ReadLaterItem>());
-        return !items.isEmpty() && (itemId < items.size());
+        return !items.isEmpty() && (itemId <= items.size());
     }
 
     /** Возвращает список всех заметок в формате Json для указанного пользователя.
@@ -170,17 +170,17 @@ class CloudApiMockDispatcher extends Dispatcher {
     /** Возвращает заметку в формате JSon с указанным id, принадлежащую указанному пользователю.
      *
      * @param userId идентификатор пользователя, > 0
-     * @param itemId идентификатор заметки, >= 0 и < items.size() для указанного пользователя
+     * @param itemId идентификатор заметки, > 0 и <= items.size() для указанного пользователя
      *
      * @return строка в формате Json с заметкой
      *
-     * @throws IndexOutOfBoundsException если itemId < 0 или >= items.size() для указанного пользователя
+     * @throws IndexOutOfBoundsException если itemId <= 0 или > items.size() для указанного пользователя
      */
     private @NonNull String getItemJson(@IntRange(from = 0) int userId, @IntRange(from = 0) int itemId) {
         Moshi moshi = new Moshi.Builder().add(new ReadLaterItemJsonAdapter()).build();
         JsonAdapter<ReadLaterItem> jsonAdapter = moshi.adapter(ReadLaterItem.class);
         List<ReadLaterItem> items = mCurrentItems.get(userId, new ArrayList<ReadLaterItem>());
-        return jsonAdapter.toJson(items.get(itemId));
+        return jsonAdapter.toJson(items.get(itemId - 1));
     }
 
     /** Добавляет новую заметку для указанному пользователя.
@@ -189,13 +189,13 @@ class CloudApiMockDispatcher extends Dispatcher {
      * @param userId идентификатор пользователя, > 0
      * @param item заметка для добавления
      *
-     * @return идентификатор заметки (items.size() - 1)
+     * @return идентификатор заметки (items.size())
      *
      * @throws NullPointerException если item == null
      */
     private int insertItem(@IntRange(from = 0) int userId, @NonNull ReadLaterItem item) {
         List<ReadLaterItem> items = mCurrentItems.get(userId, new ArrayList<ReadLaterItem>());
-        final int newItemId = items.size();
+        final int newItemId = items.size() + 1;
         items.add(new ReadLaterItem.Builder(item).remoteId(newItemId).build());
         mCurrentItems.put(userId, items);
         return newItemId;
@@ -204,10 +204,10 @@ class CloudApiMockDispatcher extends Dispatcher {
     /** Заменяет заметку с указанным id на новую, принадлежащую указанному пользователю.
      *
      * @param userId идентификатор пользователя, > 0
-     * @param itemId идентификатор заметки, >= 0 и < items.size() для указанного пользователя
+     * @param itemId идентификатор заметки, > 0 и <= items.size() для указанного пользователя
      * @param item новая заметка
      *
-     * @throws IndexOutOfBoundsException если itemId < 0 или >= items.size() для указанного пользователя
+     * @throws IndexOutOfBoundsException если itemId <= 0 или > items.size() для указанного пользователя
      * @throws NullPointerException если item == null
      */
     private void updateItem(@IntRange(from = 0) int userId,
@@ -215,19 +215,19 @@ class CloudApiMockDispatcher extends Dispatcher {
                             @NonNull ReadLaterItem item) {
 
         List<ReadLaterItem> items = mCurrentItems.get(userId, new ArrayList<ReadLaterItem>());
-        items.set(itemId, item);
+        items.set(itemId - 1, item);
     }
 
     /** Удаляет заметку с указанным id, принадлежащую указанному пользователю
      *
      * @param userId идентификатор пользователя, > 0
-     * @param itemId идентификатор заметки, >= 0 и < items.size() для указанного пользователя
+     * @param itemId идентификатор заметки, > 0 и <= items.size() для указанного пользователя
      *
-     * @throws IndexOutOfBoundsException если itemId < 0 или >= items.size() для указанного пользователя
+     * @throws IndexOutOfBoundsException если itemId <= 0 или > items.size() для указанного пользователя
      */
     private void removeItem(@IntRange(from = 0) int userId, @IntRange(from = 0) int itemId) {
         List<ReadLaterItem> items = mCurrentItems.get(userId, new ArrayList<ReadLaterItem>());
-        items.remove(itemId);
+        items.remove(itemId - 1);
     }
 
     /** Dispatcher который всегда возвращает пустой MockResponse. */

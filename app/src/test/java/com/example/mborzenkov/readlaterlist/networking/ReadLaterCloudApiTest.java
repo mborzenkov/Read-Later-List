@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowLog;
 
 import java.io.IOException;
 import java.util.List;
@@ -50,7 +49,7 @@ public class ReadLaterCloudApiTest {
         mServer.start();
         mServerUrl = mServer.url("");
         mServer.setDispatcher(new CloudApiMockDispatcher(mServerUrl.host() + ":" + mServerUrl.port()));
-        ShadowLog.stream = System.out; // TODO: comment this
+        // ShadowLog.stream = System.out; // Раскомментируйте строчку для вывода в лог всех обращений
     }
 
     @After
