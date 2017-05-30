@@ -4,6 +4,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
@@ -30,13 +32,20 @@ public class ReadLaterDbUtils {
     }
 
     /** Возвращает заметку с указанным remoteId.
+     * Если заметок с указанным remoteId больше одной, случайную из них.
      *
-     * @param context контекст
-     * @param userId идентификатор пользователя
-     * @param remoteId внешний идентификатор заметки
+     * @param context контекст, не null
+     * @param userId идентификатор пользователя, >= 0
+     * @param remoteId внешний идентификатор заметки, >= 0
+     *
      * @return заметка с указанным remoteId у указанного пользователя или null, если такой нет
+     *
+     * @throws NullPointerException если context == null
+     * @throws UnsupportedOperationException если remoteId < 0 или userId < 0
      */
-    public static @Nullable ReadLaterItem getItemByRemoteId(Context context, int userId, int remoteId) {
+    public static @Nullable ReadLaterItem getItemByRemoteId(@NonNull Context context,
+                                                            @IntRange(from = 0) int userId,
+                                                            @IntRange(from = 0) int remoteId) {
         ReadLaterItem result = null;
         Cursor queryCursor = context.getContentResolver().query(
                 ReadLaterEntry.buildUriForRemoteId(remoteId),
@@ -57,13 +66,18 @@ public class ReadLaterDbUtils {
 
     /** Возвращает _id для заметки с указанным remoteId.
      *
-     * @param context контекст
-     * @param userId идентификатор пользователя
-     * @param remoteId внешний идентификатор заметки
-     * @return _id для заметки с указанным remoteId или -1, если у указанного пользователя нет заметки с указанным
-     *                  remoteId
+     * @param context контекст, не null
+     * @param userId идентификатор пользователя, >= 0
+     * @param remoteId внешний идентификатор заметки, >= 0
+     *
+     * @return _id для заметки с указанным remoteId или -1, если у пользователя нет заметки с указанным remoteId
+     *
+     * @throws NullPointerException если context == null
+     * @throws UnsupportedOperationException если remoteId < 0 или userId < 0
      */
-    private static int getItemLocalIdByRemoteId(Context context, int userId, int remoteId) {
+    private static int getItemLocalIdByRemoteId(@NonNull Context context,
+                                                @IntRange(from = 0) int userId,
+                                                @IntRange(from = 0) int remoteId) {
         Cursor queryCursor = context.getContentResolver().query(
                 ReadLaterEntry.buildUriForRemoteId(remoteId),
                 null,
@@ -85,11 +99,16 @@ public class ReadLaterDbUtils {
     /** Возвращает Cursor со всеми заметками указанного пользователя.
      *  После окончания работы с курсором его необходимо закрыть.
      *
-     * @param context контекст
-     * @param userId идентификатор пользователя
+     * @param context контекст, не null
+     * @param userId идентификатор пользователя, >= 0
+     *
      * @return курсор со всеми заметками указанного пользователя
+     *
+     * @throws NullPointerException если context == null
+     * @throws UnsupportedOperationException если userId < 0
      */
-    public static @Nullable Cursor queryAllItems(Context context, int userId) {
+    public static @Nullable Cursor queryAllItems(@NonNull Context context,
+                                                 @IntRange(from = 0) int userId) {
         return context.getContentResolver().query(
                 ReadLaterEntry.CONTENT_URI,
                 null,
@@ -99,25 +118,29 @@ public class ReadLaterDbUtils {
     }
 
     /** Добавляет новый элемент в базу данных.
+     * Элемент добавляется с USER_ID = UserInfoUtiils.getCurrentUser().getUserId().
      *
-     * @param context Контекст
-     * @param item Элемент в виде ReadLaterItem
-     * @return True, если добавление было выполнено успешно
+     * @param context Контекст, не null
+     * @param item Объект ReadLaterItem, не null
+     *
+     * @throws NullPointerException если context == null или item == null
      */
-    public static boolean insertItem(Context context, ReadLaterItem item) {
+    public static void insertItem(@NonNull Context context, @NonNull ReadLaterItem item) {
         ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentValues contentValues = dbAdapter.contentValuesFromItem(item);
         contentValues.put(ReadLaterEntry.COLUMN_USER_ID, UserInfoUtils.getCurentUser(context).getUserId());
-        Uri uri = context.getContentResolver().insert(ReadLaterEntry.CONTENT_URI, contentValues);
-        return uri != null;
+        context.getContentResolver().insert(ReadLaterEntry.CONTENT_URI, contentValues);
     }
 
     /** Производит массовое добавление данных. При этом все даты задаются равными текущему времени.
+     * Данные добавляются с USER_ID = UserInfoUtiils.getCurrentUser().getUserId().
      *
-     * @param context Контекст
-     * @param itemList Данные в формате ReadLaterItem.
+     * @param context Контекст, не null
+     * @param itemList Список с объектами ReadLaterItem, не null
+     *
+     * @throws NullPointerException если context == null или itemList == null
      */
-    public static void bulkInsertItems(Context context, List<ReadLaterItem> itemList) {
+    public static void bulkInsertItems(Context context, @NonNull List<ReadLaterItem> itemList) {
         final int currentUser = UserInfoUtils.getCurentUser(context).getUserId();
         ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentValues[] values = new ContentValues[itemList.size()];
@@ -130,99 +153,112 @@ public class ReadLaterDbUtils {
 
     /** Обновляет заметку с указанным remoteId.
      *
-     * @param context контекст
-     * @param item заметка с содержимым, которое нужно положить на место обновляемой заметки
-     * @param userId идентификатор пользователя
-     * @param remoteId внешний идентификатор заметки
+     * @param context контекст, не null
+     * @param item заметка с содержимым, которое нужно положить на место обновляемой заметки, не null
+     * @param userId идентификатор пользователя, >= 0
+     * @param remoteId внешний идентификатор заметки, >= 0
      *
-     * @return true - если обновление прошло успешно, иначе false
+     * @throws NullPointerException если context == null или item == null
+     * @throws UnsupportedOperationException если remoteId < 0 или userId < 0
      */
-    public static boolean updateItem(Context context, ReadLaterItem item, int userId, int remoteId) {
+    public static void updateItem(@NonNull Context context,
+                                  @NonNull ReadLaterItem item,
+                                  @IntRange(from = 0) int userId,
+                                  @IntRange(from = 0) int remoteId) {
         int localId = getItemLocalIdByRemoteId(context, userId, remoteId);
         //noinspection SimplifiableIfStatement
         if (localId < 0) {
-            return false;
+            return;
         }
-        return updateItem(context, item, localId);
+        updateItem(context, item, localId);
     }
 
     /** Обновляет элемент в базе данных с uid.
      *
-     * @param context Контекст
-     * @param item Элемент в виде ReadLaterItem
-     * @param uid _id элемента для изменения
+     * @param context Контекст, не null
+     * @param item Элемент в виде ReadLaterItem, не null
+     * @param uid _id элемента для изменения, >= 0
      *
-     * @return True, если изменение было выполнено успешно
+     * @throws NullPointerException если context == null или item == null
+     * @throws UnsupportedOperationException если uid < 0
      */
-    public static boolean updateItem(Context context, ReadLaterItem item, int uid) {
+    public static void updateItem(@NonNull Context context, @NonNull ReadLaterItem item, @IntRange(from = 0) int uid) {
         ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentValues contentValues = dbAdapter.contentValuesFromItem(item);
-        int updated = context.getContentResolver()
-                .update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
-        return updated > 0;
+        context.getContentResolver().update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
     }
 
     /** Обновляет дату просмотра элемента в базе данных с uid.
      *
-     * @param context Контекст
-     * @param uid _id элемента для изменения
-     * @return True, если изменение было выполнено успешно
+     * @param context Контекст, не null
+     * @param uid _id элемента для изменения, >= 0
+     *
+     * @throws NullPointerException если context == null
+     * @throws UnsupportedOperationException если uid < 0
      */
-    @SuppressWarnings("UnusedReturnValue")
-    public static boolean updateItemViewDate(Context context, int uid) {
+    public static void updateItemViewDate(@NonNull Context context, @IntRange(from = 0) int uid) {
         final long currentTime = System.currentTimeMillis();
         ContentValues contentValues = new ContentValues();
         contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
-        int updated = context.getContentResolver()
-                .update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
-        return updated > 0;
+        context.getContentResolver().update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
     }
 
     /** Обновляет внешний идентификатор заметки с указанным _id.
      *
-     * @param context контекст
-     * @param uid внутренний идентификатор заметки
-     * @param remoteId внешний идентификатор заметки
-     * @return true - если обновление прошло успешно, иначе false
+     * @param context контекст, не null
+     * @param uid внутренний идентификатор заметки, >= 0
+     * @param remoteId внешний идентификатор заметки, >= 0
+     *
+     * @throws NullPointerException если context == null
+     * @throws UnsupportedOperationException если remoteId < 0 или uid < 0
      */
-    public static boolean updateItemRemoteId(Context context, int uid, int remoteId) {
+    public static void updateItemRemoteId(@NonNull Context context,
+                                          @IntRange(from = 0) int uid,
+                                          @IntRange(from = 0) int remoteId) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(ReadLaterEntry.COLUMN_REMOTE_ID, remoteId);
-        int updated = context.getContentResolver()
-                .update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
-        return updated > 0;
+        context.getContentResolver().update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
     }
 
 
     /** Производит удаление объекта из базы.
      *
-     * @param context Контекст
-     * @param uid Уникальный id объекта
-     * @return true, если удаление выполнено успешно
+     * @param context Контекст, не null
+     * @param uid Уникальный id объекта, >= 0
+     *
+     * @throws NullPointerException если context == null
+     * @throws UnsupportedOperationException если uid < 0
      */
-    public static boolean deleteItem(Context context, int uid) {
-        return context.getContentResolver()
-                .delete(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), null, null) > 0;
+    public static void deleteItem(@NonNull Context context, @IntRange(from = 0) int uid) {
+        context.getContentResolver().delete(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), null, null);
     }
 
-    /** Производит удаление всех данных из базы.
+    /** Производит удаление всех данных из базы для всех пользователей.
      *
-     * @param context Контекст
+     * @param context Контекст, не null
+     *
+     * @throws NullPointerException если context == null
      */
-    public static void deleteAll(Context context) {
+    public static void deleteAll(@NonNull Context context) {
         context.getContentResolver()
                 .delete(ReadLaterEntry.CONTENT_URI, null, null);
     }
 
     /** Выполяняет запрос count количества данных из базы с from позиции.
-     *  После окончания работы с курсором его необходимо закрыть.
+     * Данные возвращаются для текущего пользователя, UserInfoUtiils.getCurrentUser().getUserId().
+     * После окончания работы с курсором его необходимо закрыть.
      *
-     * @param context контекст
-     * @param from начало, с которого запрашивать данные
-     * @param count колчичество
+     * @param context контекст, не null
+     * @param from начало, с которого запрашивать данные, >= 0
+     * @param count колчичество, >= 0
+     *
      * @return курсор, указывающий на данные
+     *
+     * @throws NullPointerException если context == null
      */
-    public static Cursor queryRange(Context context, int from, int count) {
+    public static Cursor queryRange(@NonNull Context context,
+                                    @IntRange(from = 0) int from,
+                                    @IntRange(from = 0) int count) {
         return context.getContentResolver().query(
                 ReadLaterContract.ReadLaterEntry.CONTENT_URI,
                 null,
@@ -233,11 +269,17 @@ public class ReadLaterDbUtils {
 
     /** Устанавливает позицию у элемента, изменяя позиции всех промежуточных элементов.
      *
-     * @param context контекст для обращения к контент провайдеру
-     * @param itemLocalId внутренний идентификатор элемента
-     * @param newPosition новая позиция элемента, item_order
+     * @param context контекст для обращения к контент провайдеру, не null
+     * @param itemLocalId внутренний идентификатор элемента, >= 0
+     * @param newPosition новая позиция элемента, item_order, >= 0
+     *
+     * @throws NullPointerException если context == null
+     * @throws UnsupportedOperationException если itemLocalId < 0 или newPosition < 0
+     * @throws IllegalArgumentException если newPosition > MAX среди заметок пользователя
      */
-    public static void changeItemOrder(Context context, int itemLocalId, int newPosition) {
+    public static void changeItemOrder(@NonNull Context context,
+                                       @IntRange(from = 0) int itemLocalId,
+                                       @IntRange(from = 0) int newPosition) {
         context.getContentResolver()
                 .update(ReadLaterEntry.buildUriForUpdateOrder(itemLocalId, newPosition), null, null, null);
     }
