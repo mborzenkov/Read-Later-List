@@ -12,6 +12,7 @@ import com.squareup.moshi.Moshi;
 import java.io.IOException;
 import java.util.List;
 
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -28,9 +29,11 @@ public class ReadLaterCloudApi {
     private static final String TAG_ERROR_CLOUD     = "CloudApi Error";
 
     private static final String ERROR_IO            = "IO error %s: %s, user: %s, remoteId: %s";
-    private static final String ERROR_NULLPOINTER   = "Null response error %s: %s, user: %s, remoteId: %s";
-    private static final String ERROR_NULL_RESPONSE = "No response error %s, user: %s, remoteId: %s";
+    private static final String ERROR_NULL_RESPONSE = "NULL response body error %s, user: %s, remoteId: %s";
     private static final String ERORR_FAIL_RESPONSE = "Fail response %s /w error: %s, user: %s, remoteId: %s";
+    private static final String ERROR_NO_STATUS_RESPONSE = "Malformed response (no status) %s, user: %s. remoteId: %s";
+    private static final String ERROR_NO_DATA_RESPONSE = "Malformed response (no data) %s, user: %s. remoteId: %s";
+    private static final String ERROR_NO_ERROR_RESPONSE = "Malformed fail response (no err) %s, user: %s. remoteId: %s";
 
 
     /////////////////////////
@@ -43,19 +46,32 @@ public class ReadLaterCloudApi {
      * Устанавливает логирование запросов, если BuildConfig.DEBUG.
      */
     public ReadLaterCloudApi() {
-        mCloudApi = prepareApi();
+        mCloudApi = prepareApi(null);
+    }
+
+    /** Создает новый объект для синхронизации объектов ReadLaterItem с сервером (с явно указанным адресом).
+     * Устанавливает логирование запросов, если BuildConfig.DEBUG.
+     *
+     * @param baseUrl адрес для подключения
+     *
+     * @throws NullPointerException если baseUrl == null
+     */
+    public ReadLaterCloudApi(@NonNull HttpUrl baseUrl) {
+        mCloudApi = prepareApi(baseUrl);
     }
 
     /** Подготавливает API для синхронизации.
      * Устанавливает логирование запросов, если BuildConfig.DEBUG.
      *
+     * @param baseUrl адрес для подключения или null, если используется адрес по умолчанию
+     *
      * @return API для синхронизации
      */
-    private CloudApiYufimtsev prepareApi() {
+    private CloudApiYufimtsev prepareApi(@Nullable HttpUrl baseUrl) {
         // Подготавливаем Retrofit к получению данных и Moshi к обработке данных
         Moshi moshi = new Moshi.Builder().add(new ReadLaterItemJsonAdapter()).build();
         Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
-                .baseUrl(CloudApiYufimtsev.BASE_URL)
+                .baseUrl(baseUrl == null ? CloudApiYufimtsev.BASE_URL : baseUrl)
                 .addConverterFactory(MoshiConverterFactory.create(moshi));
 
         // Устанавливаем логирование запросов, если дебаг
@@ -80,24 +96,34 @@ public class ReadLaterCloudApi {
      * @throws android.os.NetworkOnMainThreadException если исполняется в основном потоке
      */
     public @Nullable List<ReadLaterItem> getAllItemsOnServer(int userId) {
-        final String methodName = "getAll";
+        final String method = "getAll";
         final String remoteId = "all";
         CloudApiYufimtsev.AllItemsResponse response;
         try {
             response = mCloudApi.getAllItems(userId).execute().body();
         } catch (IOException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
-            return null;
-        } catch (NullPointerException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, method, e.toString(), userId, remoteId));
             return null;
         }
         if (response == null) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, method, userId, remoteId));
             return null;
-        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
+        } else if (response.status == null) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NO_STATUS_RESPONSE, method, userId, remoteId));
             return null;
+        } else if (response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
+            if (response.data == null) {
+                Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NO_DATA_RESPONSE, method, userId, remoteId));
+                return null;
+            }
+        } else {
+            if (response.error == null) {
+                Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NO_ERROR_RESPONSE, method, userId, remoteId));
+                return null;
+            } else {
+                Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, method, response.error, userId, remoteId));
+                return null;
+            }
         }
         return response.data;
     }
@@ -113,24 +139,34 @@ public class ReadLaterCloudApi {
      * @throws android.os.NetworkOnMainThreadException если исполняется в основном потоке
      */
     public @Nullable Integer insertItemOnServer(int userId, @NonNull ReadLaterItem item) {
-        final String methodName = "insert";
+        final String method = "insert";
         final String remoteId = "no";
         CloudApiYufimtsev.NewItemResponse response;
         try {
             response = mCloudApi.createItem(userId, item).execute().body();
         } catch (IOException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
-            return null;
-        } catch (NullPointerException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, method, e.toString(), userId, remoteId));
             return null;
         }
         if (response == null) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, method, userId, remoteId));
             return null;
-        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
+        } else if (response.status == null) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NO_STATUS_RESPONSE, method, userId, remoteId));
             return null;
+        } else if (response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
+            if (response.data == null) {
+                Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NO_DATA_RESPONSE, method, userId, remoteId));
+                return null;
+            }
+        } else {
+            if (response.error == null) {
+                Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NO_ERROR_RESPONSE, method, userId, remoteId));
+                return null;
+            } else {
+                Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, method, response.error, userId, remoteId));
+                return null;
+            }
         }
         return response.data;
     }
@@ -147,23 +183,28 @@ public class ReadLaterCloudApi {
      * @throws android.os.NetworkOnMainThreadException если исполняется в основном потоке
      */
     public boolean updateItemOnServer(int userId, int remoteId, @NonNull ReadLaterItem item) {
-        final String methodName = "update";
+        final String method = "update";
         CloudApiYufimtsev.DefaultResponse response;
         try {
             response = mCloudApi.updateItem(userId, remoteId, item).execute().body();
         } catch (IOException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
-            return false;
-        } catch (NullPointerException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, method, e.toString(), userId, remoteId));
             return false;
         }
         if (response == null) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, method, userId, remoteId));
             return false;
-        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
+        } else if (response.status == null) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NO_STATUS_RESPONSE, method, userId, remoteId));
             return false;
+        } else if (response.status.equals(CloudApiYufimtsev.STATUS_ERROR)) {
+            if (response.error == null) {
+                Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NO_ERROR_RESPONSE, method, userId, remoteId));
+                return false;
+            } else {
+                Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, method, response.error, userId, remoteId));
+                return false;
+            }
         }
         return true;
     }
@@ -179,23 +220,28 @@ public class ReadLaterCloudApi {
      * @throws android.os.NetworkOnMainThreadException если исполняется в основном потоке
      */
     public boolean deleteItemOnServer(int userId, int remoteId) {
-        final String methodName = "delete";
+        final String method = "delete";
         CloudApiYufimtsev.DefaultResponse response;
         try {
             response = mCloudApi.deleteItem(userId, remoteId).execute().body();
         } catch (IOException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, methodName, e.toString(), userId, remoteId));
-            return false;
-        } catch (NullPointerException e) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULLPOINTER, methodName, e.toString(), userId, remoteId));
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_IO, method, e.toString(), userId, remoteId));
             return false;
         }
         if (response == null) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, methodName, userId, remoteId));
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NULL_RESPONSE, method, userId, remoteId));
             return false;
-        } else if (!response.status.equals(CloudApiYufimtsev.STATUS_SUCCESS)) {
-            Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, methodName, response.error, userId, remoteId));
+        } else if (response.status == null) {
+            Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NO_STATUS_RESPONSE, method, userId, remoteId));
             return false;
+        } else if (response.status.equals(CloudApiYufimtsev.STATUS_ERROR)) {
+            if (response.error == null) {
+                Log.e(TAG_ERROR_CLOUD, String.format(ERROR_NO_ERROR_RESPONSE, method, userId, remoteId));
+                return false;
+            } else {
+                Log.e(TAG_ERROR_CLOUD, String.format(ERORR_FAIL_RESPONSE, method, response.error, userId, remoteId));
+                return false;
+            }
         }
         return true;
     }
