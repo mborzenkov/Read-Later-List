@@ -34,6 +34,8 @@ public class ReadLaterContentProvider extends ContentProvider {
     /** Запрос для максимального значения порядка. */
     private static final String QUERY_MAX_ORDER_POSITION =
             "SELECT MAX(" + ReadLaterEntry.COLUMN_ORDER + ") FROM " + ReadLaterEntry.TABLE_NAME;
+    /** Запрос для отдельного элемента по id. */
+    private static final String QUERY_ID = "_id=?";
 
     /** Матчер для сравнения запрашиваемых uri. */
     private static final UriMatcher sUriMatcher = buildUriMatcher();
@@ -99,7 +101,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                 cursor = mReadLaterDbHelper.getReadableDatabase().query(
                         ReadLaterEntry.TABLE_NAME,
                         projection,
-                        "_id=?",
+                        QUERY_ID,
                         id,
                         null,
                         null,
@@ -159,7 +161,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                 break;
             case CODE_READLATER_ITEMS_WITH_ID:
                 String[] id = new String[] {uri.getPathSegments().get(1)};
-                itemDeleted = db.delete(ReadLaterEntry.TABLE_NAME, "_id=?", id);
+                itemDeleted = db.delete(ReadLaterEntry.TABLE_NAME, QUERY_ID, id);
                 db.delete(ReadLaterEntry.TABLE_NAME_FTS, "docid=?", id);
                 break;
             default:
@@ -315,7 +317,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                 db.beginTransaction();
                 try {
                     // INSERT INTO TABLE_ITEMS
-                    itemUpdated = db.update(ReadLaterEntry.TABLE_NAME, values, "_id=?", new String[] { itemIdString });
+                    itemUpdated = db.update(ReadLaterEntry.TABLE_NAME, values, QUERY_ID, new String[] { itemIdString });
 
                     // INSERT INTO TABLE_FTS
                     boolean updateFts = false;
@@ -363,7 +365,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                     final String[] columnOrder = new String[] {ReadLaterEntry.COLUMN_ORDER};
 
                     // Позиция элемента itemId
-                    Cursor curPosCursor = db.query(ReadLaterEntry.TABLE_NAME, columnOrder, "_id=?",
+                    Cursor curPosCursor = db.query(ReadLaterEntry.TABLE_NAME, columnOrder, QUERY_ID,
                             new String[] { itemIdString }, null, null, null);
                     if (curPosCursor.moveToFirst()) {
                         final int oldPosition = curPosCursor.getInt(0);
@@ -376,7 +378,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                             ContentValues updateOrderVal = new ContentValues();
                             updateOrderVal.put(ReadLaterEntry.COLUMN_ORDER, newPosition);
                             db.update(ReadLaterEntry.TABLE_NAME,
-                                    updateOrderVal, "_id=?", new String[] { itemIdString });
+                                    updateOrderVal, QUERY_ID, new String[] { itemIdString });
                             itemUpdated = Math.abs(oldPosition - newPosition) + 1;
                         }
                     }

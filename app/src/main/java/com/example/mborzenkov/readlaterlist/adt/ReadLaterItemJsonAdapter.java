@@ -33,6 +33,9 @@ public class ReadLaterItemJsonAdapter {
     /** Размерность HEX. */
     private static final int HEX = 16;
 
+    /** Тэг ошибки разбора json. */
+    private static final String FROM_JSON_ERROR_TAG = "FROM_JSON";
+
     /** Конструктор по умолчанию. */
     public ReadLaterItemJsonAdapter() { }
 
@@ -89,25 +92,25 @@ public class ReadLaterItemJsonAdapter {
             }
             result = resultBuilder.build();
         } catch (ParseException e) {
-            Log.e("FROM_JSON", String.format("%s %s%n%s %s",
+            Log.e(FROM_JSON_ERROR_TAG, String.format("%s %s%n%s %s",
                     "dateFormatter.parse error:",
                     e.toString(),
                     "ReadLaterItemJson: ",
                     json.toString()));
         } catch (NumberFormatException e) {
-            Log.e("FROM_JSON", String.format("%s %s%n%s %s",
+            Log.e(FROM_JSON_ERROR_TAG, String.format("%s %s%n%s %s",
                     "color -> Integer error: ",
                     e.toString(),
                     "ReadLaterItemJson: ",
                     json.toString()));
-        } catch (NullPointerException e) {
-            Log.e("FROM_JSON", String.format("%s %s%n%s %s",
+        } catch (NullPointerException e) { // NPE тут может быть
+            Log.e(FROM_JSON_ERROR_TAG, String.format("%s %s%n%s %s",
                     "NULL in JSON error: ",
                     e.toString(),
                     "ReadLaterItemJson: ",
                     json.toString()));
         } catch (IllegalArgumentException e) {
-            Log.e("FROM_JSON", String.format("%s %s%n%s %s",
+            Log.e(FROM_JSON_ERROR_TAG, String.format("%s %s%n%s %s",
                     "JSON parse error: ",
                     e.toString(),
                     "ReadLaterItemJson: ",

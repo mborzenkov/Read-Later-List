@@ -48,6 +48,19 @@ public class MainListBackupUtils {
     /** Число процентов в нотификейшене для разбора и записи данных. */
     private static final int NOTIFICATION_PERCENTAGE_SAVE_DATA = 80;
 
+    /** Тэг для ошибки закрытия writer или reader. */
+    private static final String CLOSE_EXCEPTION = "Close exception";
+    /** Тэг для ошибки чтения. */
+    private static final String READ_EXCEPTION = "Read exception";
+    /** Тэг для ошибки записи. */
+    private static final String WRITE_EXCEPTION = "Write exception";
+    /** Тэг для ошибки доступа к External Storage. */
+    private static final String EXTERNAL_STORAGE_EXCEPTION = "Ex storage exception";
+    /** Тэг для ошибки создания папок. */
+    private static final String FOLDERS_CREATE_ERROR = "Folders creation fail";
+    /** Тэг для ошибки разбора. */
+    private static final String PARSE_EXCEPTION = "Parse exception";
+
     private static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
         @Override
         public boolean accept(File dir, String name) {
@@ -75,7 +88,7 @@ public class MainListBackupUtils {
 
             // Создаем папки, если их еще нет
             if (!backupFolder.exists() && !backupFolder.mkdirs()) {
-                Log.e("Folders creation fail", String.format(FORMAT_ERROR, "Не удалось создать папку",
+                Log.e(FOLDERS_CREATE_ERROR, String.format(FORMAT_ERROR, "Не удалось создать папку",
                         backupFolder.toString()));
                 return; // Не удалось создать папки
             }
@@ -117,7 +130,7 @@ public class MainListBackupUtils {
             }
 
         } else {
-            Log.e("EX storage exception", String.format(FORMAT_ERROR, "Ошибка доступа к хранилищу на запись, статус: ",
+            Log.e(EXTERNAL_STORAGE_EXCEPTION, String.format(FORMAT_ERROR, "Ошибка доступа к хранилищу на запись, статус: ",
                     externalStorageState));
         }
     }
@@ -180,13 +193,13 @@ public class MainListBackupUtils {
             outStream.flush();
             outStream.close();
         } catch (IOException e) {
-            Log.e("Write exception", String.format(FORMAT_ERROR, "Ошибка записи: ", e.toString()));
+            Log.e(WRITE_EXCEPTION, String.format(FORMAT_ERROR, "Ошибка записи: ", e.toString()));
         } finally {
             if (outWriter != null) {
                 try {
                     outWriter.close();
                 } catch (IOException e) {
-                    Log.e("Close exception", String.format(FORMAT_ERROR, "Не удалось закрыть outWriter: ",
+                    Log.e(CLOSE_EXCEPTION, String.format(FORMAT_ERROR, "Не удалось закрыть outWriter: ",
                             e.toString()));
                 }
             }
@@ -194,7 +207,7 @@ public class MainListBackupUtils {
                 try {
                     outStream.close();
                 } catch (IOException e) {
-                    Log.e("Close exception", String.format(FORMAT_ERROR, "Не удалось закрыть outStream: ",
+                    Log.e(CLOSE_EXCEPTION, String.format(FORMAT_ERROR, "Не удалось закрыть outStream: ",
                             e.toString()));
                 }
             }
@@ -274,7 +287,7 @@ public class MainListBackupUtils {
 
 
         } else {
-            Log.e("EX storage exception", String.format("%s %s", "Ошибка доступа к хранилищу на чтение, статус: ",
+            Log.e(EXTERNAL_STORAGE_EXCEPTION, String.format("%s %s", "Ошибка доступа к хранилищу на чтение, статус: ",
                     externalStorageState));
         }
 
@@ -310,15 +323,15 @@ public class MainListBackupUtils {
                 inStream.close();
                 result.add(stringBuilder.toString().trim());
             } catch (FileNotFoundException e) {
-                Log.e("Read exception", String.format(FORMAT_ERROR, "Файл не найден: ", e.toString()));
+                Log.e(READ_EXCEPTION, String.format(FORMAT_ERROR, "Файл не найден: ", e.toString()));
             } catch (IOException e) {
-                Log.e("Read exception", String.format(FORMAT_ERROR, "Ошибка чтения JSON: ", e.toString()));
+                Log.e(READ_EXCEPTION, String.format(FORMAT_ERROR, "Ошибка чтения JSON: ", e.toString()));
             } finally {
                 if (inStream != null) {
                     try {
                         inStream.close();
                     } catch (IOException e) {
-                        Log.e("Close exception", String.format(FORMAT_ERROR, "Не удалось закрыть inStream: ",
+                        Log.e(CLOSE_EXCEPTION, String.format(FORMAT_ERROR, "Не удалось закрыть inStream: ",
                                 e.toString()));
                     }
                 }
@@ -326,7 +339,7 @@ public class MainListBackupUtils {
                     try {
                         inReader.close();
                     } catch (IOException e) {
-                        Log.e("Close exception", String.format(FORMAT_ERROR, "Не удалось закрыть inReader: ",
+                        Log.e(CLOSE_EXCEPTION, String.format(FORMAT_ERROR, "Не удалось закрыть inReader: ",
                                 e.toString()));
                     }
                 }
@@ -367,7 +380,7 @@ public class MainListBackupUtils {
                 try {
                     restoredData = jsonAdapter.fromJson(json);
                 } catch (IOException e) {
-                    Log.e("Parse exception", String.format(FORMAT_ERROR, "Ошибка разбора файла: ", e.toString()));
+                    Log.e(PARSE_EXCEPTION, String.format(FORMAT_ERROR, "Ошибка разбора файла: ", e.toString()));
                 }
 
                 // restoredData может содержать null при ошибках разбора, нужно их исключить
