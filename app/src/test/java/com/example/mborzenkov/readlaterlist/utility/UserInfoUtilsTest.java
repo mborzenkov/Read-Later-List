@@ -20,7 +20,7 @@ public class UserInfoUtilsTest {
 
     // Запуск с покрытием:  ./gradlew jacocoTestReport
     // Отчет теста:         ${buildDir}/reports/tests/testDebugUnitTest/index.html
-    // Отчет покрытия:      ${buildDir}/reports/jacoco/jacocoTestReport/html/index.html
+    // Отчет покрытия:      ${buildDir}/reports/jacoco/html/index.html
 
     private static final int DEFAULT_USER_ID = 1005930;
     private static final int SECOND_USER_ID = 1;

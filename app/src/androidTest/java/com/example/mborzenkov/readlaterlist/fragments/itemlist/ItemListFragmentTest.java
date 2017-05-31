@@ -34,8 +34,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+/** Тестирует ItemListFragment. */
 @RunWith(AndroidJUnit4.class)
 public class ItemListFragmentTest {
+
+    // Запуск с покрытием:  ./gradlew jacocoTestReport
+    // Отчет теста:         ${buildDir}/reports/androidTests/connected/index.html
+    // Отчет покрытия:      ${buildDir}/reports/jacoco/jacocoTestReport/html/index.html
 
     private static final int ONSTART_SLEEP = 3000;
 

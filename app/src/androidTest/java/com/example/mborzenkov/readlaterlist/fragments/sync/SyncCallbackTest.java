@@ -12,6 +12,10 @@ import java.util.List;
 /** Класс для тестирования колбеков. */
 public class SyncCallbackTest implements SyncCallback {
 
+    // Запуск с покрытием:  ./gradlew jacocoTestReport
+    // Отчет теста:         ${buildDir}/reports/androidTests/connected/index.html
+    // Отчет покрытия:      ${buildDir}/reports/jacoco/jacocoTestReport/html/index.html
+
     /** Варианты колбеков. */
     public enum TaskResults { FAIL, SUCCESS, CONFLICT }
 

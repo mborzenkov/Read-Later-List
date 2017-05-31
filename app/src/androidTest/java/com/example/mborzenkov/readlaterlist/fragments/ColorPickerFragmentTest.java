@@ -34,8 +34,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+/** Тестирует ColorPickerFragment. */
 @RunWith(AndroidJUnit4.class)
 public class ColorPickerFragmentTest {
+
+    // Запуск с покрытием:  ./gradlew jacocoTestReport
+    // Отчет теста:         ${buildDir}/reports/androidTests/connected/index.html
+    // Отчет покрытия:      ${buildDir}/reports/jacoco/jacocoTestReport/html/index.html
 
     private static final int ONSTART_SLEEP = 2000;
     private static final int TAKE_A_NAP = 250;

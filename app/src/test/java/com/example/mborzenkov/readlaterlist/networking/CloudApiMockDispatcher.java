@@ -25,7 +25,7 @@ class CloudApiMockDispatcher extends Dispatcher {
 
     // Запуск с покрытием:  ./gradlew jacocoTestReport
     // Отчет теста:         ${buildDir}/reports/tests/testDebugUnitTest/index.html
-    // Отчет покрытия:      ${buildDir}/reports/jacoco/jacocoTestReport/html/index.html
+    // Отчет покрытия:      ${buildDir}/reports/jacoco/html/index.html
 
     // Константы
     private static final int CODE_ALL_NOTES = 100;

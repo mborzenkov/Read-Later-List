@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+/** Тестирует ReadLaterContentProvider. */
 @RunWith(AndroidJUnit4.class)
 @SuppressWarnings("FieldCanBeLocal") // Поля вынесены на уровень класса для улучшенной читаемости
 public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterContentProvider> {

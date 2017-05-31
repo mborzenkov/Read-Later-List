@@ -43,8 +43,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+/** Тестирует EditItemFragment. */
 @RunWith(AndroidJUnit4.class)
 public class EditItemFragmentTest {
+
+    // Запуск с покрытием:  ./gradlew jacocoTestReport
+    // Отчет теста:         ${buildDir}/reports/androidTests/connected/index.html
+    // Отчет покрытия:      ${buildDir}/reports/jacoco/jacocoTestReport/html/index.html
 
     private static final int ONSTART_SLEEP = 3000;
     private static final int AFTER_ADD_SLEEP = 3500;

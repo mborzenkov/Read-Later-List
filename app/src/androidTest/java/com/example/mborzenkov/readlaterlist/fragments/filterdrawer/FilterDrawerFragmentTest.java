@@ -52,9 +52,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+/** Тестирует FilterDrawerFragment. */
 @SuppressWarnings("unchecked")
 @RunWith(AndroidJUnit4.class)
 public class FilterDrawerFragmentTest {
+
+    // Запуск с покрытием:  ./gradlew jacocoTestReport
+    // Отчет теста:         ${buildDir}/reports/androidTests/connected/index.html
+    // Отчет покрытия:      ${buildDir}/reports/jacoco/jacocoTestReport/html/index.html
 
     private static final int ONSTART_SLEEP = 3000;
     private static final int AFTER_ADD_SLEEP = 3500;
