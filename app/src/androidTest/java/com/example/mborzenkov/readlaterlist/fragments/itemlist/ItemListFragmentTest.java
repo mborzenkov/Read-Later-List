@@ -14,6 +14,7 @@ import com.example.mborzenkov.readlaterlist.networking.DaggerCloudApiComponent;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,7 +43,7 @@ import static org.hamcrest.Matchers.allOf;
 public class ItemListFragmentTest {
 
     private static final int ONSTART_SLEEP = 2000;
-    private static final int AFTER_ADD_SLEEP = 5000;
+    private static final int AFTER_ADD_SLEEP = 3500;
 
     private static final int USER_ID = 1005930;
     private MockWebServer mServer = new MockWebServer();
@@ -55,13 +56,18 @@ public class ItemListFragmentTest {
     public void setUp() throws IOException {
         mServer.start();
         mServerUrl = mServer.url("");
-        mServer.setDispatcher(new CloudApiMockDispatcher(mServerUrl.host() + ":" + mServerUrl.port()));
+        mServer.setDispatcher(new CloudApiMockDispatcher.EmptyDispatcher());
         CloudApiComponent component = DaggerCloudApiComponent.builder()
                 .cloudApiModule(new CloudApiModule(mServerUrl)).build();
         MyApplication application = (MyApplication) mActivityTestRule.getActivity().getApplication();
         application.setCloudApiComponent(component);
         UserInfoUtils.changeCurrentUser(application, USER_ID);
         ReadLaterDbUtils.deleteAll(application);
+    }
+
+    @After
+    public void tearDown() throws IOException {
+        mServer.shutdown();
     }
 
     @Test
@@ -84,14 +90,6 @@ public class ItemListFragmentTest {
                     withContentDescription("Search"), isDisplayed()));
             searchButton.check(matches(isDisplayed()));
 
-            ViewInteraction refreshButton = onView(allOf(withId(R.id.mainlist_action_refresh),
-                    withContentDescription("Refresh"), isDisplayed()));
-            refreshButton.check(matches(isDisplayed()));
-
-            ViewInteraction settingsButton = onView(allOf(withId(R.id.mainlist_settings),
-                    withContentDescription("Settings"), isDisplayed()));
-            settingsButton.check(matches(isDisplayed()));
-
             ViewInteraction fabAdd = onView(allOf(withId(R.id.fab_item_add), isDisplayed()));
             fabAdd.check(matches(isDisplayed()));
             fabAdd.perform(click());
@@ -109,14 +107,6 @@ public class ItemListFragmentTest {
             ViewInteraction searchButtonBack = onView(allOf(withId(R.id.mainlist_action_search),
                     withContentDescription("Search"), isDisplayed()));
             searchButtonBack.check(matches(isDisplayed()));
-
-            ViewInteraction refreshButtonBack = onView(allOf(withId(R.id.mainlist_action_refresh),
-                    withContentDescription("Refresh"), isDisplayed()));
-            refreshButtonBack.check(matches(isDisplayed()));
-
-            ViewInteraction settingsButtonBack = onView(allOf(withId(R.id.mainlist_settings),
-                    withContentDescription("Settings"), isDisplayed()));
-            settingsButtonBack.check(matches(isDisplayed()));
 
             ViewInteraction fabAddBack = onView(allOf(withId(R.id.fab_item_add), isDisplayed()));
             fabAddBack.check(matches(isDisplayed()));
