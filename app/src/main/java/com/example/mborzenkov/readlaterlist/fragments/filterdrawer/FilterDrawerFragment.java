@@ -332,7 +332,7 @@ public class FilterDrawerFragment extends Fragment {
      *
      * @param v Button кнопка сортировки
      */
-    void onSortButtonClickListener(@NonNull View v) {
+    private void onSortButtonClickListener(@NonNull View v) {
         switch (v.getId()) {
             case R.id.button_filterdrawer_sortmanual:
                 if (v.isActivated()) { // Если уже активирована, то тут нет второго режима
@@ -369,7 +369,7 @@ public class FilterDrawerFragment extends Fragment {
      *
      * @param v Button кнопка действия
      */
-    void onActionButtonClickListener(@NonNull View v) {
+    private void onActionButtonClickListener(@NonNull View v) {
         switch (v.getId()) {
             case R.id.button_filterdrawer_backupsave:
                 // fall through
@@ -391,7 +391,7 @@ public class FilterDrawerFragment extends Fragment {
      *
      * @param v ImageButton любимый цвет
      */
-    void onFavoriteColorClickListener(@NonNull View v) {
+    private void onFavoriteColorClickListener(@NonNull View v) {
         if (v.getId() != R.id.imageButton_favorite_color) {
             return;
         }
@@ -404,7 +404,7 @@ public class FilterDrawerFragment extends Fragment {
      *
      * @param v View - кнопка "Сменить пользователя"
      */
-    void onUserChangeClickListener(@NonNull View v) {
+    private void onUserChangeClickListener(@NonNull View v) {
         if (v.getId() != R.id.tv_filterdrawer_user_change) {
             return;
         }
@@ -445,7 +445,7 @@ public class FilterDrawerFragment extends Fragment {
      *
      * @param v EditText с датой
      */
-    void onDateClickListener(@NonNull View v) {
+    private void onDateClickListener(@NonNull View v) {
         switch (v.getId()) {
             case R.id.edittext_filterdrawer_datefrom:
                 // fall through
@@ -588,10 +588,10 @@ public class FilterDrawerFragment extends Fragment {
      * @param colorFilter Фильтр цвета, если указан, то круги будут помечены .active
      * @return Список любимых цветов, как getFavoriteColorsFromSharedPreferences(...)
      */
-    public static int[] updateFavLayoutFromSharedPreferences(Context context,
-                                                             LinearLayout layout,
-                                                             @Nullable View.OnClickListener clickListener,
-                                                             @Nullable Set<Integer> colorFilter) {
+    private static int[] updateFavLayoutFromSharedPreferences(Context context,
+                                                              LinearLayout layout,
+                                                              @Nullable View.OnClickListener clickListener,
+                                                              @Nullable Set<Integer> colorFilter) {
 
         int[] result = FavoriteColorsUtils.getFavoriteColorsFromSharedPreferences(context, null);
 
@@ -599,13 +599,16 @@ public class FilterDrawerFragment extends Fragment {
             int savedColor = result[i];
             View favCircle = layout.getChildAt(i).findViewById(R.id.imageButton_favorite_color);
             if (savedColor != Color.TRANSPARENT) {
-                Drawable[] children = ((DrawableContainer.DrawableContainerState) (
-                        favCircle.getBackground()).getConstantState()).getChildren();
-                ((GradientDrawable) children[0]).setColor(savedColor);
-                ((GradientDrawable) children[1]).setColor(savedColor);
-                ((GradientDrawable) children[2]).setColor(savedColor);
-                favCircle.setOnClickListener(clickListener);
-                favCircle.setClickable(true);
+                DrawableContainer.DrawableContainerState containerState = ((DrawableContainer.DrawableContainerState) (
+                        favCircle.getBackground()).getConstantState());
+                if (containerState != null) {
+                    Drawable[] children = containerState.getChildren();
+                    ((GradientDrawable) children[0]).setColor(savedColor);
+                    ((GradientDrawable) children[1]).setColor(savedColor);
+                    ((GradientDrawable) children[2]).setColor(savedColor);
+                    favCircle.setOnClickListener(clickListener);
+                    favCircle.setClickable(true);
+                }
                 if (colorFilter != null) {
                     favCircle.setActivated(colorFilter.contains(savedColor));
                 }

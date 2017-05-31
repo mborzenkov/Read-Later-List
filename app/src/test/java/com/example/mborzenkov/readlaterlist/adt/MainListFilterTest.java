@@ -1,29 +1,26 @@
 package com.example.mborzenkov.readlaterlist.adt;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Color;
 
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
-import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
-
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
+
 import java.util.Locale;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 /** Тестирует MainListFilter. */
 @SuppressWarnings("FieldCanBeLocal") // Поля вынесены на уровень класса для улучшенной читаемости
@@ -189,7 +186,7 @@ public class MainListFilterTest {
         String[] selectionArgs;
 
         // только Дата "от"
-        String stringDateFrom = ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED + ">=?";
+        final String stringDateFrom = ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED + ">=?";
         defaultFilter.setDateFrom(1);
         selection = defaultFilter.getSqlSelection(context);
         selectionArgs = defaultFilter.getSqlSelectionArgs(context);
@@ -199,7 +196,7 @@ public class MainListFilterTest {
 
         // только дата "до"
         defaultFilter = new MainListFilter();
-        String stringDateTo = ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED + "<=?";
+        final String stringDateTo = ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED + "<=?";
         defaultFilter.setSelection(MainListFilter.Selection.DATE_CREATED);
         defaultFilter.setDateTo(2);
         selection = defaultFilter.getSqlSelection(context);
@@ -229,7 +226,7 @@ public class MainListFilterTest {
         assertEquals(selectionArgs.length, 0);
 
         // Фильтр по цветам, которые есть в любимых
-        String stringColor = ReadLaterContract.ReadLaterEntry.COLUMN_COLOR + " IN (?)";
+        final String stringColor = ReadLaterContract.ReadLaterEntry.COLUMN_COLOR + " IN (?)";
         defaultFilter.addColorFilter(Color.RED);
         defaultFilter.addColorFilter(Color.GREEN);
         selection = defaultFilter.getSqlSelection(context);
@@ -238,13 +235,15 @@ public class MainListFilterTest {
         assertEquals(selectionArgs.length, 1);
         assertTrue(Integer.valueOf(selectionArgs[0]).equals(Color.RED));
 
+        final int countOfArguments = 3; // dateFrom, dateTo, color
+
         defaultFilter.setSelection(MainListFilter.Selection.DATE_CREATED);
         defaultFilter.setDateFrom(0);
         defaultFilter.setDateTo(1);
         selection = defaultFilter.getSqlSelection(context);
         selectionArgs = defaultFilter.getSqlSelectionArgs(context);
         assertTrue(selection.contains(stringColor));
-        assertEquals(selectionArgs.length, 3);
+        assertEquals(selectionArgs.length, countOfArguments);
         assertTrue(Integer.valueOf(selectionArgs[2]).equals(Color.RED));
 
     }

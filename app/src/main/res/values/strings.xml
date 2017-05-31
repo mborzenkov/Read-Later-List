@@ -110,8 +110,6 @@
     <string name="colorpicker_HSV_VAL" translatable="false">299.30, 0.67, 0.54</string>
 
     <!-- Ошибки базы данных -->
-    <string name="db_error_uriunknown">Unknown uri: </string>
-    <string name="db_error_insert">Failed to insert row in: </string>
 
     <!-- Дебаг -->
     <string name="debug_large_text" translatable="false">

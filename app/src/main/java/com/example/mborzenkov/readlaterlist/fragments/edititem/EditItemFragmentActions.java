@@ -81,12 +81,14 @@ public interface EditItemFragmentActions {
     /** Вызывается, когда нажата кнопка назад.
      * Управление полностью передается фрагменту. Фрагмент должен обработать нажатие самостоятельно.
      */
+    @SuppressWarnings("unused")
     void onBackPressed();
 
     /** Устанавливает цвет в фрагменте.
      *
      * @param newColor цвет, который нужно установить
      */
+    @SuppressWarnings("unused")
     void setColor(int newColor);
 
 }

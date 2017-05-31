@@ -40,9 +40,9 @@ class CloudApiMockDispatcher extends Dispatcher {
     private static final String METHOD_DELETE = "DELETE";
 
     /** Все сохраненные заметки, где key = userId, value = список заметок, где itemId = index. */
-    private SparseArray<List<ReadLaterItem>> mCurrentItems = new SparseArray<>();
+    private final SparseArray<List<ReadLaterItem>> mCurrentItems = new SparseArray<>();
     /** Матчер для Uri. */
-    private UriMatcher mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+    private final UriMatcher mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     CloudApiMockDispatcher(@NonNull String serverAuthority) {
         mUriMatcher.addURI(serverAuthority, "user/#/notes", CODE_ALL_NOTES);
@@ -146,7 +146,7 @@ class CloudApiMockDispatcher extends Dispatcher {
      *
      * @return true, если у указанного пользователя существует заметка с указанным id
      */
-    boolean isValidItemId(@IntRange(from = 0) int userId, int itemId) {
+    private boolean isValidItemId(@IntRange(from = 0) int userId, int itemId) {
         if (itemId < 0) {
             return false;
         }

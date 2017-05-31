@@ -45,10 +45,10 @@ import com.example.mborzenkov.readlaterlist.adt.Conflict;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.fragments.ColorPickerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
-import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerCallbacks;
-import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemFragmentActions;
 import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemViewPagerFragment;
+import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerCallbacks;
+import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncCallback;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncFragment;
@@ -87,9 +87,9 @@ public class MainActivity extends AppCompatActivity implements
     public static final String SHARED_ELEMENT_COLOR_TRANSITION_NAME = "readlateritem_sharedelement_color";
 
     /** Константа запроса разрешения на чтение файлов. */
-    public static final int PERMISSION_READ_EXTERNAL_STORAGE = 101;
+    private static final int PERMISSION_READ_EXTERNAL_STORAGE = 101;
     /** Константа запроса разрешения на запись файлов. */
-    public static final int PERMISSION_WRITE_EXTERNAL_STORAGE = 102;
+    private static final int PERMISSION_WRITE_EXTERNAL_STORAGE = 102;
 
 
     /////////////////////////
@@ -232,7 +232,9 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_WRITE_EXTERNAL_STORAGE:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -576,12 +578,13 @@ public class MainActivity extends AppCompatActivity implements
     public void onExitWithoutModifying(@Nullable ReadLaterItem item,
                                        @IntRange(from = EditItemViewPagerFragment.UID_EMPTY) final int localId) {
 
-        if (item != null) {
+        if ((item != null) && (localId >= 0)) {
             // Этот блок вызывается при простом просмотре без изменений
+            @IntRange(from = 0) final int localIdPositive = localId;
             mHandlerThreadHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    ReadLaterDbUtils.updateItemViewDate(MainActivity.this, localId);
+                    ReadLaterDbUtils.updateItemViewDate(MainActivity.this, localIdPositive);
                 }
             });
         }
@@ -631,7 +634,7 @@ public class MainActivity extends AppCompatActivity implements
      * Синхронизация будет запущена, если не выполняется LongTask.
      * По окончанию синхронизации при любом исходе вызывается finishSync.
      */
-    void toggleSync() {
+    private void toggleSync() {
         if (!MainActivityLongTask.isActive()) {
             if (mItemListFragment.isVisible()) {
                 mItemListFragment.setRefreshing(true);

@@ -1,6 +1,5 @@
 package com.example.mborzenkov.readlaterlist.fragments.sync;
 
-
 import android.database.Cursor;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
@@ -21,11 +20,6 @@ import com.example.mborzenkov.readlaterlist.networking.ReadLaterCloudApi;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +27,10 @@ import java.util.List;
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockWebServer;
 
-import static org.junit.Assert.assertTrue;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public class SyncAsyncTaskTest extends ProviderTestCase2<ReadLaterContentProvider> {
@@ -54,7 +51,7 @@ public class SyncAsyncTaskTest extends ProviderTestCase2<ReadLaterContentProvide
 
     private final Object mSyncObject = new Object();
 
-    private @NonNull MockWebServer mServer = new MockWebServer();
+    private final @NonNull MockWebServer mServer = new MockWebServer();
     private ReadLaterCloudApi mCloudApi;
 
     public SyncAsyncTaskTest() {
@@ -168,7 +165,6 @@ public class SyncAsyncTaskTest extends ProviderTestCase2<ReadLaterContentProvide
 
     @Test(timeout = BASIC_TIMEOUT)
     public void testSyncUpdateServer() throws InterruptedException {
-        final ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         // Добавляем на сервер и локально
         final Integer itemRemoteId = mCloudApi.insertItemOnServer(USER_ID, defaultItem);
         assertTrue(itemRemoteId != null);
@@ -351,7 +347,6 @@ public class SyncAsyncTaskTest extends ProviderTestCase2<ReadLaterContentProvide
         }
         assertEquals(SyncCallbackTest.TaskResults.SUCCESS, callbackTest.taskResult);
 
-        Cursor cursor;
         // Удаляем заметку на сервере
         assertTrue(mCloudApi.deleteItemOnServer(USER_ID, itemRemoteId));
 
@@ -365,6 +360,7 @@ public class SyncAsyncTaskTest extends ProviderTestCase2<ReadLaterContentProvide
         }
         assertEquals(SyncCallbackTest.TaskResults.SUCCESS, callbackTest.taskResult);
 
+        Cursor cursor;
         // Проверяем, что локально нет, на сервере тоже
         cursor = ReadLaterDbUtils.queryAllItems(getMockContext(), USER_ID);
         assertTrue(cursor != null);
@@ -377,7 +373,6 @@ public class SyncAsyncTaskTest extends ProviderTestCase2<ReadLaterContentProvide
 
     @Test(timeout = BASIC_TIMEOUT)
     public void testSyncWithConflicts() throws InterruptedException {
-        final ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         // Добавляем заметку на сервер
         Integer id = mCloudApi.insertItemOnServer(USER_ID, defaultItem);
         assertTrue(id != null);

@@ -94,14 +94,17 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
                 int position = getAdapterPosition();
                 mCursor.moveToPosition(position);
                 ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
-                ViewCompat.setTransitionName(colorImageView,
-                        MainActivity.SHARED_ELEMENT_COLOR_TRANSITION_NAME);
-                mEventHandler.onItemClick(
-                        position,
-                        mCursor.getCount(),
-                        dbAdapter.itemFromCursor(mCursor),
-                        mCursor.getInt(ItemListLoaderManager.INDEX_COLUMN_ID),
-                        colorImageView);
+                ReadLaterItem itemFromCursor = dbAdapter.itemFromCursor(mCursor);
+                if (itemFromCursor != null) {
+                    ViewCompat.setTransitionName(colorImageView,
+                            MainActivity.SHARED_ELEMENT_COLOR_TRANSITION_NAME);
+                    mEventHandler.onItemClick(
+                            position,
+                            mCursor.getCount(),
+                            itemFromCursor,
+                            mCursor.getInt(ItemListLoaderManager.INDEX_COLUMN_ID),
+                            colorImageView);
+                }
             }
         }
 

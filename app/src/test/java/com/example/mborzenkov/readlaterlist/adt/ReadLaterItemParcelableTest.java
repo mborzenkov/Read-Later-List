@@ -10,14 +10,14 @@ import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 
+import java.util.Arrays;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-
-import java.util.Arrays;
 
 /** Тестирует ReadLaterItemParcelable. */
 @RunWith(RobolectricTestRunner.class)
@@ -41,11 +41,13 @@ public class ReadLaterItemParcelableTest {
 
     private static Parcel sParcel;
 
+    /** Создает Parcel. */
     @Before
     public void initParcel() {
         sParcel = Parcel.obtain();
     }
 
+    /** Уничтожает Parcel. */
     @After
     public void recycleParcel() {
         if (sParcel != null) {

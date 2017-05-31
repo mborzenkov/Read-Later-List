@@ -3,8 +3,6 @@
     <string name="app_name">Read Later</string>
     <string name="colorpicker_chosen_label">Выбрать цвет</string>
     <string name="colorpicker_favorites_label">Сохраненные цвета</string>
-    <string name="db_error_insert">"Ошибка добавления данных в: "</string>
-    <string name="db_error_uriunknown">"Неизвестный uri: "</string>
     <string name="edititem_color_hint">Цвет</string>
     <string name="edititem_description_hint">Описание</string>
     <string name="edititem_error_title_empty">Пожалуйста введите заголовок</string>

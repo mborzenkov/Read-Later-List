@@ -1,11 +1,32 @@
 package com.example.mborzenkov.readlaterlist.fragments.filterdrawer;
 
+import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.action.ViewActions.closeSoftKeyboard;
+import static android.support.test.espresso.action.ViewActions.longClick;
+import static android.support.test.espresso.action.ViewActions.replaceText;
+import static android.support.test.espresso.action.ViewActions.scrollTo;
+import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
+import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
+import static android.support.test.espresso.matcher.ViewMatchers.isCompletelyDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.withClassName;
+import static android.support.test.espresso.matcher.ViewMatchers.withContentDescription;
+import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static android.support.test.espresso.matcher.ViewMatchers.withTagValue;
+import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Environment;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.espresso.contrib.DrawerActions;
-import android.support.test.filters.SdkSuppress;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.view.Gravity;
@@ -20,43 +41,18 @@ import com.example.mborzenkov.readlaterlist.networking.DaggerCloudApiComponent;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 
+import java.io.IOException;
+
+import okhttp3.HttpUrl;
+import okhttp3.mockwebserver.MockWebServer;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
-
-import okhttp3.HttpUrl;
-import okhttp3.mockwebserver.MockWebServer;
-
-import static android.support.test.espresso.Espresso.onData;
-import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.action.ViewActions.click;
-import static android.support.test.espresso.action.ViewActions.closeSoftKeyboard;
-import static android.support.test.espresso.action.ViewActions.longClick;
-import static android.support.test.espresso.action.ViewActions.pressBack;
-import static android.support.test.espresso.action.ViewActions.replaceText;
-import static android.support.test.espresso.action.ViewActions.scrollTo;
-import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
-import static android.support.test.espresso.assertion.ViewAssertions.matches;
-import static android.support.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
-import static android.support.test.espresso.matcher.ViewMatchers.hasDescendant;
-import static android.support.test.espresso.matcher.ViewMatchers.isCompletelyDisplayed;
-import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static android.support.test.espresso.matcher.ViewMatchers.withClassName;
-import static android.support.test.espresso.matcher.ViewMatchers.withContentDescription;
-import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withTagValue;
-import static android.support.test.espresso.matcher.ViewMatchers.withText;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.anything;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
+@SuppressWarnings("unchecked")
 @RunWith(AndroidJUnit4.class)
 public class FilterDrawerFragmentTest {
 
@@ -66,19 +62,18 @@ public class FilterDrawerFragmentTest {
 
     private static final int USER_ID = 1005930;
     private static final int USER_ID_SECOND = 100593;
-    private MockWebServer mServer = new MockWebServer();
-    private HttpUrl mServerUrl;
+    private final MockWebServer mServer = new MockWebServer();
 
     @Rule
-    public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class);
+    public final ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class);
 
     @Before
     public void setUp() throws IOException {
         mServer.start();
-        mServerUrl = mServer.url("");
+        HttpUrl serverUrl = mServer.url("");
         mServer.setDispatcher(new CloudApiMockDispatcher.EmptyDispatcher());
         CloudApiComponent component = DaggerCloudApiComponent.builder()
-                .cloudApiModule(new CloudApiModule(mServerUrl)).build();
+                .cloudApiModule(new CloudApiModule(serverUrl)).build();
         MyApplication application = (MyApplication) mActivityTestRule.getActivity().getApplication();
         application.setCloudApiComponent(component);
         UserInfoUtils.changeCurrentUser(application, USER_ID);

@@ -2,7 +2,6 @@ package com.example.mborzenkov.readlaterlist.fragments.sync;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.IntRange;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -10,7 +9,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 
 import com.example.mborzenkov.readlaterlist.MyApplication;
-import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiComponent;
 import com.example.mborzenkov.readlaterlist.networking.ReadLaterCloudApi;
 
@@ -75,13 +73,15 @@ public class SyncFragment extends Fragment {
         super.onDestroy();
     }
 
-    /** Проверяет, запущена ли синхронизация.
-     *
-     * @return true - если запущена, иначе false
-     */
-    public synchronized boolean isSyncActive() {
-        return syncInAction;
-    }
+    // --Commented out
+    //    /** Проверяет, запущена ли синхронизация.
+    //     *
+    //     * @return true - если запущена, иначе false
+    //     */
+    //    public synchronized boolean isSyncActive() {
+    //        return syncInAction;
+    //    }
+    // --Commented out
 
     /** Запускает полную синхронизацию.
      * Синхронизация выполняется в AsyncTask, поэтому startFullSync должен быть запущен в UI Thread.

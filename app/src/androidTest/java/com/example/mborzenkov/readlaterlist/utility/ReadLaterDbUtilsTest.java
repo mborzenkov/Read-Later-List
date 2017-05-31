@@ -15,12 +15,12 @@ import com.example.mborzenkov.readlaterlist.data.ReadLaterContentProvider;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /** Тестирует ReadLaterDbUrils. */
 @RunWith(AndroidJUnit4.class)
@@ -278,8 +278,6 @@ public class ReadLaterDbUtilsTest extends ProviderTestCase2<ReadLaterContentProv
 
     @Test
     public void testDeleteAll() {
-        final ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
-
         // Вставляем данные
         ReadLaterDbUtils.insertItem(getMockContext(), defaultItem);
         ReadLaterDbUtils.insertItem(getMockContext(), secondItem);
@@ -339,10 +337,9 @@ public class ReadLaterDbUtilsTest extends ProviderTestCase2<ReadLaterContentProv
     @Test
     public void testChangeItemOrder() {
         final ContentProvider provider = getProvider();
-        final int FIRST_POS = 1;
-        final int SECND_POS = 2;
-        final int THIRD_POS = 3;
-        final int TOTAL_ITEMS = 3;
+        final int firstPos = 1;
+        final int secndPos = 2;
+        final int thirdPos = 3;
 
         // Создаем заметки
         ReadLaterDbUtils.insertItem(getMockContext(), defaultItem);
@@ -350,40 +347,39 @@ public class ReadLaterDbUtilsTest extends ProviderTestCase2<ReadLaterContentProv
         ReadLaterDbUtils.insertItem(getMockContext(), secondItem);
 
         // Запоминаем id по текущим позициям
-        final int item1Id = getItemIdAtPosition(provider, FIRST_POS);
-        final int item2Id = getItemIdAtPosition(provider, SECND_POS);
-        final int item3Id = getItemIdAtPosition(provider, THIRD_POS);
+        final int item1Id = getItemIdAtPosition(provider, firstPos);
+        final int item2Id = getItemIdAtPosition(provider, secndPos);
+        final int item3Id = getItemIdAtPosition(provider, thirdPos);
 
-        int updated;
         // Меняем элемент 1 на позицию SECND_POS, при этом элемент на позиции THIRD_POS не должен измениться
-        ReadLaterDbUtils.changeItemOrder(getMockContext(), item1Id, SECND_POS);
-        assertEquals(getItemIdAtPosition(provider, FIRST_POS), item2Id);
-        assertEquals(getItemIdAtPosition(provider, SECND_POS), item1Id);
-        assertEquals(getItemIdAtPosition(provider, THIRD_POS), item3Id);
+        ReadLaterDbUtils.changeItemOrder(getMockContext(), item1Id, secndPos);
+        assertEquals(getItemIdAtPosition(provider, firstPos), item2Id);
+        assertEquals(getItemIdAtPosition(provider, secndPos), item1Id);
+        assertEquals(getItemIdAtPosition(provider, thirdPos), item3Id);
 
         // Меняем элемент 3 на позицию SECND_POS, при этом элемент на позиции FIRST_POS не должен измениться
-        ReadLaterDbUtils.changeItemOrder(getMockContext(), item3Id, SECND_POS);
-        assertEquals(getItemIdAtPosition(provider, FIRST_POS), item2Id);
-        assertEquals(getItemIdAtPosition(provider, SECND_POS), item3Id);
-        assertEquals(getItemIdAtPosition(provider, THIRD_POS), item1Id);
+        ReadLaterDbUtils.changeItemOrder(getMockContext(), item3Id, secndPos);
+        assertEquals(getItemIdAtPosition(provider, firstPos), item2Id);
+        assertEquals(getItemIdAtPosition(provider, secndPos), item3Id);
+        assertEquals(getItemIdAtPosition(provider, thirdPos), item1Id);
 
         // Меняем элемент на позиции FIRST_POS на позицию THIRD_POS, при этом у остальных элементов станет позиция -1
-        ReadLaterDbUtils.changeItemOrder(getMockContext(), item2Id, THIRD_POS);
-        assertEquals(getItemIdAtPosition(provider, FIRST_POS), item3Id);
-        assertEquals(getItemIdAtPosition(provider, SECND_POS), item1Id);
-        assertEquals(getItemIdAtPosition(provider, THIRD_POS), item2Id);
+        ReadLaterDbUtils.changeItemOrder(getMockContext(), item2Id, thirdPos);
+        assertEquals(getItemIdAtPosition(provider, firstPos), item3Id);
+        assertEquals(getItemIdAtPosition(provider, secndPos), item1Id);
+        assertEquals(getItemIdAtPosition(provider, thirdPos), item2Id);
 
         // Меняем элемент на позиции THIRD_POS на позицию FIRST_POS, при этом у остальных элементов станет позиция +1
-        ReadLaterDbUtils.changeItemOrder(getMockContext(), item2Id, FIRST_POS);
-        assertEquals(getItemIdAtPosition(provider, FIRST_POS), item2Id);
-        assertEquals(getItemIdAtPosition(provider, SECND_POS), item3Id);
-        assertEquals(getItemIdAtPosition(provider, THIRD_POS), item1Id);
+        ReadLaterDbUtils.changeItemOrder(getMockContext(), item2Id, firstPos);
+        assertEquals(getItemIdAtPosition(provider, firstPos), item2Id);
+        assertEquals(getItemIdAtPosition(provider, secndPos), item3Id);
+        assertEquals(getItemIdAtPosition(provider, thirdPos), item1Id);
 
         // Меняем элемент на позиции SECND_POS на SECND_POS
-        ReadLaterDbUtils.changeItemOrder(getMockContext(), item3Id, SECND_POS);
-        assertEquals(getItemIdAtPosition(provider, FIRST_POS), item2Id);
-        assertEquals(getItemIdAtPosition(provider, SECND_POS), item3Id);
-        assertEquals(getItemIdAtPosition(provider, THIRD_POS), item1Id);
+        ReadLaterDbUtils.changeItemOrder(getMockContext(), item3Id, secndPos);
+        assertEquals(getItemIdAtPosition(provider, firstPos), item2Id);
+        assertEquals(getItemIdAtPosition(provider, secndPos), item3Id);
+        assertEquals(getItemIdAtPosition(provider, thirdPos), item1Id);
     }
 
     /** Возвращает _id элемента на указанной позиции.

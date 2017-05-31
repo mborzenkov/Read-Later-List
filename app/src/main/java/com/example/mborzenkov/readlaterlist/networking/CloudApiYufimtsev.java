@@ -63,6 +63,7 @@ interface CloudApiYufimtsev {
 
     // -- Ответы сервера
     /** Ответ сервера 200 OK. */
+    @SuppressWarnings("unused") // на будущее
     int RESPONSE_CODE_SUCCESS = 200;
     /** Стандартный ответ сервера. */
     @SuppressWarnings({"CanBeFinal", "unused"}) // Retrofit использует
@@ -111,6 +112,7 @@ interface CloudApiYufimtsev {
      * @return ответ в формате SingleItemResponse.
      *          Будет содержать ошибку, если указан неверный userId или заметки с таким itemId у пользователя нет.
      */
+    @SuppressWarnings("unused") // на будущее
     @GET(PATH_NOTE)
     Call<SingleItemResponse> getItem(@Path(PARAM_USER_ID) @IntRange(from = 0) int userId,
                           @Path(PARAM_ITEM_ID) @IntRange(from = 0) int itemId);

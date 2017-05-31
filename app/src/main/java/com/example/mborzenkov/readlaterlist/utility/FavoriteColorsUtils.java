@@ -3,20 +3,9 @@ package com.example.mborzenkov.readlaterlist.utility;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.DrawableContainer;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.StateListDrawable;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.LinearLayout;
 
 import com.example.mborzenkov.readlaterlist.R;
-
-import java.util.Set;
 
 /** Сервисный класс для работы с любимыми цветами. */
 public class FavoriteColorsUtils {
@@ -30,6 +19,7 @@ public class FavoriteColorsUtils {
         throw new UnsupportedOperationException("Класс FavoriteColorsUtils - static util, не может иметь экземпляров");
     }
 
+    /** Возвращает установленное максимальное количество любимых цветов. */
     public static int getMaxFavorites(Context context) {
         if (sMaxFavorites == 0) {
             sMaxFavorites = context.getResources().getInteger(R.integer.colorpicker_favorites);

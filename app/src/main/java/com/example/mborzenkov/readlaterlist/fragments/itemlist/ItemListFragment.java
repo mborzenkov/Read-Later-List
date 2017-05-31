@@ -34,8 +34,8 @@ import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.fragments.BasicFragmentCallbacks;
-import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemFragmentActions;
+import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerFragment;
 import com.example.mborzenkov.readlaterlist.utility.ItemTouchHelperCallback;
 
 /** Фрагмент со списком ReadLaterItem.

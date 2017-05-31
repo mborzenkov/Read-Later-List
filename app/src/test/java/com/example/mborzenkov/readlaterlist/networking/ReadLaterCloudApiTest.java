@@ -1,17 +1,12 @@
 package com.example.mborzenkov.readlaterlist.networking;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import android.graphics.Color;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,8 +14,12 @@ import java.util.List;
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockWebServer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 /** Тестирует UserInfoUtils. */
 @RunWith(RobolectricTestRunner.class)
@@ -39,7 +38,7 @@ public class ReadLaterCloudApiTest {
     private static final ReadLaterItem secondItem = new ReadLaterItem.Builder("label2")
             .description("description2").color(Color.BLUE).build();
 
-    private MockWebServer mServer = new MockWebServer();
+    private final MockWebServer mServer = new MockWebServer();
     private HttpUrl mServerUrl;
     private ReadLaterCloudApi mCloudApi;
 

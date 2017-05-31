@@ -60,6 +60,7 @@ public class EditItemFragment extends Fragment implements
     // Константы
 
     /** TAG фрагмента для фрагмент менеджера. */
+    @SuppressWarnings("WeakerAccess") // на будущее
     public static final String TAG = "fragment_edititem";
 
     // Ключи для SavedInstanceState

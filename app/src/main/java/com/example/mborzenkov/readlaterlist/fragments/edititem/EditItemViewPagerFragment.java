@@ -55,7 +55,7 @@ public class EditItemViewPagerFragment extends Fragment
     private class EditItemPagerAdapter extends FragmentStatePagerAdapter {
 
         /** Фрагмент менеджер для создания инстансов EditItemFragment. */
-        private FragmentManager mFragmentManager;
+        private final FragmentManager mFragmentManager;
 
         private EditItemPagerAdapter(FragmentManager fragmentManager) {
             super(fragmentManager);

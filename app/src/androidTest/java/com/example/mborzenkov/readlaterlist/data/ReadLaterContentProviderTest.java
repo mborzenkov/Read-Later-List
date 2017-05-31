@@ -4,7 +4,6 @@ import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Color;
 import android.net.Uri;
 import android.support.annotation.IntRange;
@@ -253,10 +252,10 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
     @Test
     public void testUpdateOrder() {
         final ContentProvider provider = getProvider();
-        final int FIRST_POS = 1;
-        final int SECND_POS = 2;
-        final int THIRD_POS = 3;
-        final int TOTAL_ITEMS = 3;
+        final int firstPos = 1;
+        final int secndPos = 2;
+        final int thirdPos = 3;
+        final int totalItems = 3;
 
         // Создаем заметки
         provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
@@ -264,45 +263,45 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
         provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(secondItem));
 
         // Запоминаем id по текущим позициям
-        final int item1Id = getItemIdAtPosition(provider, FIRST_POS);
-        final int item2Id = getItemIdAtPosition(provider, SECND_POS);
-        final int item3Id = getItemIdAtPosition(provider, THIRD_POS);
+        final int item1Id = getItemIdAtPosition(provider, firstPos);
+        final int item2Id = getItemIdAtPosition(provider, secndPos);
+        final int item3Id = getItemIdAtPosition(provider, thirdPos);
 
         int updated;
         // Меняем элемент 1 на позицию SECND_POS, при этом элемент на позиции THIRD_POS не должен измениться
-        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(item1Id, SECND_POS), null, null, null);
-        assertEquals(TOTAL_ITEMS - 1, updated);
-        assertEquals(getItemIdAtPosition(provider, FIRST_POS), item2Id);
-        assertEquals(getItemIdAtPosition(provider, SECND_POS), item1Id);
-        assertEquals(getItemIdAtPosition(provider, THIRD_POS), item3Id);
+        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(item1Id, secndPos), null, null, null);
+        assertEquals(totalItems - 1, updated);
+        assertEquals(getItemIdAtPosition(provider, firstPos), item2Id);
+        assertEquals(getItemIdAtPosition(provider, secndPos), item1Id);
+        assertEquals(getItemIdAtPosition(provider, thirdPos), item3Id);
 
         // Меняем элемент 3 на позицию SECND_POS, при этом элемент на позиции FIRST_POS не должен измениться
-        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(item3Id, SECND_POS), null, null, null);
-        assertEquals(TOTAL_ITEMS - 1, updated);
-        assertEquals(getItemIdAtPosition(provider, FIRST_POS), item2Id);
-        assertEquals(getItemIdAtPosition(provider, SECND_POS), item3Id);
-        assertEquals(getItemIdAtPosition(provider, THIRD_POS), item1Id);
+        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(item3Id, secndPos), null, null, null);
+        assertEquals(totalItems - 1, updated);
+        assertEquals(getItemIdAtPosition(provider, firstPos), item2Id);
+        assertEquals(getItemIdAtPosition(provider, secndPos), item3Id);
+        assertEquals(getItemIdAtPosition(provider, thirdPos), item1Id);
 
         // Меняем элемент на позиции FIRST_POS на позицию THIRD_POS, при этом у остальных элементов станет позиция -1
-        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(item2Id, THIRD_POS), null, null, null);
-        assertEquals(TOTAL_ITEMS, updated);
-        assertEquals(getItemIdAtPosition(provider, FIRST_POS), item3Id);
-        assertEquals(getItemIdAtPosition(provider, SECND_POS), item1Id);
-        assertEquals(getItemIdAtPosition(provider, THIRD_POS), item2Id);
+        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(item2Id, thirdPos), null, null, null);
+        assertEquals(totalItems, updated);
+        assertEquals(getItemIdAtPosition(provider, firstPos), item3Id);
+        assertEquals(getItemIdAtPosition(provider, secndPos), item1Id);
+        assertEquals(getItemIdAtPosition(provider, thirdPos), item2Id);
 
         // Меняем элемент на позиции THIRD_POS на позицию FIRST_POS, при этом у остальных элементов станет позиция +1
-        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(item2Id, FIRST_POS), null, null, null);
-        assertEquals(TOTAL_ITEMS, updated);
-        assertEquals(getItemIdAtPosition(provider, FIRST_POS), item2Id);
-        assertEquals(getItemIdAtPosition(provider, SECND_POS), item3Id);
-        assertEquals(getItemIdAtPosition(provider, THIRD_POS), item1Id);
+        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(item2Id, firstPos), null, null, null);
+        assertEquals(totalItems, updated);
+        assertEquals(getItemIdAtPosition(provider, firstPos), item2Id);
+        assertEquals(getItemIdAtPosition(provider, secndPos), item3Id);
+        assertEquals(getItemIdAtPosition(provider, thirdPos), item1Id);
 
         // Меняем элемент на позиции SECND_POS на SECND_POS
-        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(item3Id, SECND_POS), null, null, null);
+        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(item3Id, secndPos), null, null, null);
         assertEquals(0, updated);
-        assertEquals(getItemIdAtPosition(provider, FIRST_POS), item2Id);
-        assertEquals(getItemIdAtPosition(provider, SECND_POS), item3Id);
-        assertEquals(getItemIdAtPosition(provider, THIRD_POS), item1Id);
+        assertEquals(getItemIdAtPosition(provider, firstPos), item2Id);
+        assertEquals(getItemIdAtPosition(provider, secndPos), item3Id);
+        assertEquals(getItemIdAtPosition(provider, thirdPos), item1Id);
     }
 
     @Test

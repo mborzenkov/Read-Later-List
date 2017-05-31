@@ -1,5 +1,10 @@
 package com.example.mborzenkov.readlaterlist.utility;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -8,11 +13,6 @@ import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 
 /** Тестирует UserInfoUtils. */
 @SuppressWarnings("FieldCanBeLocal") // Поля вынесены на уровень класса для улучшенной читаемости
@@ -28,6 +28,8 @@ public class UserInfoUtilsTest {
 
     private Context mContext;
 
+    /** Подготавливает Mockito. */
+    @SuppressLint("CommitPrefEdits") // это Mockito
     @Before
     public void prepareMock() {
         mContext = Mockito.mock(Context.class);

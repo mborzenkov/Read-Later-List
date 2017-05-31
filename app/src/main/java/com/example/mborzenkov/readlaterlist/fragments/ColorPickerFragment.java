@@ -86,6 +86,8 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
     private static final int GRADIENT_FADE_MASK = 25;
     /** Максимальное возможное значение HUE. */
     private static final int HUE_MAX = 360;
+    /** Четверть. */
+    private static final int QUARTER = 4;
 
 
     /////////////////////////
@@ -886,8 +888,8 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
         float rightBorderHue = standardColorHsv[0];
         leftBorderHue = Math.max(leftBorderHue - mStepHue, 0);
         rightBorderHue = Math.min(rightBorderHue + mStepHue, HUE_MAX);
-        float topVal = Math.min(standardColorHsv[2] + (standardColorHsv[2] / 4), 1);
-        float bottomVal = Math.max(standardColorHsv[2] - (standardColorHsv[2] / 4), 0);
+        float topVal = Math.min(standardColorHsv[2] + (standardColorHsv[2] / QUARTER), 1);
+        float bottomVal = Math.max(standardColorHsv[2] - (standardColorHsv[2] / QUARTER), 0);
 
         float changedHue = currentColorHsv[0] + hue;
         float changedVal = currentColorHsv[2] - val;

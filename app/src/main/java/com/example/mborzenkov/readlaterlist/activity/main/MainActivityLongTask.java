@@ -35,6 +35,7 @@ class MainActivityLongTask extends AsyncTask<Runnable, Integer, Void>  {
      * @param activity ссылка на MainActivity, где нужно отображать процесс
      * @return true, если выполнение началось или false, если было отклонено
      */
+    @SuppressWarnings("UnusedReturnValue") // будет used
     static synchronized boolean startLongBackgroundTask(@NonNull Runnable task,
                                                         @NonNull MainActivity activity) {
 

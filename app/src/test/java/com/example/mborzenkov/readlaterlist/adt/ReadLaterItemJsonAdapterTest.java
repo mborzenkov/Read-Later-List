@@ -1,8 +1,8 @@
 package com.example.mborzenkov.readlaterlist.adt;
 
-import android.graphics.Color;
-
 import static org.junit.Assert.assertEquals;
+
+import android.graphics.Color;
 
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;

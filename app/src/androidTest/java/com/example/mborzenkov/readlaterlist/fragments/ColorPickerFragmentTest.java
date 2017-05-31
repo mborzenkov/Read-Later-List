@@ -1,30 +1,5 @@
 package com.example.mborzenkov.readlaterlist.fragments;
 
-import android.support.test.espresso.ViewInteraction;
-import android.support.test.rule.ActivityTestRule;
-import android.support.test.runner.AndroidJUnit4;
-
-import com.example.mborzenkov.readlaterlist.MyApplication;
-import com.example.mborzenkov.readlaterlist.R;
-import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
-import com.example.mborzenkov.readlaterlist.networking.CloudApiComponent;
-import com.example.mborzenkov.readlaterlist.networking.CloudApiMockDispatcher;
-import com.example.mborzenkov.readlaterlist.networking.CloudApiModule;
-import com.example.mborzenkov.readlaterlist.networking.DaggerCloudApiComponent;
-import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
-import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.io.IOException;
-
-import okhttp3.HttpUrl;
-import okhttp3.mockwebserver.MockWebServer;
-
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.closeSoftKeyboard;
@@ -37,26 +12,46 @@ import static android.support.test.espresso.matcher.ViewMatchers.withTagValue;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.equalTo;
 
+import android.support.test.espresso.ViewInteraction;
+import android.support.test.rule.ActivityTestRule;
+import android.support.test.runner.AndroidJUnit4;
+
+import com.example.mborzenkov.readlaterlist.MyApplication;
+import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
+import com.example.mborzenkov.readlaterlist.networking.CloudApiComponent;
+import com.example.mborzenkov.readlaterlist.networking.CloudApiMockDispatcher;
+import com.example.mborzenkov.readlaterlist.networking.CloudApiModule;
+import com.example.mborzenkov.readlaterlist.networking.DaggerCloudApiComponent;
+import java.io.IOException;
+
+import okhttp3.HttpUrl;
+import okhttp3.mockwebserver.MockWebServer;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 @RunWith(AndroidJUnit4.class)
 public class ColorPickerFragmentTest {
 
     private static final int ONSTART_SLEEP = 2000;
     private static final int TAKE_A_NAP = 250;
 
-    private static final int USER_ID = 1005930;
-    private MockWebServer mServer = new MockWebServer();
-    private HttpUrl mServerUrl;
+    private final MockWebServer mServer = new MockWebServer();
 
     @Rule
-    public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class);
+    public final ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class);
 
     @Before
     public void setUp() throws IOException {
         mServer.start();
-        mServerUrl = mServer.url("");
+        HttpUrl serverUrl = mServer.url("");
         mServer.setDispatcher(new CloudApiMockDispatcher.EmptyDispatcher());
         CloudApiComponent component = DaggerCloudApiComponent.builder()
-                .cloudApiModule(new CloudApiModule(mServerUrl)).build();
+                .cloudApiModule(new CloudApiModule(serverUrl)).build();
         MyApplication application = (MyApplication) mActivityTestRule.getActivity().getApplication();
         application.setCloudApiComponent(component);
         // В этих тестах не создаются новые заметки

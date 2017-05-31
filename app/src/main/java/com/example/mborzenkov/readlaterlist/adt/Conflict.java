@@ -7,7 +7,8 @@ import android.support.annotation.NonNull;
 public class Conflict {
 
     /** Формат для вывода в toString. */
-    private static String STRING_FORMAT = "Conflict of 2 items:%nLeft:%n%s%nRight:%n%s";
+    @SuppressWarnings("FieldCanBeLocal")
+    private static final String STRING_FORMAT = "Conflict of 2 items:%nLeft:%n%s%nRight:%n%s";
 
     /** Первый элемент конфликта. */
     private final ReadLaterItem leftItem;

@@ -53,7 +53,7 @@ public class ConflictsFragment extends DialogFragment {
     /** Список конфликтов. */
     private @NonNull List<Conflict> mConflictsList = new ArrayList<>();
     /** Текущий конфликт. */
-    private @NonNull Conflict mCurrentConflict;
+    private Conflict mCurrentConflict;
     /** Колбек для оповещений о ходе синхронизации. */
     private @Nullable ConflictsCallback mConflictsCallback = null;
 

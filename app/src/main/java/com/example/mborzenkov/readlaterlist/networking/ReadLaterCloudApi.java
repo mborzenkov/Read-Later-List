@@ -42,6 +42,7 @@ public class ReadLaterCloudApi {
     // Объект
 
     /** URL сервера для подключения. */
+    @SuppressWarnings("WeakerAccess") // не может быть private, Dagger
     @Inject
     HttpUrl mBaseUrl;
     /** Интерфейс для работы с сервером. */

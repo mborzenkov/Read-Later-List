@@ -5,7 +5,6 @@ import android.graphics.drawable.StateListDrawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -19,7 +18,6 @@ import android.widget.TextView;
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
-import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
@@ -31,23 +29,23 @@ import java.util.Map;
 class FilterDrawerViewHolder {
 
     // Объекты Layout
-    @NonNull LinearLayout mFavLinearLayout;
-    @NonNull Spinner mSavedFiltersSpinner;
-    @NonNull Spinner mDateFiltersSpinner;
-    @NonNull EditText mDateFromEditText;
-    @NonNull EditText mDateToEditText;
-    @NonNull Button mSortByManualOrderButton;
-    @NonNull Button mSortByLabelButton;
-    @NonNull Button mSortByDateCreatedButton;
-    @NonNull Button mSortByDateModifiedButton;
-    @NonNull Button mSortByDateViewedButton;
-    @NonNull TextView mCurrentUserTextView;
-    private @NonNull TextView mUrlChangeUser;
-    private @NonNull Button mBackupSaveButton;
-    private @NonNull Button mBackupRestoreButton;
-    private @NonNull Button mFillWithPlaceHoldersButton;
-    private @NonNull Button mDeleteAllButton;
-    private @NonNull TextView mDebugTextView;
+    final @NonNull LinearLayout mFavLinearLayout;
+    final @NonNull Spinner mSavedFiltersSpinner;
+    final @NonNull Spinner mDateFiltersSpinner;
+    final @NonNull EditText mDateFromEditText;
+    final @NonNull EditText mDateToEditText;
+    final @NonNull Button mSortByManualOrderButton;
+    final @NonNull Button mSortByLabelButton;
+    final @NonNull Button mSortByDateCreatedButton;
+    final @NonNull Button mSortByDateModifiedButton;
+    final @NonNull Button mSortByDateViewedButton;
+    final @NonNull TextView mCurrentUserTextView;
+    private final @NonNull TextView mUrlChangeUser;
+    private final @NonNull Button mBackupSaveButton;
+    private final @NonNull Button mBackupRestoreButton;
+    private final @NonNull Button mFillWithPlaceHoldersButton;
+    private final @NonNull Button mDeleteAllButton;
+    private final @NonNull TextView mDebugTextView;
 
     // Хэлперы
     /** Оригинальные названия кнопок сортировки. */
@@ -254,9 +252,9 @@ class FilterDrawerViewHolder {
      * @param inflater инфлейтер для инфлейтинга
      * @param layout Layout, в котором должны быть кружки
      */
-    public static void inflateFavLayout(@NonNull Context context,
-                                        @NonNull LayoutInflater inflater,
-                                        @NonNull LinearLayout layout) {
+    private static void inflateFavLayout(@NonNull Context context,
+                                         @NonNull LayoutInflater inflater,
+                                         @NonNull LinearLayout layout) {
 
         final int maxFavorites = FavoriteColorsUtils.getMaxFavorites(context);
 
