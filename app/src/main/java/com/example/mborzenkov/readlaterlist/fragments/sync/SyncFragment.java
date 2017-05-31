@@ -9,7 +9,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 
+import com.example.mborzenkov.readlaterlist.MyApplication;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.networking.CloudApiComponent;
 import com.example.mborzenkov.readlaterlist.networking.ReadLaterCloudApi;
 
 /** Фрагмент для фоновой синхронизации с Cloud API. */
@@ -95,7 +97,8 @@ public class SyncFragment extends Fragment {
 
         // Устанавливаем индикатор запущенной синхронизации
         syncInAction = true;
-        mSyncTask = new SyncAsyncTask(mSyncCallback, new ReadLaterCloudApi());
+        CloudApiComponent component = ((MyApplication) getActivity().getApplication()).getCloudApiComponent();
+        mSyncTask = new SyncAsyncTask(mSyncCallback, new ReadLaterCloudApi(component));
         mSyncTask.execute();
 
     }

@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.fragments.sync;
+package com.example.mborzenkov.readlaterlist.networking;
 
 import android.content.UriMatcher;
 import android.net.Uri;
@@ -21,7 +21,7 @@ import okhttp3.mockwebserver.RecordedRequest;
 
 /** Класс {@link okhttp3.mockwebserver.Dispatcher} для обработки запросов к fake-серверу.
  */
-class CloudApiMockDispatcher extends Dispatcher {
+public class CloudApiMockDispatcher extends Dispatcher {
 
     // Запуск с покрытием:  ./gradlew jacocoTestReport
     // Отчет теста:         ${buildDir}/reports/tests/testDebugUnitTest/index.html
@@ -44,7 +44,7 @@ class CloudApiMockDispatcher extends Dispatcher {
     /** Матчер для Uri. */
     private UriMatcher mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
-    CloudApiMockDispatcher(@NonNull String serverAuthority) {
+    public CloudApiMockDispatcher(@NonNull String serverAuthority) {
         mUriMatcher.addURI(serverAuthority, "user/#/notes", CODE_ALL_NOTES);
         mUriMatcher.addURI(serverAuthority, "user/#/note/#", CODE_ONE_NOTE);
     }
@@ -231,7 +231,7 @@ class CloudApiMockDispatcher extends Dispatcher {
     }
 
     /** Dispatcher который всегда возвращает пустой MockResponse. */
-    static class EmptyDispatcher extends Dispatcher {
+    public static class EmptyDispatcher extends Dispatcher {
         @Override
         public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
             return new MockResponse();
@@ -239,7 +239,7 @@ class CloudApiMockDispatcher extends Dispatcher {
     }
 
     /** Dispatcher который всегда возвращает OK и ответ неправильного формата. */
-    static class MalformedDispatcher extends Dispatcher {
+    public static class MalformedDispatcher extends Dispatcher {
         @Override
         public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
             return new MockResponse().setResponseCode(RESPONSE_OK)
@@ -248,7 +248,7 @@ class CloudApiMockDispatcher extends Dispatcher {
     }
 
     /** Dispatcher который всегда возвращает OK и ошибку. */
-    static class ErrorDispatcher extends Dispatcher {
+    public static class ErrorDispatcher extends Dispatcher {
         @Override
         public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
             return new MockResponse().setResponseCode(RESPONSE_OK)
@@ -257,7 +257,7 @@ class CloudApiMockDispatcher extends Dispatcher {
     }
 
     /** Dispatcher который всегда возвращает OK, status SUCCESS и DATA null. */
-    static class EmptyDataDispatcher extends Dispatcher {
+    public static class EmptyDataDispatcher extends Dispatcher {
         @Override
         public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
             return new MockResponse().setResponseCode(RESPONSE_OK)
@@ -266,7 +266,7 @@ class CloudApiMockDispatcher extends Dispatcher {
     }
 
     /** Dispatcher который всегда возвращает OK, status ERROR и ERROR null. */
-    static class EmptyErrorDispatcher extends Dispatcher {
+    public static class EmptyErrorDispatcher extends Dispatcher {
         @Override
         public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
             return new MockResponse().setResponseCode(RESPONSE_OK)
@@ -275,7 +275,7 @@ class CloudApiMockDispatcher extends Dispatcher {
     }
 
     /** Dispatcher который всегда возвращает BAD REQUEST и пустую Body. */
-    static class EmptyBodyDispatcher extends Dispatcher {
+    public static class EmptyBodyDispatcher extends Dispatcher {
         @Override
         public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
             return new MockResponse().setResponseCode(RESPONSE_BAD_REQUEST).setBody("");

@@ -12,6 +12,8 @@ import com.squareup.moshi.Moshi;
 import java.io.IOException;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -39,39 +41,30 @@ public class ReadLaterCloudApi {
     /////////////////////////
     // Объект
 
+    /** URL сервера для подключения. */
+    @Inject
+    HttpUrl mBaseUrl;
     /** Интерфейс для работы с сервером. */
-    private @NonNull CloudApiYufimtsev mCloudApi;
+    private final @NonNull CloudApiYufimtsev mCloudApi;
 
     /** Создает новый объект для синхронизации объектов ReadLaterItem с сервером.
      * Устанавливает логирование запросов, если BuildConfig.DEBUG.
      */
-    public ReadLaterCloudApi() {
-        mCloudApi = prepareApi(null);
-    }
-
-    /** Создает новый объект для синхронизации объектов ReadLaterItem с сервером (с явно указанным адресом).
-     * Устанавливает логирование запросов, если BuildConfig.DEBUG.
-     *
-     * @param baseUrl адрес для подключения
-     *
-     * @throws NullPointerException если baseUrl == null
-     */
-    public ReadLaterCloudApi(@NonNull HttpUrl baseUrl) {
-        mCloudApi = prepareApi(baseUrl);
+    public ReadLaterCloudApi(CloudApiComponent component) {
+        component.inject(this);
+        mCloudApi = prepareApi();
     }
 
     /** Подготавливает API для синхронизации.
      * Устанавливает логирование запросов, если BuildConfig.DEBUG.
      *
-     * @param baseUrl адрес для подключения или null, если используется адрес по умолчанию
-     *
      * @return API для синхронизации
      */
-    private CloudApiYufimtsev prepareApi(@Nullable HttpUrl baseUrl) {
+    private CloudApiYufimtsev prepareApi() {
         // Подготавливаем Retrofit к получению данных и Moshi к обработке данных
         Moshi moshi = new Moshi.Builder().add(new ReadLaterItemJsonAdapter()).build();
         Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
-                .baseUrl(baseUrl == null ? CloudApiYufimtsev.BASE_URL : baseUrl)
+                .baseUrl(mBaseUrl)
                 .addConverterFactory(MoshiConverterFactory.create(moshi));
 
         // Устанавливаем логирование запросов, если дебаг

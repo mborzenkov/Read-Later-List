@@ -41,6 +41,7 @@ public class ReadLaterCloudApiTest {
 
     private MockWebServer mServer = new MockWebServer();
     private HttpUrl mServerUrl;
+    private ReadLaterCloudApi mCloudApi;
 
 
     @Before
@@ -49,6 +50,10 @@ public class ReadLaterCloudApiTest {
         mServer.start();
         mServerUrl = mServer.url("");
         mServer.setDispatcher(new CloudApiMockDispatcher(mServerUrl.host() + ":" + mServerUrl.port()));
+        CloudApiComponent component = DaggerCloudApiComponent.builder()
+                .cloudApiModule(new CloudApiModule(mServerUrl)).build();
+        mCloudApi = new ReadLaterCloudApi(component);
+        component.inject(mCloudApi);
         // ShadowLog.stream = System.out; // Раскомментируйте строчку для вывода в лог всех обращений
     }
 
@@ -59,24 +64,23 @@ public class ReadLaterCloudApiTest {
 
     @Test
     public void testInsertAndQuery() {
-        final ReadLaterCloudApi cloudApi = new ReadLaterCloudApi(mServerUrl);
         List<ReadLaterItem> allItems;
 
         // Проверим, что заметок пока действительно нет ни у DEFAULT_USER, ни у SECOND_USER
-        allItems = cloudApi.getAllItemsOnServer(DEFAULT_USER);
+        allItems = mCloudApi.getAllItemsOnServer(DEFAULT_USER);
         assertTrue(allItems != null);
         assertTrue(allItems.isEmpty());
-        allItems = cloudApi.getAllItemsOnServer(SECOND_USER);
+        allItems = mCloudApi.getAllItemsOnServer(SECOND_USER);
         assertTrue(allItems != null);
         assertTrue(allItems.isEmpty());
 
         Integer newItemId;
         // Добавим заметку DEFAULT_USER
-        newItemId = cloudApi.insertItemOnServer(DEFAULT_USER, defaultItem);
+        newItemId = mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem);
         assertTrue(newItemId != null);
 
         // У DEFAULT_USER теперь должна быть одна заметка и она равна defaultItem по содержанию, а также id == newItemId
-        allItems = cloudApi.getAllItemsOnServer(DEFAULT_USER);
+        allItems = mCloudApi.getAllItemsOnServer(DEFAULT_USER);
         assertTrue(allItems != null);
         assertEquals(1, allItems.size());
 
@@ -86,16 +90,16 @@ public class ReadLaterCloudApiTest {
         assertEquals((int) newItemId, itemFromServer.getRemoteId());
 
         // У SECOND_USER не должно быть заметок
-        allItems = cloudApi.getAllItemsOnServer(SECOND_USER);
+        allItems = mCloudApi.getAllItemsOnServer(SECOND_USER);
         assertTrue(allItems != null);
         assertTrue(allItems.isEmpty());
 
         // Добавим еще одну заметку DEFAULT_USER
-        newItemId = cloudApi.insertItemOnServer(DEFAULT_USER, secondItem);
+        newItemId = mCloudApi.insertItemOnServer(DEFAULT_USER, secondItem);
         assertTrue(newItemId != null);
 
         // У DEFAULT_USER теперь должно быть две заметки, равные по содержанию соответственно defaultItem и secondItem
-        allItems = cloudApi.getAllItemsOnServer(DEFAULT_USER);
+        allItems = mCloudApi.getAllItemsOnServer(DEFAULT_USER);
         assertTrue(allItems != null);
         assertEquals(2, allItems.size());
 
@@ -108,16 +112,16 @@ public class ReadLaterCloudApiTest {
         }
 
         // У SECOND_USER не должно быть заметок
-        allItems = cloudApi.getAllItemsOnServer(SECOND_USER);
+        allItems = mCloudApi.getAllItemsOnServer(SECOND_USER);
         assertTrue(allItems != null);
         assertTrue(allItems.isEmpty());
 
         // Добавим одну для SECOND_USER
-        newItemId = cloudApi.insertItemOnServer(SECOND_USER, secondItem);
+        newItemId = mCloudApi.insertItemOnServer(SECOND_USER, secondItem);
         assertTrue(newItemId != null);
 
         // У SECOND_USER теперь должна быть одна заметка и она равна secondItem по содержанию, а также id == newItemId
-        allItems = cloudApi.getAllItemsOnServer(SECOND_USER);
+        allItems = mCloudApi.getAllItemsOnServer(SECOND_USER);
         assertTrue(allItems != null);
         assertEquals(1, allItems.size());
 
@@ -126,26 +130,24 @@ public class ReadLaterCloudApiTest {
         assertEquals((int) newItemId, itemFromServer.getRemoteId());
 
         // У DEFAULT_USER по прежнему 2 заметки
-        allItems = cloudApi.getAllItemsOnServer(DEFAULT_USER);
+        allItems = mCloudApi.getAllItemsOnServer(DEFAULT_USER);
         assertTrue(allItems != null);
         assertEquals(2, allItems.size());
     }
 
     @Test
     public void testUpdate() {
-        final ReadLaterCloudApi cloudApi = new ReadLaterCloudApi(mServerUrl);
-
         Integer newItemId;
         // Добавим заметку DEFAULT_USER
-        newItemId = cloudApi.insertItemOnServer(DEFAULT_USER, defaultItem);
+        newItemId = mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem);
         assertTrue(newItemId != null);
 
         // Изменим заметку
-        cloudApi.updateItemOnServer(DEFAULT_USER, newItemId, secondItem);
+        mCloudApi.updateItemOnServer(DEFAULT_USER, newItemId, secondItem);
 
         List<ReadLaterItem> allItems;
         // У DEFAULT_USER теперь должна быть одна заметка и она равна secondItem по содержанию, а также id == newItemId
-        allItems = cloudApi.getAllItemsOnServer(DEFAULT_USER);
+        allItems = mCloudApi.getAllItemsOnServer(DEFAULT_USER);
         assertTrue(allItems != null);
         assertEquals(1, allItems.size());
 
@@ -157,110 +159,101 @@ public class ReadLaterCloudApiTest {
 
     @Test
     public void testDelete() {
-        final ReadLaterCloudApi cloudApi = new ReadLaterCloudApi(mServerUrl);
-
         Integer newItemId;
         // Добавим заметку DEFAULT_USER
-        newItemId = cloudApi.insertItemOnServer(DEFAULT_USER, defaultItem);
+        newItemId = mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem);
         assertTrue(newItemId != null);
 
         // Удалим заметку
-        cloudApi.deleteItemOnServer(DEFAULT_USER, newItemId);
+        mCloudApi.deleteItemOnServer(DEFAULT_USER, newItemId);
 
         List<ReadLaterItem> allItems;
         // У DEFAULT_USER больше нет заметок
-        allItems = cloudApi.getAllItemsOnServer(DEFAULT_USER);
+        allItems = mCloudApi.getAllItemsOnServer(DEFAULT_USER);
         assertTrue(allItems != null);
         assertEquals(0, allItems.size());
     }
 
     @Test
     public void testNoResponse() throws IOException {
-        final ReadLaterCloudApi cloudApi = new ReadLaterCloudApi(mServerUrl);
         // Сервер упал
         mServer.shutdown();
 
         // Проверим все методы должны выполняться без ошибок и возвращать null или false
-        assertEquals(null, cloudApi.getAllItemsOnServer(DEFAULT_USER));
-        assertEquals(null, cloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
-        assertEquals(false, cloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
-        assertEquals(false, cloudApi.deleteItemOnServer(DEFAULT_USER, 0));
+        assertEquals(null, mCloudApi.getAllItemsOnServer(DEFAULT_USER));
+        assertEquals(null, mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
+        assertEquals(false, mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
+        assertEquals(false, mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
     }
 
     @Test
     public void testEmptyResponse() {
-        final ReadLaterCloudApi cloudApi = new ReadLaterCloudApi(mServerUrl);
         // Сервер вовзвращает нулы
         mServer.setDispatcher(new CloudApiMockDispatcher.EmptyDispatcher());
 
         // Проверим все методы должны выполняться без ошибок и возвращать null или false
-        assertEquals(null, cloudApi.getAllItemsOnServer(DEFAULT_USER));
-        assertEquals(null, cloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
-        assertEquals(false, cloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
-        assertEquals(false, cloudApi.deleteItemOnServer(DEFAULT_USER, 0));
+        assertEquals(null, mCloudApi.getAllItemsOnServer(DEFAULT_USER));
+        assertEquals(null, mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
+        assertEquals(false, mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
+        assertEquals(false, mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
     }
 
     @Test
     public void testMalformedResponse() {
-        final ReadLaterCloudApi cloudApi = new ReadLaterCloudApi(mServerUrl);
         // Сервер вовзвращает JSON неправильного формата
         mServer.setDispatcher(new CloudApiMockDispatcher.MalformedDispatcher());
 
         // Проверим все методы должны выполняться без ошибок и возвращать null или false
-        assertEquals(null, cloudApi.getAllItemsOnServer(DEFAULT_USER));
-        assertEquals(null, cloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
-        assertEquals(false, cloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
-        assertEquals(false, cloudApi.deleteItemOnServer(DEFAULT_USER, 0));
+        assertEquals(null, mCloudApi.getAllItemsOnServer(DEFAULT_USER));
+        assertEquals(null, mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
+        assertEquals(false, mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
+        assertEquals(false, mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
     }
 
     @Test
     public void testErrors() {
-        final ReadLaterCloudApi cloudApi = new ReadLaterCloudApi(mServerUrl);
         // Сервер вовзвращает JSON неправильного формата
         mServer.setDispatcher(new CloudApiMockDispatcher.ErrorDispatcher());
 
         // Проверим все методы должны выполняться без ошибок и возвращать null или false
-        assertEquals(null, cloudApi.getAllItemsOnServer(DEFAULT_USER));
-        assertEquals(null, cloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
-        assertEquals(false, cloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
-        assertEquals(false, cloudApi.deleteItemOnServer(DEFAULT_USER, 0));
+        assertEquals(null, mCloudApi.getAllItemsOnServer(DEFAULT_USER));
+        assertEquals(null, mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
+        assertEquals(false, mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
+        assertEquals(false, mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
     }
 
     @Test
     public void testEmptyErrorResponse() {
-        final ReadLaterCloudApi cloudApi = new ReadLaterCloudApi(mServerUrl);
         // Сервер вовзвращает JSON с ошибкой, но без error
         mServer.setDispatcher(new CloudApiMockDispatcher.EmptyErrorDispatcher());
 
         // Проверим все методы должны выполняться без ошибок и возвращать null или false
-        assertEquals(null, cloudApi.getAllItemsOnServer(DEFAULT_USER));
-        assertEquals(null, cloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
-        assertEquals(false, cloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
-        assertEquals(false, cloudApi.deleteItemOnServer(DEFAULT_USER, 0));
+        assertEquals(null, mCloudApi.getAllItemsOnServer(DEFAULT_USER));
+        assertEquals(null, mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
+        assertEquals(false, mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
+        assertEquals(false, mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
     }
 
     @Test
     public void testEmptyDataResponse() {
-        final ReadLaterCloudApi cloudApi = new ReadLaterCloudApi(mServerUrl);
         // Сервер вовзвращает JSON с OK, но без data
         mServer.setDispatcher(new CloudApiMockDispatcher.EmptyDataDispatcher());
 
         // Проверим методы должны выполняться без ошибок и возвращать null или false
-        assertEquals(null, cloudApi.getAllItemsOnServer(DEFAULT_USER));
-        assertEquals(null, cloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
+        assertEquals(null, mCloudApi.getAllItemsOnServer(DEFAULT_USER));
+        assertEquals(null, mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
     }
 
     @Test
     public void testEmptyBodyResponse() {
-        final ReadLaterCloudApi cloudApi = new ReadLaterCloudApi(mServerUrl);
         // Сервер вовзвращает JSON с OK, но без data
         mServer.setDispatcher(new CloudApiMockDispatcher.EmptyBodyDispatcher());
 
         // Проверим методы должны выполняться без ошибок и возвращать null или false
-        assertEquals(null, cloudApi.getAllItemsOnServer(DEFAULT_USER));
-        assertEquals(null, cloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
-        assertEquals(false, cloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
-        assertEquals(false, cloudApi.deleteItemOnServer(DEFAULT_USER, 0));
+        assertEquals(null, mCloudApi.getAllItemsOnServer(DEFAULT_USER));
+        assertEquals(null, mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
+        assertEquals(false, mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
+        assertEquals(false, mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
     }
 
 }

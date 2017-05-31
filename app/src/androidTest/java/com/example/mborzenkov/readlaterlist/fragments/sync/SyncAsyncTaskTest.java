@@ -1,12 +1,9 @@
 package com.example.mborzenkov.readlaterlist.fragments.sync;
 
 
-import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.Size;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.ProviderTestCase2;
@@ -16,6 +13,10 @@ import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContentProvider;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
+import com.example.mborzenkov.readlaterlist.networking.CloudApiComponent;
+import com.example.mborzenkov.readlaterlist.networking.CloudApiMockDispatcher;
+import com.example.mborzenkov.readlaterlist.networking.CloudApiModule;
+import com.example.mborzenkov.readlaterlist.networking.DaggerCloudApiComponent;
 import com.example.mborzenkov.readlaterlist.networking.ReadLaterCloudApi;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
@@ -27,7 +28,6 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import okhttp3.HttpUrl;
@@ -71,7 +71,9 @@ public class SyncAsyncTaskTest extends ProviderTestCase2<ReadLaterContentProvide
         mServer.start();
         HttpUrl serverUrl = mServer.url("");
         mServer.setDispatcher(new CloudApiMockDispatcher(serverUrl.host() + ":" + serverUrl.port()));
-        mCloudApi = new ReadLaterCloudApi(serverUrl);
+        CloudApiComponent component = DaggerCloudApiComponent.builder()
+                .cloudApiModule(new CloudApiModule(serverUrl)).build();
+        mCloudApi = new ReadLaterCloudApi(component);
     }
 
     @After

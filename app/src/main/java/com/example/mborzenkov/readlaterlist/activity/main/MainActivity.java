@@ -35,6 +35,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
+import com.example.mborzenkov.readlaterlist.MyApplication;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.Conflict;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
@@ -47,6 +48,7 @@ import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemViewPager
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncCallback;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncFragment;
+import com.example.mborzenkov.readlaterlist.networking.CloudApiComponent;
 import com.example.mborzenkov.readlaterlist.networking.ReadLaterCloudApi;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
 import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
@@ -275,7 +277,8 @@ public class MainActivity extends AppCompatActivity implements
                 @Override
                 public void run() {
                     final int userId = UserInfoUtils.getCurentUser(MainActivity.this).getUserId();
-                    if (new ReadLaterCloudApi().updateItemOnServer(userId, remoteId, item)) {
+                    CloudApiComponent component = ((MyApplication) getApplication()).getCloudApiComponent();
+                    if (new ReadLaterCloudApi(component).updateItemOnServer(userId, remoteId, item)) {
                         ReadLaterDbUtils.updateItem(MainActivity.this, item, userId, remoteId);
                     }
                 }
@@ -605,7 +608,7 @@ public class MainActivity extends AppCompatActivity implements
      * Синхронизация будет запущена, если не выполняется LongTask.
      * По окончанию синхронизации при любом исходе вызывается finishSync.
      */
-    private void toggleSync() {
+    void toggleSync() {
         if (!MainActivityLongTask.isActive()) {
             if (mItemListFragment.isVisible()) {
                 mItemListFragment.setRefreshing(true);
