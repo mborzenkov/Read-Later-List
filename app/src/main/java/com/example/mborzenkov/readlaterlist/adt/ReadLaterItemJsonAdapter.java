@@ -82,7 +82,7 @@ public class ReadLaterItemJsonAdapter {
                     .dateModified(dateFormatter.parse(json.edited).getTime())
                     .dateViewed(dateFormatter.parse(json.viewed).getTime());
             if (json.id != null) {
-                resultBuilder.remoteId(Integer.valueOf(json.id));
+                resultBuilder.remoteId(Integer.parseInt(json.id));
             }
             if (json.description != null) {
                 resultBuilder.description(json.description);

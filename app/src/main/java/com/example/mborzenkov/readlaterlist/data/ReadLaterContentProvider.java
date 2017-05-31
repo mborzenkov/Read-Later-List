@@ -339,14 +339,14 @@ public class ReadLaterContentProvider extends ContentProvider {
                     db.setTransactionSuccessful();
                 } catch (SQLiteConstraintException e) {
                     throw new IllegalArgumentException("Error @ ReadLaterContentProvider.update: when inserting "
-                        + values.toString());
+                        + values.toString() + " e: " + e.toString());
                 } finally {
                     db.endTransaction();
                 }
                 break;
             case CODE_READLATER_ITEMS_UPDATE_ORDER:
                 itemIdString = uri.getPathSegments().get(1);
-                final int newPosition = Integer.valueOf(uri.getPathSegments().get(3));
+                final int newPosition = Integer.parseInt(uri.getPathSegments().get(3));
 
                 // SELECT MAX ORDER
                 Cursor maxOrderCursor = db.rawQuery(QUERY_MAX_ORDER_POSITION, null);

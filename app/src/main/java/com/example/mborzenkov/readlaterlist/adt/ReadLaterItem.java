@@ -78,14 +78,14 @@ public class ReadLaterItem {
          * @throws NullPointerException если item == null
          */
         public Builder(@NonNull ReadLaterItem item) {
-            label           = item.getLabel();
-            description     = item.getDescription();
-            color           = item.getColor();
-            dateCreated     = item.getDateCreated();
-            dateModified    = item.getDateModified();
-            dateViewed      = item.getDateViewed();
-            remoteId        = item.getRemoteId();
-            this.imageUrl(item.getImageUrl());
+            label           = item.label;
+            description     = item.description;
+            color           = item.color;
+            dateCreated     = item.dateCreated;
+            dateModified    = item.dateModified;
+            dateViewed      = item.dateViewed;
+            remoteId        = item.remoteId;
+            imageUrl        = item.imageUrl;
         }
 
         /** Изменяет заголовок у элемента.

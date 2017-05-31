@@ -69,7 +69,7 @@ class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResult> {
     }
 
     /** Объект для передачи данных из doInBackground в onPostExecute. */
-    class SyncResult {
+    static class SyncResult {
 
         /** Признак успешности синхронизации. */
         private final boolean isSuccessful;

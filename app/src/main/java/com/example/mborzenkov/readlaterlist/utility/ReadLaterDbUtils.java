@@ -84,7 +84,10 @@ public class ReadLaterDbUtils {
                 new String[] { String.valueOf(userId) },
                 null);
 
-        if (queryCursor == null || queryCursor.getCount() == 0) {
+        if (queryCursor == null) {
+            return -1;
+        } else if (queryCursor.getCount() == 0) {
+            queryCursor.close();
             return -1;
         }
 

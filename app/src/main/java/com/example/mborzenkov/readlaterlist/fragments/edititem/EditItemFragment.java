@@ -205,7 +205,7 @@ public class EditItemFragment extends Fragment implements
         mLabelEditText = (TextInputEditText) rootView.findViewById(R.id.et_edititem_label);
         mLabelInputLayout = (TextInputLayout) rootView.findViewById(R.id.til_edititem_label);
         mDescriptionEditText = (TextInputEditText) rootView.findViewById(R.id.et_edit_item_description);
-        mColorImageButton = (ImageButton) rootView.findViewById(R.id.ib_edit_item_color);
+        mColorImageButton = (ImageView) rootView.findViewById(R.id.ib_edit_item_color);
         mImageUrlEditText = (TextInputEditText) rootView.findViewById(R.id.et_edititem_imageurl);
         mImageUrlInputLayout = (TextInputLayout) rootView.findViewById(R.id.til_edititem_imageurl);
         mImageFromUrlImageView = (ImageView) rootView.findViewById(R.id.iv_edititem_imagefromurl);

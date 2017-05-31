@@ -262,70 +262,6 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
 
 
     /////////////////////////
-    // Проверка достоверности инварианта
-
-    private void checkRep() {
-        if (BuildConfig.DEBUG) {
-            if (mStepHue <= 0) {
-                throw new AssertionError(
-                        String.format(ERROR_INVARIANT_FAIL, "mStepHue == " + mStepHue));
-            } else if (mDivHue <= 0) {
-                throw new AssertionError(
-                        String.format(ERROR_INVARIANT_FAIL, "mDivHue == " + mDivHue));
-            } else if (mDivVal <= 0) {
-                throw new AssertionError(
-                        String.format(ERROR_INVARIANT_FAIL, "mStepHue == " + mDivVal));
-            } else if (mSquareStandardColorsHsv.isEmpty()) {
-                throw new AssertionError(
-                        String.format(ERROR_INVARIANT_FAIL, "mSquareStandardColorsHsv is empty"));
-            } else if (mSquareColorsHsv.isEmpty()) {
-                throw new AssertionError(
-                        String.format(ERROR_INVARIANT_FAIL, "mSquareColorsHsv is empty"));
-            } else if (mSquareColorsHsv.size() != mSquareStandardColorsHsv.size()) {
-                throw new AssertionError(
-                        String.format(ERROR_INVARIANT_FAIL,
-                                "mSquareColorsHsv.size() != mSquareStandardColorsHsv.size()"));
-            } else if (mChosenColorHsv.length != HSV_SIZE) {
-                throw new AssertionError(
-                        String.format(ERROR_INVARIANT_FAIL, "mChosenColorHsv.length != 3"));
-            }
-
-            // mSquareStandardColorsHsv.size() == mSquareColorsHsv.size(), поэтому пройдемся одним циклом по обоим
-            for (int i = 0, size = mSquareStandardColorsHsv.size(); i < size; i++) {
-                float[] colorStd = mSquareStandardColorsHsv.get(i);
-                if (colorStd.length != HSV_SIZE) {
-                    throw new AssertionError(
-                            String.format(ERROR_INVARIANT_FAIL,
-                                    "Element.length of mSquareStandardColorsHsv != 3, element: "
-                                            + Arrays.toString(colorStd)));
-                } else if (i > 0) {
-                    float[] prevColor = mSquareStandardColorsHsv.get(i - 1);
-                    if ((colorStd[0] != (prevColor[0] + mStepHue))) {
-                        throw new AssertionError(
-                                String.format(ERROR_INVARIANT_FAIL,
-                                        "(color(i) HUE) != ((color(i+1) HUE) + mStepHue) of mSquareStandardColorsHsv: "
-                                                + Arrays.toString(prevColor) + " , " + Arrays.toString(colorStd)));
-                    } else if ((colorStd[1] != prevColor[1]) || (colorStd[2] != prevColor[2])) {
-                        throw new AssertionError(
-                                String.format(ERROR_INVARIANT_FAIL,
-                                        "color(i) SAT or VAL != color(i+1) SAT or VAL of mSquareStandardColorsHsv: "
-                                                + Arrays.toString(prevColor) + " , " + Arrays.toString(colorStd)));
-                    }
-                }
-
-                float[] colorCurrent = mSquareColorsHsv.get(i);
-                if (colorCurrent.length != HSV_SIZE) {
-                    throw new AssertionError(
-                            String.format(ERROR_INVARIANT_FAIL,
-                                    "Element.length of mSquareColorsHsv != 3, element: "
-                                            + Arrays.toString(colorCurrent)));
-                }
-            }
-        }
-    }
-
-
-    /////////////////////////
     // Колбеки Fragment
 
     @Override
@@ -415,8 +351,6 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
             mChosenColorHsv = copyOfColor(defaultColorHsv);
 
         }
-
-        checkRep();
 
     }
 
@@ -607,10 +541,10 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
 
         final int numberOfSquares = mSquareColorsHsv.size();
 
-        if (mSquareColorsHsv.size() == 0) {
+        if (mSquareColorsHsv.isEmpty()) {
             throw new IllegalStateException(
                     "Error @ ColorPickerFragment.inflateGradientDrawables: mSquareColorsHsv is empty");
-        } else if (mSquareStandardColorsHsv.size() == 0) {
+        } else if (mSquareStandardColorsHsv.isEmpty()) {
             throw new IllegalStateException(
                     "Error @ ColorPickerFragment.inflateGradientDrawables: mSquareStandardColorsHsv is empty");
         } else if (mColorsLinearLayout == null) {

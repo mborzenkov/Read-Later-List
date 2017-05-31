@@ -113,7 +113,7 @@ public class ReadLaterItemDbAdapter {
     }
 
     /** Объект, содержащий соответствие индексов колонок в курсоре полям объекта ReadLaterItem. */
-    private class ReadLaterItemCursorProjection {
+    private static class ReadLaterItemCursorProjection {
         private final int indexLabel;
         private final int indexDescription;
         private final int indexColor;

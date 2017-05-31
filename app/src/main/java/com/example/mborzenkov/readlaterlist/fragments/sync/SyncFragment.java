@@ -19,7 +19,7 @@ public class SyncFragment extends Fragment {
     private static final String TAG = "fragment_sync";
 
     /** Признак запущенной ранее синхронизации. */
-    private @NonNull Boolean syncInAction = false;
+    private boolean syncInAction = false;
 
     /** Колбек для оповещений о ходе синхронизации. */
     private @Nullable SyncCallback mSyncCallback = null;

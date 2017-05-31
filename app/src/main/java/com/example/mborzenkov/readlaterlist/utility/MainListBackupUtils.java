@@ -81,7 +81,7 @@ public class MainListBackupUtils {
 
         // Проверяем доступность хранилища
         final String externalStorageState = Environment.getExternalStorageState();
-        if (externalStorageState.equals(Environment.MEDIA_MOUNTED)) {
+        if (Environment.MEDIA_MOUNTED.equals(externalStorageState)) {
 
             // Получаем путь к папке
             File backupFolder = getBackupFolder();
@@ -154,8 +154,7 @@ public class MainListBackupUtils {
              currentPosition += FILE_MAX_SIZE,
                      allData = ReadLaterDbUtils.queryRange(context, currentPosition, FILE_MAX_SIZE)) {
 
-            ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
-            List<ReadLaterItem> savedData = dbAdapter.allItemsFromCursor(allData);
+            List<ReadLaterItem> savedData = new ReadLaterItemDbAdapter().allItemsFromCursor(allData);
             if (!savedData.isEmpty()) {
                 result.add(jsonAdapter.toJson(savedData));
             }
@@ -242,8 +241,8 @@ public class MainListBackupUtils {
 
         // Проверяем доступность хранилища
         String externalStorageState = Environment.getExternalStorageState();
-        if (externalStorageState.equals(Environment.MEDIA_MOUNTED)
-                || externalStorageState.equals(Environment.MEDIA_MOUNTED_READ_ONLY)) {
+        if (Environment.MEDIA_MOUNTED.equals(externalStorageState)
+                || Environment.MEDIA_MOUNTED_READ_ONLY.equals(externalStorageState)) {
 
             // Получаем путь к папке
             File backupFolder = getBackupFolder();

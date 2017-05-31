@@ -1,6 +1,7 @@
 package com.example.mborzenkov.readlaterlist.networking;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.graphics.Color;
@@ -39,7 +40,6 @@ public class ReadLaterCloudApiTest {
             .description("description2").color(Color.BLUE).build();
 
     private final MockWebServer mServer = new MockWebServer();
-    private HttpUrl mServerUrl;
     private ReadLaterCloudApi mCloudApi;
 
 
@@ -47,10 +47,10 @@ public class ReadLaterCloudApiTest {
     @SuppressWarnings("CheckStyle")
     public void onStart() throws IOException {
         mServer.start();
-        mServerUrl = mServer.url("");
-        mServer.setDispatcher(new CloudApiMockDispatcher(mServerUrl.host() + ":" + mServerUrl.port()));
+        HttpUrl serverUrl = mServer.url("");
+        mServer.setDispatcher(new CloudApiMockDispatcher(serverUrl.host() + ":" + serverUrl.port()));
         CloudApiComponent component = DaggerCloudApiComponent.builder()
-                .cloudApiModule(new CloudApiModule(mServerUrl)).build();
+                .cloudApiModule(new CloudApiModule(serverUrl)).build();
         mCloudApi = new ReadLaterCloudApi(component);
         component.inject(mCloudApi);
         // ShadowLog.stream = System.out; // Раскомментируйте строчку для вывода в лог всех обращений
@@ -181,8 +181,8 @@ public class ReadLaterCloudApiTest {
         // Проверим все методы должны выполняться без ошибок и возвращать null или false
         assertEquals(null, mCloudApi.getAllItemsOnServer(DEFAULT_USER));
         assertEquals(null, mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
-        assertEquals(false, mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
-        assertEquals(false, mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
+        assertFalse(mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
+        assertFalse(mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
     }
 
     @Test
@@ -193,8 +193,8 @@ public class ReadLaterCloudApiTest {
         // Проверим все методы должны выполняться без ошибок и возвращать null или false
         assertEquals(null, mCloudApi.getAllItemsOnServer(DEFAULT_USER));
         assertEquals(null, mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
-        assertEquals(false, mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
-        assertEquals(false, mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
+        assertFalse(mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
+        assertFalse(mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
     }
 
     @Test
@@ -205,8 +205,8 @@ public class ReadLaterCloudApiTest {
         // Проверим все методы должны выполняться без ошибок и возвращать null или false
         assertEquals(null, mCloudApi.getAllItemsOnServer(DEFAULT_USER));
         assertEquals(null, mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
-        assertEquals(false, mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
-        assertEquals(false, mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
+        assertFalse(mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
+        assertFalse(mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
     }
 
     @Test
@@ -217,8 +217,8 @@ public class ReadLaterCloudApiTest {
         // Проверим все методы должны выполняться без ошибок и возвращать null или false
         assertEquals(null, mCloudApi.getAllItemsOnServer(DEFAULT_USER));
         assertEquals(null, mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
-        assertEquals(false, mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
-        assertEquals(false, mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
+        assertFalse(mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
+        assertFalse(mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
     }
 
     @Test
@@ -229,8 +229,8 @@ public class ReadLaterCloudApiTest {
         // Проверим все методы должны выполняться без ошибок и возвращать null или false
         assertEquals(null, mCloudApi.getAllItemsOnServer(DEFAULT_USER));
         assertEquals(null, mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
-        assertEquals(false, mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
-        assertEquals(false, mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
+        assertFalse(mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
+        assertFalse(mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
     }
 
     @Test
@@ -251,8 +251,8 @@ public class ReadLaterCloudApiTest {
         // Проверим методы должны выполняться без ошибок и возвращать null или false
         assertEquals(null, mCloudApi.getAllItemsOnServer(DEFAULT_USER));
         assertEquals(null, mCloudApi.insertItemOnServer(DEFAULT_USER, defaultItem));
-        assertEquals(false, mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
-        assertEquals(false, mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
+        assertFalse(mCloudApi.updateItemOnServer(DEFAULT_USER, 0, secondItem));
+        assertFalse(mCloudApi.deleteItemOnServer(DEFAULT_USER, 0));
     }
 
 }

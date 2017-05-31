@@ -65,13 +65,13 @@ class CloudApiMockDispatcher extends Dispatcher {
         switch (mUriMatcher.match(requestUri)) {
             case CODE_ALL_NOTES:
                 // Запрос всех заметок
-                userId = Integer.valueOf(requestUri.getPathSegments().get(URI_SEGMENT_USERID));
+                userId = Integer.parseInt(requestUri.getPathSegments().get(URI_SEGMENT_USERID));
 
-                if (method.equals(METHOD_GET)) {
+                if (METHOD_GET.equals(method)) {
                     // GET ALL NOTES -> status:ok, data:[заметки]
                     response = new MockResponse().setResponseCode(RESPONSE_OK)
                             .setBody("{\"status\":\"ok\",\"data\":" + getAllItemsJson(userId) + "}");
-                } else if (method.equals(METHOD_POST)) {
+                } else if (METHOD_POST.equals(method)) {
                     // POST ALL NOTES -> status:ok, data:newId (это insert, возвращающий id новой заметки)
                     ReadLaterItem itemFromRequest;
                     try {
@@ -90,8 +90,8 @@ class CloudApiMockDispatcher extends Dispatcher {
                 break;
             case CODE_ONE_NOTE:
                 // Запрос конкретной заметки
-                userId = Integer.valueOf(requestUri.getPathSegments().get(URI_SEGMENT_USERID));
-                itemId = Integer.valueOf(requestUri.getPathSegments().get(URI_SEGMENT_ITEMID));
+                userId = Integer.parseInt(requestUri.getPathSegments().get(URI_SEGMENT_USERID));
+                itemId = Integer.parseInt(requestUri.getPathSegments().get(URI_SEGMENT_ITEMID));
 
                 // Еслси itemId не подходящий, error not_found сразу
                 if (!isValidItemId(userId, itemId)) {
@@ -117,7 +117,6 @@ class CloudApiMockDispatcher extends Dispatcher {
                             response = new MockResponse().setResponseCode(RESPONSE_OK).setBody("{\"status\":\"ok\"}");
                         } catch (Exception e) {
                             // Что то не так с данными в Body request, значит ошибка
-                            System.out.println("EXC UPDATE: " + e.toString());
                             response = new MockResponse().setResponseCode(RESPONSE_OK)
                                     .setBody("{\"status\":\"error\",\"error\":\"malformed_item\"}");
                         }
