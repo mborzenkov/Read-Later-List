@@ -44,6 +44,7 @@ public class ItemListFragmentTest {
 
     private static final int ONSTART_SLEEP = 2000;
     private static final int AFTER_ADD_SLEEP = 3500;
+    private static final int ANIM_SLEEP = 500;
 
     private static final int USER_ID = 1005930;
     private MockWebServer mServer = new MockWebServer();
@@ -133,11 +134,23 @@ public class ItemListFragmentTest {
         ViewInteraction fabSave = onView(allOf(withId(R.id.fab_edititem_save), isDisplayed()));
         fabSave.perform(click());
 
+        try {
+            Thread.sleep(ANIM_SLEEP);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         ViewInteraction labelInList = onView(allOf(withId(R.id.tv_item_label), withText("654321"), isDisplayed()));
         labelInList.check(matches(withText("654321")));
 
         ViewInteraction listView = onView(allOf(withId(R.id.listview_itemlist), isDisplayed()));
         listView.perform(actionOnItemAtPosition(0, click()));
+
+        try {
+            Thread.sleep(ANIM_SLEEP);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         ViewInteraction labelInputOpened = onView(allOf(withId(R.id.et_edititem_label),
                 withText("654321"), isDisplayed()));
@@ -164,14 +177,14 @@ public class ItemListFragmentTest {
             ViewInteraction fabSave = onView(allOf(withId(R.id.fab_edititem_save), isDisplayed()));
             fabSave.perform(click());
 
+            try {
+                Thread.sleep(AFTER_ADD_SLEEP);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             ViewInteraction labelInList = onView(allOf(withId(R.id.tv_item_label), withText("654321"), isDisplayed()));
             labelInList.check(matches(withText("654321")));
-        }
-
-        try {
-            Thread.sleep(AFTER_ADD_SLEEP);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
 
         // Добавить 2
@@ -185,6 +198,12 @@ public class ItemListFragmentTest {
 
             ViewInteraction fabSave = onView(allOf(withId(R.id.fab_edititem_save), isDisplayed()));
             fabSave.perform(click());
+
+            try {
+                Thread.sleep(ANIM_SLEEP);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
             ViewInteraction labelInList = onView(allOf(withId(R.id.tv_item_label), withText("098765"), isDisplayed()));
             labelInList.check(matches(withText("098765")));
@@ -208,6 +227,12 @@ public class ItemListFragmentTest {
             ViewInteraction searchAutoComplete = onView(allOf(withId(R.id.search_src_text), isDisplayed()));
             searchAutoComplete.perform(replaceText("654321"), closeSoftKeyboard());
 
+            try {
+                Thread.sleep(ANIM_SLEEP);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             ViewInteraction item1 = onView(allOf(withId(R.id.tv_item_label), withText("654321"), isDisplayed()));
             item1.check(matches(withText("654321")));
             ViewInteraction item2 = onView(allOf(withId(R.id.tv_item_label), withText("098765"), isDisplayed()));
@@ -223,6 +248,12 @@ public class ItemListFragmentTest {
         {
             ViewInteraction searchAutoComplete = onView(allOf(withId(R.id.search_src_text), isDisplayed()));
             searchAutoComplete.perform(replaceText("098765"), closeSoftKeyboard());
+
+            try {
+                Thread.sleep(ANIM_SLEEP);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
             ViewInteraction item1 = onView(allOf(withId(R.id.tv_item_label), withText("654321"), isDisplayed()));
             item1.check(doesNotExist());
