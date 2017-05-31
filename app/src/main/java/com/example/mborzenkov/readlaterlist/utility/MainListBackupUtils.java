@@ -67,7 +67,7 @@ public class MainListBackupUtils {
     public static void saveEverythingAsJsonFile(Context context) {
 
         // Проверяем доступность хранилища
-        String externalStorageState = Environment.getExternalStorageState();
+        final String externalStorageState = Environment.getExternalStorageState();
         if (externalStorageState.equals(Environment.MEDIA_MOUNTED)) {
 
             // Получаем путь к папке
@@ -210,6 +210,9 @@ public class MainListBackupUtils {
     /** Удаляет все файлы бэкапов из папки. */
     private static void removeAllBackups() {
         File[] backupFiles = getBackupFolder().listFiles(FILENAME_FILTER);
+        if (backupFiles == null) {
+            return;
+        }
         for (File file : backupFiles) {
             if (file.exists()) {
                 //noinspection ResultOfMethodCallIgnored
@@ -239,6 +242,10 @@ public class MainListBackupUtils {
 
             // Получаем список файлов
             File[] backupFiles = backupFolder.listFiles(FILENAME_FILTER);
+
+            if (backupFiles == null) {
+                return; // Нет файлов
+            }
 
             // Оцениваем длительность операций и если файлов > 1, показываем процесс в панели уведомлений.
             final boolean showNotification;
