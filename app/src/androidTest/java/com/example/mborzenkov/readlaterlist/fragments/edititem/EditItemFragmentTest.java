@@ -46,7 +46,7 @@ import static org.hamcrest.Matchers.allOf;
 @RunWith(AndroidJUnit4.class)
 public class EditItemFragmentTest {
 
-    private static final int ONSTART_SLEEP = 2000;
+    private static final int ONSTART_SLEEP = 3000;
     private static final int AFTER_ADD_SLEEP = 3500;
     private static final int ANIM_SLEEP = 500;
 
@@ -67,7 +67,6 @@ public class EditItemFragmentTest {
         MyApplication application = (MyApplication) mActivityTestRule.getActivity().getApplication();
         application.setCloudApiComponent(component);
         UserInfoUtils.changeCurrentUser(application, USER_ID);
-        ReadLaterDbUtils.deleteAll(application);
     }
 
     @After
@@ -116,6 +115,9 @@ public class EditItemFragmentTest {
 
     @Test
     public void testAddingAndEditing() {
+
+        // Очистить данные
+        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
 
         final String label1 = "abcdefg";
         final String desc1 = "hijklmnop";
@@ -184,6 +186,9 @@ public class EditItemFragmentTest {
 
     @Test
     public void testViewPager() {
+
+        // Очистить данные
+        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
 
         final String label1 = "LABLE1";
         final String label2 = "SECOOOND";
@@ -303,6 +308,9 @@ public class EditItemFragmentTest {
 
     @Test
     public void testDeleteItem() {
+
+        // Очистить данные
+        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
 
         final String label = "SAMPLE_TEXT 123";
 

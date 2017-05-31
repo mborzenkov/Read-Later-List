@@ -154,7 +154,11 @@ public class ReadLaterContentProvider extends ContentProvider {
                  * тысяч строк несколько раз превращает базу в 2Гб и последующим ошибкам окончания доступной памяти.
                  * Сброс таблиц и создание их заново решает эту проблему, плюс работает быстро.
                  */
-                mReadLaterDbHelper.resetDb(db);
+                // mReadLaterDbHelper.resetDb(db);
+                /* Пересбор таблиц действительно было не лучшим решением, так как при быстром тестировании частые
+                 * уничтожения таблиц приводят вообще к непредвиденным результатам. Все крашится.
+                 * Рост базы в таком случае уже не так страшен.
+                 */
                 break;
             case CODE_READLATER_ITEMS_WITH_ID:
                 String[] id = new String[] {uri.getPathSegments().get(1)};

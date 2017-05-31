@@ -60,7 +60,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(AndroidJUnit4.class)
 public class FilterDrawerFragmentTest {
 
-    private static final int ONSTART_SLEEP = 2000;
+    private static final int ONSTART_SLEEP = 3000;
     private static final int AFTER_ADD_SLEEP = 3500;
     private static final int ANIM_SLEEP = 500;
 
@@ -82,7 +82,6 @@ public class FilterDrawerFragmentTest {
         MyApplication application = (MyApplication) mActivityTestRule.getActivity().getApplication();
         application.setCloudApiComponent(component);
         UserInfoUtils.changeCurrentUser(application, USER_ID);
-        ReadLaterDbUtils.deleteAll(application);
     }
 
     @After
@@ -92,6 +91,10 @@ public class FilterDrawerFragmentTest {
 
     @Test
     public void testFilterFillPlaceholdersDeleteAll() {
+
+        // Очистить данные
+        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
+
         final int placeholdersCount = 5;
 
         try {
@@ -157,7 +160,11 @@ public class FilterDrawerFragmentTest {
     }
 
     @Test
-    public void testFilterChangeLogin() {
+    public void testFilterChangeUser() {
+
+        // Очистить данные
+        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
+
         final int placeholdersCount = 5;
 
         try {
@@ -227,10 +234,42 @@ public class FilterDrawerFragmentTest {
                     withText("Labeeeeel 4"), isDisplayed()));
             textView.check(doesNotExist());
         }
+
+        {
+            // Открываем дровер, кликаем change, меняем пользователя обратно
+            ViewInteraction drawerLayout = onView(allOf(withId(R.id.drawerlayout_itemlist)));
+            drawerLayout.perform(DrawerActions.open(Gravity.END));
+
+            ViewInteraction changeUser = onView(allOf(withId(R.id.tv_filterdrawer_user_change)));
+            changeUser.perform(scrollTo(), click());
+
+            ViewInteraction enterUserField = onView(allOf(withClassName(is("android.widget.EditText")), isDisplayed()));
+            enterUserField.perform(replaceText(String.valueOf(USER_ID)), closeSoftKeyboard());
+
+            ViewInteraction appCompatButton3 = onView(allOf(withId(android.R.id.button1), withText("OK")));
+            appCompatButton3.perform(scrollTo(), click());
+
+            try {
+                Thread.sleep(ANIM_SLEEP);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            drawerLayout.perform(DrawerActions.close(Gravity.END));
+
+            // Смотрим, что данные появились
+            ViewInteraction textView = onView(allOf(withId(R.id.tv_item_label),
+                    withText("Labeeeeel 4"), isDisplayed()));
+            textView.check(matches(withText("Labeeeeel 4")));
+        }
     }
 
     @Test
     public void testBackupSaveRestore() {
+
+        // Очистить данные
+        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
+
         // Сохранение, восстановление только external storage
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             return;
@@ -346,6 +385,10 @@ public class FilterDrawerFragmentTest {
 
     @Test
     public void testChangeOrderLabel() {
+
+        // Очистить данные
+        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
+
         final int firstPosition = 0;
         final int lastPosition = 4;
         final String elementLabel = "Labeeeeel 4";
@@ -442,9 +485,13 @@ public class FilterDrawerFragmentTest {
 
     @Test
     public void testChangeOrderModified() {
+
+        // Очистить данные
+        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
+
         final int firstPosition = 0;
         final int lastPosition = 4;
-        final String elementLabel = "Labeeeeel 4";
+        final String elementLabel = "perfect label";
         final int placeholdersCount = 5;
 
         try {
@@ -483,7 +530,7 @@ public class FilterDrawerFragmentTest {
         }
 
         try {
-            Thread.sleep(ANIM_SLEEP);
+            Thread.sleep(ONSTART_SLEEP);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -491,11 +538,17 @@ public class FilterDrawerFragmentTest {
         {
             // Открываем элемент, меняем его
             ViewInteraction labelInputOpened = onView(allOf(withId(R.id.tv_item_label),
-                    withText(elementLabel), isDisplayed()));
+                    withText("Labeeeeel 4"), isDisplayed()));
             labelInputOpened.perform(click());
 
-            ViewInteraction inputDesc = onView(allOf(withId(R.id.et_edit_item_description), isCompletelyDisplayed()));
-            inputDesc.perform(replaceText("123"), closeSoftKeyboard());
+            try {
+                Thread.sleep(ANIM_SLEEP);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            ViewInteraction inputLabel = onView(allOf(withId(R.id.et_edititem_label), isCompletelyDisplayed()));
+            inputLabel.perform(replaceText(elementLabel), closeSoftKeyboard());
 
             ViewInteraction fabSave = onView(allOf(withId(R.id.fab_edititem_save), isCompletelyDisplayed()));
             fabSave.perform(click());
@@ -558,6 +611,10 @@ public class FilterDrawerFragmentTest {
 
     @Test
     public void testChangeOrderViewed() {
+
+        // Очистить данные
+        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
+
         final int firstPosition = 0;
         final int lastPosition = 4;
         final String elementLabel = "Labeeeeel 4";
@@ -671,6 +728,10 @@ public class FilterDrawerFragmentTest {
 
     @Test
     public void testFilterByColor() {
+
+        // Очистить данные
+        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
+
         final String label1 = "label test case";
         final String label2 = "label, just label";
 
