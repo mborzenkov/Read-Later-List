@@ -38,6 +38,7 @@ import com.example.mborzenkov.readlaterlist.networking.CloudApiComponent;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiMockDispatcher;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiModule;
 import com.example.mborzenkov.readlaterlist.networking.DaggerCloudApiComponent;
+import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 
@@ -61,13 +62,18 @@ public class FilterDrawerFragmentTest {
     // Отчет теста:         ${buildDir}/reports/androidTests/connected/index.html
     // Отчет покрытия:      ${buildDir}/reports/jacoco/jacocoTestReport/html/index.html
 
-    private static final int ONSTART_SLEEP = 3000;
+    private static final int ONSTART_SLEEP = 2000;
     private static final int AFTER_ADD_SLEEP = 3500;
     private static final int ANIM_SLEEP = 500;
 
+    private static final int PLACEHOLDERS_COUNT = 5;
+
     private static final int USER_ID = 1005930;
     private static final int USER_ID_SECOND = 100593;
+
     private final MockWebServer mServer = new MockWebServer();
+
+    private MainActivity mActivity;
 
     @Rule
     public final ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class);
@@ -77,9 +83,10 @@ public class FilterDrawerFragmentTest {
         mServer.start();
         HttpUrl serverUrl = mServer.url("");
         mServer.setDispatcher(new CloudApiMockDispatcher.EmptyDispatcher());
+        mActivity = mActivityTestRule.getActivity();
         CloudApiComponent component = DaggerCloudApiComponent.builder()
                 .cloudApiModule(new CloudApiModule(serverUrl)).build();
-        MyApplication application = (MyApplication) mActivityTestRule.getActivity().getApplication();
+        MyApplication application = (MyApplication) mActivity.getApplication();
         application.setCloudApiComponent(component);
         UserInfoUtils.changeCurrentUser(application, USER_ID);
     }
@@ -92,16 +99,9 @@ public class FilterDrawerFragmentTest {
     @Test
     public void testFilterFillPlaceholdersDeleteAll() {
 
-        // Очистить данные
-        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
+        deleteAllData();
 
         final int placeholdersCount = 5;
-
-        try {
-            Thread.sleep(ONSTART_SLEEP);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         {
             // Открываем дровер, кликаем фил плейсхолдерс
@@ -118,7 +118,7 @@ public class FilterDrawerFragmentTest {
             actionOk.perform(scrollTo(), click());
 
             try {
-                Thread.sleep(ANIM_SLEEP);
+                Thread.sleep(ONSTART_SLEEP);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -126,7 +126,7 @@ public class FilterDrawerFragmentTest {
             drawerLayout.perform(DrawerActions.close(Gravity.END));
 
             // Смотрим, что добавились данные
-            Cursor cursor = ReadLaterDbUtils.queryAllItems(mActivityTestRule.getActivity(), USER_ID);
+            Cursor cursor = ReadLaterDbUtils.queryAllItems(mActivity, USER_ID);
             assertTrue(cursor != null);
             assertEquals(placeholdersCount, cursor.getCount());
             cursor.close();
@@ -137,14 +137,14 @@ public class FilterDrawerFragmentTest {
             ViewInteraction drawerLayout = onView(allOf(withId(R.id.drawerlayout_itemlist)));
             drawerLayout.perform(DrawerActions.open(Gravity.END));
 
-            ViewInteraction fillPlaceholders = onView(allOf(withId(R.id.button_filterdrawer_deleteall)));
-            fillPlaceholders.perform(scrollTo(), click());
+            ViewInteraction deleteAll = onView(allOf(withId(R.id.button_filterdrawer_deleteall)));
+            deleteAll.perform(scrollTo(), click());
 
             ViewInteraction actionOk = onView(allOf(withId(android.R.id.button1), withText("OK")));
             actionOk.perform(scrollTo(), click());
 
             try {
-                Thread.sleep(ANIM_SLEEP);
+                Thread.sleep(ONSTART_SLEEP);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -152,7 +152,7 @@ public class FilterDrawerFragmentTest {
             drawerLayout.perform(DrawerActions.close(Gravity.END));
 
             // Смотрим, что удалились данные
-            Cursor cursor = ReadLaterDbUtils.queryAllItems(mActivityTestRule.getActivity(), USER_ID);
+            Cursor cursor = ReadLaterDbUtils.queryAllItems(mActivity, USER_ID);
             assertTrue(cursor != null);
             assertEquals(0, cursor.getCount());
             cursor.close();
@@ -162,45 +162,9 @@ public class FilterDrawerFragmentTest {
     @Test
     public void testFilterChangeUser() {
 
-        // Очистить данные
-        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
-
-        final int placeholdersCount = 5;
-
-        try {
-            Thread.sleep(ONSTART_SLEEP);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        deleteAllAndFillPlaceholders();
 
         {
-            // Открываем дровер, кликаем фил плейсхолдерс
-            ViewInteraction drawerLayout = onView(allOf(withId(R.id.drawerlayout_itemlist)));
-            drawerLayout.perform(DrawerActions.open(Gravity.END));
-
-            ViewInteraction fillPlaceholders = onView(allOf(withId(R.id.button_filterdrawer_fillplaceholders)));
-            fillPlaceholders.perform(scrollTo(), click());
-
-            ViewInteraction editText = onView(allOf(withClassName(is("android.widget.EditText")), isDisplayed()));
-            editText.perform(replaceText(String.valueOf(placeholdersCount)), closeSoftKeyboard());
-
-            ViewInteraction actionOk = onView(allOf(withId(android.R.id.button1), withText("OK")));
-            actionOk.perform(scrollTo(), click());
-
-            try {
-                Thread.sleep(ANIM_SLEEP);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            drawerLayout.perform(DrawerActions.close(Gravity.END));
-
-            // Смотрим, что добавились данные
-            Cursor cursor = ReadLaterDbUtils.queryAllItems(mActivityTestRule.getActivity(), USER_ID);
-            assertTrue(cursor != null);
-            assertEquals(placeholdersCount, cursor.getCount());
-            cursor.close();
-
             // Смотрим, что появились данные
             ViewInteraction textView = onView(allOf(withId(R.id.tv_item_label),
                     withText("Labeeeeel 4"), isDisplayed()));
@@ -267,9 +231,6 @@ public class FilterDrawerFragmentTest {
     @Test
     public void testBackupSaveRestore() {
 
-        // Очистить данные
-        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
-
         // Сохранение, восстановление только external storage
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             return;
@@ -278,36 +239,7 @@ public class FilterDrawerFragmentTest {
             return;
         }
 
-        final int placeholdersCount = 5;
-
-        try {
-            Thread.sleep(ONSTART_SLEEP);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        {
-            // Открываем дровер, кликаем фил плейсхолдерс
-            ViewInteraction drawerLayout = onView(allOf(withId(R.id.drawerlayout_itemlist)));
-            drawerLayout.perform(DrawerActions.open(Gravity.END));
-
-            ViewInteraction fillPlaceholders = onView(allOf(withId(R.id.button_filterdrawer_fillplaceholders)));
-            fillPlaceholders.perform(scrollTo(), click());
-
-            ViewInteraction editText = onView(allOf(withClassName(is("android.widget.EditText")), isDisplayed()));
-            editText.perform(replaceText(String.valueOf(placeholdersCount)), closeSoftKeyboard());
-
-            ViewInteraction actionOk = onView(allOf(withId(android.R.id.button1), withText("OK")));
-            actionOk.perform(scrollTo(), click());
-
-            try {
-                Thread.sleep(ANIM_SLEEP);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            drawerLayout.perform(DrawerActions.close(Gravity.END));
-        }
+        deleteAllAndFillPlaceholders();
 
         {
             // Открываем дровер, кликаем Backup save
@@ -329,31 +261,8 @@ public class FilterDrawerFragmentTest {
             drawerLayout.perform(DrawerActions.close(Gravity.END));
         }
 
-        {
-            // Открываем дровер, кликаем delete all
-            ViewInteraction drawerLayout = onView(allOf(withId(R.id.drawerlayout_itemlist)));
-            drawerLayout.perform(DrawerActions.open(Gravity.END));
-
-            ViewInteraction fillPlaceholders = onView(allOf(withId(R.id.button_filterdrawer_deleteall)));
-            fillPlaceholders.perform(scrollTo(), click());
-
-            ViewInteraction actionOk = onView(allOf(withId(android.R.id.button1), withText("OK")));
-            actionOk.perform(scrollTo(), click());
-
-            try {
-                Thread.sleep(ANIM_SLEEP);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            drawerLayout.perform(DrawerActions.close(Gravity.END));
-
-            // Смотрим, что удалились данные
-            Cursor cursor = ReadLaterDbUtils.queryAllItems(mActivityTestRule.getActivity(), USER_ID);
-            assertTrue(cursor != null);
-            assertEquals(0, cursor.getCount());
-            cursor.close();
-        }
+        // Очищаем все данные
+        deleteAllData();
 
         {
             // Открываем дровер, кликаем Backup restore
@@ -375,9 +284,9 @@ public class FilterDrawerFragmentTest {
             drawerLayout.perform(DrawerActions.close(Gravity.END));
 
             // Смотрим, что добавились данные
-            Cursor cursor = ReadLaterDbUtils.queryAllItems(mActivityTestRule.getActivity(), USER_ID);
+            Cursor cursor = ReadLaterDbUtils.queryAllItems(mActivity, USER_ID);
             assertTrue(cursor != null);
-            assertEquals(placeholdersCount, cursor.getCount());
+            assertEquals(PLACEHOLDERS_COUNT, cursor.getCount());
             cursor.close();
         }
 
@@ -386,56 +295,19 @@ public class FilterDrawerFragmentTest {
     @Test
     public void testChangeOrderLabel() {
 
-        // Очистить данные
-        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
+        deleteAllAndFillPlaceholders();
 
         final int firstPosition = 0;
         final int lastPosition = 4;
         final String elementLabel = "Labeeeeel 4";
-        final int placeholdersCount = 5;
-
-        try {
-            Thread.sleep(ONSTART_SLEEP);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        {
-            // Открываем дровер, кликаем фил плейсхолдерс
-            ViewInteraction drawerLayout = onView(allOf(withId(R.id.drawerlayout_itemlist)));
-            drawerLayout.perform(DrawerActions.open(Gravity.END));
-
-            ViewInteraction fillPlaceholders = onView(allOf(withId(R.id.button_filterdrawer_fillplaceholders)));
-            fillPlaceholders.perform(scrollTo(), click());
-
-            ViewInteraction editText = onView(allOf(withClassName(is("android.widget.EditText")), isDisplayed()));
-            editText.perform(replaceText(String.valueOf(placeholdersCount)), closeSoftKeyboard());
-
-            ViewInteraction actionOk = onView(allOf(withId(android.R.id.button1), withText("OK")));
-            actionOk.perform(scrollTo(), click());
-
-            try {
-                Thread.sleep(ANIM_SLEEP);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            drawerLayout.perform(DrawerActions.close(Gravity.END));
-
-            // Смотрим, что добавились данные
-            Cursor cursor = ReadLaterDbUtils.queryAllItems(mActivityTestRule.getActivity(), USER_ID);
-            assertTrue(cursor != null);
-            assertEquals(placeholdersCount, cursor.getCount());
-            cursor.close();
-        }
 
         {
             // Открываем дровер, кликаем на сортировку по лейблу
             ViewInteraction drawerLayout = onView(allOf(withId(R.id.drawerlayout_itemlist)));
             drawerLayout.perform(DrawerActions.open(Gravity.END));
 
-            ViewInteraction fillPlaceholders = onView(allOf(withId(R.id.button_filterdrawer_sortname)));
-            fillPlaceholders.perform(scrollTo(), click());
+            ViewInteraction sortName = onView(allOf(withId(R.id.button_filterdrawer_sortname)));
+            sortName.perform(scrollTo(), click());
 
             drawerLayout.perform(DrawerActions.close(Gravity.END));
 
@@ -450,11 +322,18 @@ public class FilterDrawerFragmentTest {
             itemList.perform(actionOnItemAtPosition(lastPosition, click()));
 
             ViewInteraction itemLabel = onView(allOf(withId(R.id.et_edititem_label),
-                    withText(elementLabel), isDisplayed()));
+                    withText(elementLabel), isCompletelyDisplayed()));
             itemLabel.check(matches(withText(elementLabel)));
 
-            ViewInteraction appCompatImageButton = onView(allOf(withContentDescription("Navigate up"), isDisplayed()));
+            ViewInteraction appCompatImageButton = onView(allOf(withContentDescription("Navigate up"),
+                    isCompletelyDisplayed()));
             appCompatImageButton.perform(click());
+
+            try {
+                Thread.sleep(ANIM_SLEEP);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         {
@@ -462,8 +341,8 @@ public class FilterDrawerFragmentTest {
             ViewInteraction drawerLayout = onView(allOf(withId(R.id.drawerlayout_itemlist)));
             drawerLayout.perform(DrawerActions.open(Gravity.END));
 
-            ViewInteraction fillPlaceholders = onView(allOf(withId(R.id.button_filterdrawer_sortname)));
-            fillPlaceholders.perform(scrollTo(), click());
+            ViewInteraction sortName = onView(allOf(withId(R.id.button_filterdrawer_sortname)));
+            sortName.perform(scrollTo(), click());
 
             drawerLayout.perform(DrawerActions.close(Gravity.END));
 
@@ -474,11 +353,12 @@ public class FilterDrawerFragmentTest {
             }
 
             // Смотрим, что первый элемент это последний по имени
-            ViewInteraction itemList = onView(allOf(withId(R.id.listview_itemlist), isDisplayed()));
+            ViewInteraction itemList = onView(allOf(withId(R.id.listview_itemlist),
+                    isCompletelyDisplayed()));
             itemList.perform(actionOnItemAtPosition(firstPosition, click()));
 
             ViewInteraction itemLabel = onView(allOf(withId(R.id.et_edititem_label),
-                    withText(elementLabel), isDisplayed()));
+                    withText(elementLabel), isCompletelyDisplayed()));
             itemLabel.check(matches(withText(elementLabel)));
         }
     }
@@ -486,54 +366,11 @@ public class FilterDrawerFragmentTest {
     @Test
     public void testChangeOrderModified() {
 
-        // Очистить данные
-        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
+        deleteAllAndFillPlaceholders();
 
         final int firstPosition = 0;
         final int lastPosition = 4;
         final String elementLabel = "perfect label";
-        final int placeholdersCount = 5;
-
-        try {
-            Thread.sleep(ONSTART_SLEEP);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        {
-            // Открываем дровер, кликаем фил плейсхолдерс
-            ViewInteraction drawerLayout = onView(allOf(withId(R.id.drawerlayout_itemlist)));
-            drawerLayout.perform(DrawerActions.open(Gravity.END));
-
-            ViewInteraction fillPlaceholders = onView(allOf(withId(R.id.button_filterdrawer_fillplaceholders)));
-            fillPlaceholders.perform(scrollTo(), click());
-
-            ViewInteraction editText = onView(allOf(withClassName(is("android.widget.EditText")), isDisplayed()));
-            editText.perform(replaceText(String.valueOf(placeholdersCount)), closeSoftKeyboard());
-
-            ViewInteraction actionOk = onView(allOf(withId(android.R.id.button1), withText("OK")));
-            actionOk.perform(scrollTo(), click());
-
-            try {
-                Thread.sleep(ANIM_SLEEP);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            drawerLayout.perform(DrawerActions.close(Gravity.END));
-
-            // Смотрим, что добавились данные
-            Cursor cursor = ReadLaterDbUtils.queryAllItems(mActivityTestRule.getActivity(), USER_ID);
-            assertTrue(cursor != null);
-            assertEquals(placeholdersCount, cursor.getCount());
-            cursor.close();
-        }
-
-        try {
-            Thread.sleep(ONSTART_SLEEP);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         {
             // Открываем элемент, меняем его
@@ -550,8 +387,14 @@ public class FilterDrawerFragmentTest {
             ViewInteraction inputLabel = onView(allOf(withId(R.id.et_edititem_label), isCompletelyDisplayed()));
             inputLabel.perform(replaceText(elementLabel), closeSoftKeyboard());
 
-            ViewInteraction fabSave = onView(allOf(withId(R.id.fab_edititem_save), isCompletelyDisplayed()));
-            fabSave.perform(click());
+            ViewInteraction menuSave = onView(allOf(withId(R.id.edititem_action_save), isCompletelyDisplayed()));
+            menuSave.perform(click());
+
+            try {
+                Thread.sleep(ONSTART_SLEEP);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         {
@@ -559,8 +402,8 @@ public class FilterDrawerFragmentTest {
             ViewInteraction drawerLayout = onView(allOf(withId(R.id.drawerlayout_itemlist)));
             drawerLayout.perform(DrawerActions.open(Gravity.END));
 
-            ViewInteraction fillPlaceholders = onView(allOf(withId(R.id.button_filterdrawer_sortmodified)));
-            fillPlaceholders.perform(scrollTo(), click());
+            ViewInteraction sortModified = onView(allOf(withId(R.id.button_filterdrawer_sortmodified)));
+            sortModified.perform(scrollTo(), click());
 
             drawerLayout.perform(DrawerActions.close(Gravity.END));
 
@@ -581,6 +424,12 @@ public class FilterDrawerFragmentTest {
             ViewInteraction appCompatImageButton = onView(allOf(withContentDescription("Navigate up"),
                     isCompletelyDisplayed()));
             appCompatImageButton.perform(click());
+
+            try {
+                Thread.sleep(ANIM_SLEEP);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         {
@@ -588,8 +437,8 @@ public class FilterDrawerFragmentTest {
             ViewInteraction drawerLayout = onView(allOf(withId(R.id.drawerlayout_itemlist)));
             drawerLayout.perform(DrawerActions.open(Gravity.END));
 
-            ViewInteraction fillPlaceholders = onView(allOf(withId(R.id.button_filterdrawer_sortmodified)));
-            fillPlaceholders.perform(scrollTo(), click());
+            ViewInteraction sortModified = onView(allOf(withId(R.id.button_filterdrawer_sortmodified)));
+            sortModified.perform(scrollTo(), click());
 
             drawerLayout.perform(DrawerActions.close(Gravity.END));
 
@@ -612,54 +461,11 @@ public class FilterDrawerFragmentTest {
     @Test
     public void testChangeOrderViewed() {
 
-        // Очистить данные
-        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
+        deleteAllAndFillPlaceholders();
 
         final int firstPosition = 0;
         final int lastPosition = 4;
         final String elementLabel = "Labeeeeel 4";
-        final int placeholdersCount = 5;
-
-        try {
-            Thread.sleep(ONSTART_SLEEP);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        {
-            // Открываем дровер, кликаем фил плейсхолдерс
-            ViewInteraction drawerLayout = onView(allOf(withId(R.id.drawerlayout_itemlist)));
-            drawerLayout.perform(DrawerActions.open(Gravity.END));
-
-            ViewInteraction fillPlaceholders = onView(allOf(withId(R.id.button_filterdrawer_fillplaceholders)));
-            fillPlaceholders.perform(scrollTo(), click());
-
-            ViewInteraction editText = onView(allOf(withClassName(is("android.widget.EditText")), isDisplayed()));
-            editText.perform(replaceText(String.valueOf(placeholdersCount)), closeSoftKeyboard());
-
-            ViewInteraction actionOk = onView(allOf(withId(android.R.id.button1), withText("OK")));
-            actionOk.perform(scrollTo(), click());
-
-            try {
-                Thread.sleep(ANIM_SLEEP);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            drawerLayout.perform(DrawerActions.close(Gravity.END));
-
-            // Смотрим, что добавились данные
-            Cursor cursor = ReadLaterDbUtils.queryAllItems(mActivityTestRule.getActivity(), USER_ID);
-            assertTrue(cursor != null);
-            assertEquals(placeholdersCount, cursor.getCount());
-            cursor.close();
-        }
-
-        try {
-            Thread.sleep(ANIM_SLEEP);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         {
             // Открываем элемент, закрываем
@@ -670,6 +476,12 @@ public class FilterDrawerFragmentTest {
             ViewInteraction appCompatImageButton = onView(allOf(withContentDescription("Navigate up"),
                     isCompletelyDisplayed()));
             appCompatImageButton.perform(click());
+
+            try {
+                Thread.sleep(ANIM_SLEEP);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         {
@@ -677,8 +489,8 @@ public class FilterDrawerFragmentTest {
             ViewInteraction drawerLayout = onView(allOf(withId(R.id.drawerlayout_itemlist)));
             drawerLayout.perform(DrawerActions.open(Gravity.END));
 
-            ViewInteraction fillPlaceholders = onView(allOf(withId(R.id.button_filterdrawer_sortview)));
-            fillPlaceholders.perform(scrollTo(), click());
+            ViewInteraction sortView = onView(allOf(withId(R.id.button_filterdrawer_sortview)));
+            sortView.perform(scrollTo(), click());
 
             drawerLayout.perform(DrawerActions.close(Gravity.END));
 
@@ -693,11 +505,18 @@ public class FilterDrawerFragmentTest {
             itemList.perform(actionOnItemAtPosition(lastPosition, click()));
 
             ViewInteraction itemLabel = onView(allOf(withId(R.id.et_edititem_label),
-                    withText(elementLabel), isDisplayed()));
+                    withText(elementLabel), isCompletelyDisplayed()));
             itemLabel.check(matches(withText(elementLabel)));
 
-            ViewInteraction appCompatImageButton = onView(allOf(withContentDescription("Navigate up"), isDisplayed()));
+            ViewInteraction appCompatImageButton = onView(allOf(withContentDescription("Navigate up"),
+                    isCompletelyDisplayed()));
             appCompatImageButton.perform(click());
+
+            try {
+                Thread.sleep(ANIM_SLEEP);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         {
@@ -705,8 +524,8 @@ public class FilterDrawerFragmentTest {
             ViewInteraction drawerLayout = onView(allOf(withId(R.id.drawerlayout_itemlist)));
             drawerLayout.perform(DrawerActions.open(Gravity.END));
 
-            ViewInteraction fillPlaceholders = onView(allOf(withId(R.id.button_filterdrawer_sortview)));
-            fillPlaceholders.perform(scrollTo(), click());
+            ViewInteraction sortView = onView(allOf(withId(R.id.button_filterdrawer_sortview)));
+            sortView.perform(scrollTo(), click());
 
             drawerLayout.perform(DrawerActions.close(Gravity.END));
 
@@ -721,7 +540,7 @@ public class FilterDrawerFragmentTest {
             itemList.perform(actionOnItemAtPosition(firstPosition, click()));
 
             ViewInteraction itemLabel = onView(allOf(withId(R.id.et_edititem_label),
-                    withText(elementLabel), isDisplayed()));
+                    withText(elementLabel), isCompletelyDisplayed()));
             itemLabel.check(matches(withText(elementLabel)));
         }
     }
@@ -729,29 +548,22 @@ public class FilterDrawerFragmentTest {
     @Test
     public void testFilterByColor() {
 
-        // Очистить данные
-        ReadLaterDbUtils.deleteAll(mActivityTestRule.getActivity());
+        deleteAllData();
 
         final String label1 = "label test case";
         final String label2 = "label, just label";
 
-        try {
-            Thread.sleep(ONSTART_SLEEP);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         // Добавить заметку 1
         {
-            ViewInteraction fabAdd = onView(allOf(withId(R.id.fab_item_add), isDisplayed()));
+            ViewInteraction fabAdd = onView(allOf(withId(R.id.fab_item_add), isCompletelyDisplayed()));
             fabAdd.perform(click());
 
-            ViewInteraction inputLabel = onView(allOf(withId(R.id.et_edititem_label), isDisplayed()));
+            ViewInteraction inputLabel = onView(allOf(withId(R.id.et_edititem_label), isCompletelyDisplayed()));
             inputLabel.perform(replaceText(label1), closeSoftKeyboard());
 
             // Открываем цветовыбиратель
             ViewInteraction itemColor = onView(allOf(withId(R.id.ib_edit_item_color),
-                    withContentDescription("Color"), isDisplayed()));
+                    withContentDescription("Color"), isCompletelyDisplayed()));
             itemColor.perform(click());
 
             try {
@@ -769,11 +581,11 @@ public class FilterDrawerFragmentTest {
 
             // Сохраняем заметку
             ViewInteraction chosenColor = onView(allOf(withId(R.id.imageButton_chosen),
-                    withContentDescription("Choose color"), isDisplayed()));
+                    withContentDescription("Choose color"), isCompletelyDisplayed()));
             chosenColor.perform(click());
 
             ViewInteraction menuSave = onView(allOf(withId(R.id.edititem_action_save),
-                    withContentDescription("Save"), isDisplayed()));
+                    withContentDescription("Save"), isCompletelyDisplayed()));
             menuSave.perform(click());
         }
 
@@ -788,12 +600,12 @@ public class FilterDrawerFragmentTest {
             ViewInteraction fabAdd = onView(allOf(withId(R.id.fab_item_add), isDisplayed()));
             fabAdd.perform(click());
 
-            ViewInteraction inputLabel = onView(allOf(withId(R.id.et_edititem_label), isDisplayed()));
+            ViewInteraction inputLabel = onView(allOf(withId(R.id.et_edititem_label), isCompletelyDisplayed()));
             inputLabel.perform(replaceText(label2), closeSoftKeyboard());
 
             // Открываем цветовыбиратель
             ViewInteraction itemColor = onView(allOf(withId(R.id.ib_edit_item_color),
-                    withContentDescription("Color"), isDisplayed()));
+                    withContentDescription("Color"), isCompletelyDisplayed()));
             itemColor.perform(click());
 
             try {
@@ -855,6 +667,85 @@ public class FilterDrawerFragmentTest {
 
             ViewInteraction item2 = onView(allOf(withId(R.id.tv_item_label), withText(label2), isDisplayed()));
             item2.check(matches(withText(label2)));
+        }
+
+        {
+            // Открываем дровер, кликаем второй цвет
+            ViewInteraction drawerLayout = onView(allOf(withId(R.id.drawerlayout_itemlist)));
+            drawerLayout.perform(DrawerActions.open(Gravity.END));
+
+            onView(allOf(withId(R.id.imageButton_favorite_color),
+                    withTagValue(equalTo((Object) 1)))).perform(click());
+
+            drawerLayout.perform(DrawerActions.close(Gravity.END));
+
+            // Смотрим, что снова все выводится
+            ViewInteraction item1 = onView(allOf(withId(R.id.tv_item_label), withText(label1), isDisplayed()));
+            item1.check(matches(withText(label1)));
+
+            ViewInteraction item2 = onView(allOf(withId(R.id.tv_item_label), withText(label2), isDisplayed()));
+            item2.check(matches(withText(label2)));
+        }
+    }
+
+    private void deleteAllData() {
+        // Очистить данные
+        ReadLaterDbUtils.deleteAll(mActivity);
+
+        try {
+            Thread.sleep(ONSTART_SLEEP);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // Перезагрузить данные
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mActivity.onDataChanged();
+            }
+        });
+
+        try {
+            Thread.sleep(ANIM_SLEEP);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void deleteAllAndFillPlaceholders() {
+        // Очистить данные
+        ReadLaterDbUtils.deleteAll(mActivity);
+
+        try {
+            Thread.sleep(ONSTART_SLEEP);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // Добавить плейсхолдеры
+        final int placeholdersCount = 5;
+        DebugUtils.addPlaceholdersToDatabase(mActivity, placeholdersCount);
+
+        try {
+            Thread.sleep(ONSTART_SLEEP);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // Перезагрузить данные
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mActivity.onDataChanged();
+            }
+        });
+
+
+        try {
+            Thread.sleep(ANIM_SLEEP);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
