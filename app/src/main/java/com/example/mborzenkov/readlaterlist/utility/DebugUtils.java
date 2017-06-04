@@ -49,6 +49,7 @@ public class DebugUtils {
         final int numberOfColors = predefinedColors.length;
         final String label = context.getString(R.string.mainlist_menu_add_placeholders_label);
         final Random randomizer = new Random();
+        final String imageUrl = "https://unsplash.it/1200/";
 
         // Вставляем number строк
         for (int inserted = 0; inserted < number; ) {
@@ -72,7 +73,7 @@ public class DebugUtils {
                         currentTime,
                         currentTime,
                         currentTime,
-                        null));
+                        imageUrl + (300 + (i % 300))));
             }
             ReadLaterDbUtils.bulkInsertItems(context, listItems);
 
