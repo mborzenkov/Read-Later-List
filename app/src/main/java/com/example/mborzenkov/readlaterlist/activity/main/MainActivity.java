@@ -33,6 +33,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
@@ -358,10 +359,15 @@ public class MainActivity extends AppCompatActivity implements
                         getString(R.string.mainlist_drawer_backup_save_question_title),
                         getString(R.string.mainlist_drawer_backup_save_question_text),
                     () -> {
+                        // Останавливаем синхронизацию, запускаем бэкграунд таск, который выполнит сохранение
+                        // и в конце покажет тост на ui потоке
                         mSyncFragment.stopSync();
                         MainActivityLongTask.startLongBackgroundTask(
-                            () -> MainListBackupUtils.saveEverythingAsJsonFile(this),
-                                this);
+                            () -> {
+                                MainListBackupUtils.saveEverythingAsJsonFile(this);
+                                runOnUiThread(() -> Toast.makeText(this,
+                                        getString(R.string.toast_backup_save_finished), Toast.LENGTH_SHORT).show());
+                            }, this);
                         showLoading();
                     },
                         null);
@@ -374,10 +380,15 @@ public class MainActivity extends AppCompatActivity implements
                         getString(R.string.mainlist_drawer_backup_restore_question_title),
                         getString(R.string.mainlist_drawer_backup_restore_question_text),
                     () -> {
+                        // Останавливаем синхронизацию, запускаем бэкграунд таск, который выполнит восстановление
+                        // и в конце покажет тост на ui потоке
                         mSyncFragment.stopSync();
                         MainActivityLongTask.startLongBackgroundTask(
-                            () -> MainListBackupUtils.restoreEverythingFromJsonFile(this),
-                                this);
+                            () -> {
+                                MainListBackupUtils.restoreEverythingFromJsonFile(this);
+                                runOnUiThread(() -> Toast.makeText(this,
+                                        getString(R.string.toast_backup_restore_finished), Toast.LENGTH_SHORT).show());
+                            }, this);
                         showLoading();
                     },
                         null);
