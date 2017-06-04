@@ -147,8 +147,7 @@ public class MainListFilter {
         try {
             filter = jsonAdapter.fromJson(filterString);
         } catch (IOException | JsonDataException e) {
-            throw new IllegalArgumentException("Error @ MainListFilter.fromString when parsing: " + filterString
-                    + " e = " + e.toString());
+            throw new IllegalArgumentException("Error @ MainListFilter.fromString when parsing: " + filterString, e);
         }
         return filter;
     }

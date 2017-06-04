@@ -205,7 +205,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                         returnUri =  ContentUris.withAppendedId(ReadLaterEntry.CONTENT_URI, id);
                     } else {
                         throw new IllegalArgumentException("Error @ ReadLaterContentProvider.insert: when inserting "
-                                + values.toString());
+                                + values);
                     }
 
                     // INSERT INTO TABLE_FTS
@@ -263,7 +263,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                         long id = db.insert(ReadLaterEntry.TABLE_NAME, null, value);
                         if (id < 0) {
                             throw new IllegalArgumentException("Error @ ReadLaterContentProvider.bulkInsert: inserting "
-                                    + value.toString());
+                                    + value);
                         }
 
                         // INSERT INTO TABLE_FTS
@@ -339,7 +339,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                     db.setTransactionSuccessful();
                 } catch (SQLiteConstraintException e) {
                     throw new IllegalArgumentException("Error @ ReadLaterContentProvider.update: when inserting "
-                        + values.toString() + " e: " + e.toString());
+                        + values.toString(), e);
                 } finally {
                     db.endTransaction();
                 }

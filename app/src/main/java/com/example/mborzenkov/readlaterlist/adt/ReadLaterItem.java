@@ -186,7 +186,7 @@ public class ReadLaterItem {
                 try {
                     this.imageUrl = new URL(imageUrl);
                 } catch (MalformedURLException e) {
-                    throw new IllegalArgumentException("imageUrl != URL: " + imageUrl);
+                    throw new IllegalArgumentException("imageUrl != URL: " + imageUrl, e);
                 }
             } else {
                 this.imageUrl = null;
@@ -361,7 +361,7 @@ public class ReadLaterItem {
      * @return True, если равны; False в противном случае
      */
     @Override
-    public boolean equals(@Nullable Object obj) {
+    public boolean equals(Object obj) {
         if (!(obj instanceof ReadLaterItem)) {
             return false;
         }

@@ -316,7 +316,7 @@ public class FilterDrawerFragment extends Fragment {
             default:
                 break;
         }
-        selectedSortButton.setActivated(true);
+        selectedSortButton.setActivated(true); // NOTNULL всегда, кроме если добавят SortType и тут не поменять
         if (selectedSortButton != mViewHolder.mSortByManualOrderButton) {
             selectedSortButton.setText(selectedSortButton.getText().toString()
                     + " " + mSortOrderSymbols.get(currentFilter.getSortOrder()));
@@ -468,7 +468,7 @@ public class FilterDrawerFragment extends Fragment {
                         new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                                setDate(view, year, month, dayOfMonth);
+                                setDate(year, month, dayOfMonth);
                             }
                         });
                 break;
@@ -504,13 +504,11 @@ public class FilterDrawerFragment extends Fragment {
 
     /** Устанавливает в mDateEditor выбраную дату.
      *
-     * @param picker диалог выбора даты
      * @param year год
      * @param month месяц
      * @param day день
      */
-    @SuppressWarnings("UnusedParameters") // Используется как лямбда
-    private void setDate(@Nullable DatePicker picker, int year, int month, int day) {
+    private void setDate(int year, int month, int day) {
         if (mDateEditor != null) {
             // Получаем новый календарь и устанавливаем в нем выбранную дату
             Calendar calendar = Calendar.getInstance();

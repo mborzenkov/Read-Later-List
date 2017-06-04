@@ -29,6 +29,8 @@ import java.util.List;
 /** Сервисный static util класс для работы с бэкапами базы данных в формате Json. */
 public class MainListBackupUtils {
 
+    /** Кодировка файлов с бэкапами. */
+    private static final String ENCODING = "UTF8";
     /** Имя папки. */
     private static final String FOLDER_NAME = "/ReadLaterItem/Backups";
     /** Имя файла. */
@@ -149,12 +151,13 @@ public class MainListBackupUtils {
                 moshi.adapter(Types.newParameterizedType(List.class, ReadLaterItem.class));
 
         int currentPosition = 0;
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         for (Cursor allData = ReadLaterDbUtils.queryRange(context, currentPosition, FILE_MAX_SIZE);
              allData != null && allData.getCount() > 0;
              currentPosition += FILE_MAX_SIZE,
                      allData = ReadLaterDbUtils.queryRange(context, currentPosition, FILE_MAX_SIZE)) {
 
-            List<ReadLaterItem> savedData = new ReadLaterItemDbAdapter().allItemsFromCursor(allData);
+            List<ReadLaterItem> savedData = dbAdapter.allItemsFromCursor(allData);
             if (!savedData.isEmpty()) {
                 result.add(jsonAdapter.toJson(savedData));
             }
@@ -186,7 +189,7 @@ public class MainListBackupUtils {
         OutputStreamWriter outWriter = null;
         try {
             outStream = new FileOutputStream(backupFile);
-            outWriter = new OutputStreamWriter(outStream);
+            outWriter = new OutputStreamWriter(outStream, ENCODING);
             outWriter.write(content);
             outWriter.close();
             outStream.flush();
@@ -309,13 +312,14 @@ public class MainListBackupUtils {
 
             FileInputStream inStream = null;
             InputStreamReader inReader = null;
+            BufferedReader bufReader = null;
             try {
                 inStream = new FileInputStream(file);
-                inReader = new InputStreamReader(inStream);
-                BufferedReader bufferedReader = new BufferedReader(inReader);
+                inReader = new InputStreamReader(inStream, ENCODING);
+                bufReader = new BufferedReader(inReader);
                 String receiveString;
                 StringBuilder stringBuilder = new StringBuilder();
-                while ((receiveString = bufferedReader.readLine()) != null) {
+                while ((receiveString = bufReader.readLine()) != null) {
                     stringBuilder.append(receiveString);
                 }
                 inReader.close();
@@ -326,11 +330,11 @@ public class MainListBackupUtils {
             } catch (IOException e) {
                 Log.e(READ_EXCEPTION, String.format(FORMAT_ERROR, "Ошибка чтения JSON: ", e.toString()));
             } finally {
-                if (inStream != null) {
+                if (bufReader != null) {
                     try {
-                        inStream.close();
+                        bufReader.close();
                     } catch (IOException e) {
-                        Log.e(CLOSE_EXCEPTION, String.format(FORMAT_ERROR, "Не удалось закрыть inStream: ",
+                        Log.e(CLOSE_EXCEPTION, String.format(FORMAT_ERROR, "Не удалось закрыть bufReader: ",
                                 e.toString()));
                     }
                 }
@@ -339,6 +343,14 @@ public class MainListBackupUtils {
                         inReader.close();
                     } catch (IOException e) {
                         Log.e(CLOSE_EXCEPTION, String.format(FORMAT_ERROR, "Не удалось закрыть inReader: ",
+                                e.toString()));
+                    }
+                }
+                if (inStream != null) {
+                    try {
+                        inStream.close();
+                    } catch (IOException e) {
+                        Log.e(CLOSE_EXCEPTION, String.format(FORMAT_ERROR, "Не удалось закрыть inStream: ",
                                 e.toString()));
                     }
                 }

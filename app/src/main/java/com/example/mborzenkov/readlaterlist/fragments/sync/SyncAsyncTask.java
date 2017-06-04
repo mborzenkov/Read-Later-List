@@ -158,7 +158,7 @@ class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResult> {
                                 ReadLaterDbUtils.insertItem(appContext, itemServer);
                             } else if (itemLocal.getDateModified() <= lastSync) {
                                 // Server: есть, изменен; Local: есть, без изм.
-                                Log.d(TAG_SYNC, "Updating Local: " + remoteId + ", item: " + itemServer.toString());
+                                Log.d(TAG_SYNC, "Updating Local: " + remoteId + ", item: " + itemServer);
                                 ReadLaterDbUtils.updateItem(appContext, itemServer, userId, remoteId);
                             } else {
                                 // Server: есть, изменен; Local: есть, изменен
@@ -178,7 +178,7 @@ class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResult> {
                                     ReadLaterItem savingItem = itemBuilder.build();
                                     mCloudApi.updateItemOnServer(userId, remoteId, savingItem);
                                     ReadLaterDbUtils.updateItem(appContext, savingItem, userId, remoteId);
-                                    Log.d(TAG_SYNC, "Auto merge: " + remoteId + ", item: " + itemServer.toString());
+                                    Log.d(TAG_SYNC, "Auto merge: " + remoteId + ", item: " + itemServer);
                                 }
                             }
                         } else {
@@ -196,7 +196,7 @@ class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResult> {
                                 continue;
                             } else {
                                 // Server: есть, без изм.; Local: есть, изменен
-                                Log.d(TAG_SYNC, "Updating Server: " + itemLocal.toString());
+                                Log.d(TAG_SYNC, "Updating Server: " + itemLocal);
                                 ReadLaterItem.Builder itemBuilder = new ReadLaterItem.Builder(itemLocal);
                                 itemBuilder.dateModified(System.currentTimeMillis());
                                 if (!mCloudApi.updateItemOnServer(userId, remoteId, itemBuilder.build())) {
@@ -239,7 +239,7 @@ class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResult> {
                         ReadLaterItem.Builder itemBuilder = new ReadLaterItem.Builder(itemLocal);
                         itemBuilder.dateModified(System.currentTimeMillis());
                         ReadLaterItem savingItem = itemBuilder.build();
-                        Log.d(TAG_SYNC, "Inserting Server: " + savingItem.toString());
+                        Log.d(TAG_SYNC, "Inserting Server: " + savingItem);
                         Integer newRemoteId = mCloudApi.insertItemOnServer(userId, savingItem);
                         if (newRemoteId == null) {
                             return new SyncResult();
