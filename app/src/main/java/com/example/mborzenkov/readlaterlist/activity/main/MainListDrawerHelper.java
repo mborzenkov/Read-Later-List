@@ -21,6 +21,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
@@ -349,8 +350,8 @@ class MainListDrawerHelper implements View.OnClickListener {
             return; // не удалось, что то уже происходит
         }
 
-        // Показываем индикатор загрузки
-        mActivity.runOnUiThread(mActivity::showLoading);
+        // // Показываем индикатор загрузки
+        // mActivity.runOnUiThread(mActivity::showLoading);
 
         // Запускаем поток
         /* Имя хэндлер треда для бэкапа. */
@@ -364,13 +365,16 @@ class MainListDrawerHelper implements View.OnClickListener {
             handler.post(() -> {
                 MainListBackupUtils.saveEverythingAsJsonFile(mActivity);
                 if (MainListLongTask.stopAnotherLongTask()) {
-                    mActivity.runOnUiThread(mActivity::showDataView);
+                    Toast.makeText(mActivity,
+                            mActivity.getString(R.string.toast_backup_save_finished), Toast.LENGTH_LONG).show();
                 }
             });
         } else {
             handler.post(() -> {
                 MainListBackupUtils.restoreEverythingFromJsonFile(mActivity);
                 if (MainListLongTask.stopAnotherLongTask()) {
+                    Toast.makeText(mActivity,
+                            mActivity.getString(R.string.toast_backup_restore_finished), Toast.LENGTH_LONG).show();
                     mActivity.runOnUiThread(mActivity::reloadData);
                 }
             });
