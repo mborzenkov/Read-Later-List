@@ -37,6 +37,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.MyApplication;
@@ -734,9 +735,16 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void run() {
                 MainListBackupUtils.saveEverythingAsJsonFile(MainActivity.this);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this,
+                                getString(R.string.toast_backup_save_finished), Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         }, MainActivity.this);
-        showLoading();
+        // showLoading();
     }
 
     private void startBackupRestoring() {
@@ -745,9 +753,16 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void run() {
                 MainListBackupUtils.restoreEverythingFromJsonFile(MainActivity.this);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this,
+                                getString(R.string.toast_backup_restore_finished), Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         }, MainActivity.this);
-        showLoading();
+        // showLoading();
     }
 
 
