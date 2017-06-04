@@ -1,9 +1,14 @@
 package com.example.mborzenkov.readlaterlist.activity.main;
 
+import android.Manifest;
 import android.app.DatePickerDialog;
+import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.text.InputFilter;
@@ -39,6 +44,8 @@ import java.util.Map;
 
 /** Класс помощник для DrawerLayout в MainActivity. */
 class MainListDrawerHelper implements View.OnClickListener {
+
+    private static final String HANDLER_THREAD_NAME = "BackupHandlerThread";
 
     // Элементы Layout
     private final MainListActivity mActivity;
@@ -302,39 +309,25 @@ class MainListDrawerHelper implements View.OnClickListener {
      */
     private void handleBackupTask(boolean savingMode) {
 
-        // Пробуем заблокировать интерфейс
-        if (!MainListLongTask.startAnotherLongTask(mActivity)) {
-            return; // не удалось, что то уже происходит
-        }
-
-        // // Показываем индикатор загрузки
-        // mActivity.runOnUiThread(mActivity::showLoading);
-
-        // Запускаем поток
-        /* Имя хэндлер треда для бэкапа. */
-        HandlerThread handlerThread = new HandlerThread("BackupHandlerThread");
-        handlerThread.start();
-        Looper looper = handlerThread.getLooper();
-        Handler handler = new Handler(looper);
+        final boolean askForPermission =
+                ContextCompat.checkSelfPermission(mActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED;
 
         // Выполняем работу
         if (savingMode) {
-            handler.post(() -> {
-                MainListBackupUtils.saveEverythingAsJsonFile(mActivity);
-                if (MainListLongTask.stopAnotherLongTask()) {
-                    Toast.makeText(mActivity,
-                            mActivity.getString(R.string.toast_backup_save_finished), Toast.LENGTH_LONG).show();
-                }
-            });
+            if (askForPermission) {
+                ActivityCompat.requestPermissions(mActivity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    MainListActivity.PERMISSION_WRITE_EXTERNAL_STORAGE);
+            } else {
+                startBackupSaving();
+            }
         } else {
-            handler.post(() -> {
-                MainListBackupUtils.restoreEverythingFromJsonFile(mActivity);
-                if (MainListLongTask.stopAnotherLongTask()) {
-                    Toast.makeText(mActivity,
-                            mActivity.getString(R.string.toast_backup_restore_finished), Toast.LENGTH_LONG).show();
-                    mActivity.runOnUiThread(mActivity::reloadData);
-                }
-            });
+            if (askForPermission) {
+                ActivityCompat.requestPermissions(mActivity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        MainListActivity.PERMISSION_READ_EXTERNAL_STORAGE);
+            } else {
+                startBackupRestoring();
+            }
         }
 
     }
@@ -590,6 +583,51 @@ class MainListDrawerHelper implements View.OnClickListener {
         } else {
             filter.removeColorFilter(color);
         }
+    }
+
+    /** Запускает Handler Thread и отправляет задачу на выполнение.
+     *
+     * @param task задача на выполнение, не null
+     */
+    private void startHandlerThread(@NonNull Runnable task) {
+        // Запускаем поток
+        /* Имя хэндлер треда для бэкапа. */
+        HandlerThread handlerThread = new HandlerThread(HANDLER_THREAD_NAME);
+        handlerThread.start();
+        Looper looper = handlerThread.getLooper();
+        Handler handler = new Handler(looper);
+        handler.post(task);
+    }
+
+    /** Запускает сохранение данных в бэкап. */
+    void startBackupSaving() {
+        // Пробуем заблокировать интерфейс
+        if (!MainListLongTask.startAnotherLongTask(mActivity)) {
+            return; // не удалось, что то уже происходит
+        }
+        startHandlerThread(() -> {
+            MainListBackupUtils.saveEverythingAsJsonFile(mActivity);
+            if (MainListLongTask.stopAnotherLongTask()) {
+                Toast.makeText(mActivity,
+                        mActivity.getString(R.string.toast_backup_save_finished), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    /** Запускает восстановление данных из бэкапа. */
+    void startBackupRestoring() {
+        // Пробуем заблокировать интерфейс
+        if (!MainListLongTask.startAnotherLongTask(mActivity)) {
+            return; // не удалось, что то уже происходит
+        }
+        startHandlerThread(() -> {
+            MainListBackupUtils.restoreEverythingFromJsonFile(mActivity);
+            if (MainListLongTask.stopAnotherLongTask()) {
+                Toast.makeText(mActivity,
+                        mActivity.getString(R.string.toast_backup_restore_finished), Toast.LENGTH_LONG).show();
+                mActivity.runOnUiThread(mActivity::reloadData);
+            }
+        });
     }
 
 }
