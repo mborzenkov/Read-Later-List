@@ -130,8 +130,8 @@ public class MainListBackupUtils {
             }
 
         } else {
-            Log.e(EXTERNAL_STORAGE_EXCEPTION, String.format(FORMAT_ERROR, "Ошибка доступа к хранилищу на запись, статус: ",
-                    externalStorageState));
+            Log.e(EXTERNAL_STORAGE_EXCEPTION, String.format(FORMAT_ERROR,
+                    "Ошибка доступа к хранилищу на запись, статус: ", externalStorageState));
         }
     }
 

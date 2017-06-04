@@ -76,8 +76,6 @@
         <string name="notification_backup_restore_title">Restoring from backup</string>
         <string name="toast_backup_save_finished">All data saved</string>
         <string name="toast_backup_restore_finished">All data restored</string>
-        <string name="notification_debug_fillplaceholders_title">Filling with placeholders</string>
-        <string name="notification_debug_deleteall_title">Deleting all data</string>
 
     <!-- EditItemFragment -->
         <!-- Заголовки -->

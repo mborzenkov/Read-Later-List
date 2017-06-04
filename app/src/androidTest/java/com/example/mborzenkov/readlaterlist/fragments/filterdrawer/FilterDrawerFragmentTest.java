@@ -78,6 +78,7 @@ public class FilterDrawerFragmentTest {
     @Rule
     public final ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class);
 
+    /** Создает, запускае и подключает fake-сервер, устанавливает текущего пользователя. */
     @Before
     public void setUp() throws IOException {
         mServer.start();

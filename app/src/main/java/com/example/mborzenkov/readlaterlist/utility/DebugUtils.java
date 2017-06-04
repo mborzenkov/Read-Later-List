@@ -15,6 +15,8 @@ public class DebugUtils {
     private static final int DESCRIPTION_LINES = 3;
     /** Добавляется за раз. */
     private static final int BULK_INSERT_MAX = 5000;
+    /** Минимальное разрешение картинки по вертикали. */
+    private static final int IMAGE_HEIGHT = 300;
 
     private DebugUtils() {
         throw new UnsupportedOperationException("Класс DebugUtils - static util, не может иметь экземпляров");
@@ -55,7 +57,7 @@ public class DebugUtils {
                 listItems.add(new ReadLaterItem.Builder(label + " " + inserted)
                         .description(description.toString())
                         .color(predefinedColors[randomizer.nextInt(numberOfColors)])
-                        .imageUrl(imageUrl + (300 + (i % 300)))
+                        .imageUrl(imageUrl + (IMAGE_HEIGHT + (i % IMAGE_HEIGHT)))
                         .build());
             }
             ReadLaterDbUtils.bulkInsertItems(context, listItems);

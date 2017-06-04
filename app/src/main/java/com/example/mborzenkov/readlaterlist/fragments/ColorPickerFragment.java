@@ -32,7 +32,6 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
@@ -65,9 +64,6 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
     // Ключи для savedInstanceState
     private static final String SAVEDINSTANCE_CHOSENCOLOR_KEY = "colorpicker_chosencolor";
     private static final String SAVEDINSTANCE_GRADIENTCOLORS_KEY = "colorpicker_gradientcolors";
-
-    /** Ошибка при нарушении инварианта. */
-    private static final String ERROR_INVARIANT_FAIL = "ColorPickerFragment invariant break: %s";
 
     /** Задержка для проверки двойного клика. */
     private static final long QUALIFICATION_SPAN = 200;
