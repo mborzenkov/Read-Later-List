@@ -94,11 +94,9 @@ public class MainListActivity extends AppCompatActivity implements
 
         // Начать загрузку данных
         mLoaderManager = new MainListLoaderManager(this);
-        if (!MainListLongTask.isActive()) {
-            mLoaderManager.reloadData();
-        } else {
+        mLoaderManager.reloadData();
+        if (MainListLongTask.isActive()) {
             MainListLongTask.swapActivity(this);
-            showLoading();
         }
     }
 
@@ -128,6 +126,9 @@ public class MainListActivity extends AppCompatActivity implements
         switch (item.getItemId()) {
             case R.id.mainlist_settings:
                 mDrawerHelper.openDrawer();
+                return true;
+            case R.id.mainlist_refresh:
+                mLoaderManager.reloadData();
                 return true;
             default:
                 break;
@@ -250,16 +251,8 @@ public class MainListActivity extends AppCompatActivity implements
         }
     }
 
-    /** Показывает индикатор загрузки, скрывая все лишнее. */
-    void showLoading() {
-        mItemListView.setVisibility(View.INVISIBLE);
-        mEmptyList.setVisibility(View.INVISIBLE);
-        mLoadingIndicator.setVisibility(View.VISIBLE);
-    }
-
     /** Показывает онбординг, если список пуст или список, если он не пуст. */
     void showDataView() {
-        mLoadingIndicator.setVisibility(View.INVISIBLE);
         if (mMainListAdapter.getCursor().getCount() > 0) {
             mEmptyList.setVisibility(View.INVISIBLE);
             mItemListView.setVisibility(View.VISIBLE);
@@ -275,14 +268,6 @@ public class MainListActivity extends AppCompatActivity implements
     private class BackgroundTask extends AsyncTask<Runnable, Void, Void> {
 
         @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            if (!MainListLongTask.isActive()) {
-                showLoading();
-            }
-        }
-
-        @Override
         protected Void doInBackground(Runnable... backgroundTask) {
             backgroundTask[0].run();
             return null;
@@ -291,10 +276,7 @@ public class MainListActivity extends AppCompatActivity implements
         @Override
         protected void onPostExecute(Void taskResult) {
             super.onPostExecute(taskResult);
-            if (!MainListLongTask.isActive()) {
-                mLoaderManager.reloadData();
-                // Вызывает showDataView по окончанию
-            }
+            mLoaderManager.reloadData();
         }
 
     }

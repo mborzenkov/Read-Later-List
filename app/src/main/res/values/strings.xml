@@ -14,6 +14,7 @@
         <string name="mainlist_menu_add_placeholders_question_title">Fill with placeholders</string>
         <string name="mainlist_menu_add_placeholders_question_text">Type the number of placeholders you wish to add and press OK.</string>
         <string name="mainlist_menu_add_placeholders_label">Labeeeeel</string>
+        <string name="mainlist_menu_refresh">Refresh</string>
         <!-- Снекбары -->
         <string name="snackbar_item_added">Item added</string>
         <string name="snackbar_item_edited">Item edited</string>

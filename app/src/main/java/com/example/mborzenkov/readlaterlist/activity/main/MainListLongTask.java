@@ -100,16 +100,6 @@ class MainListLongTask extends AsyncTask<Runnable, Integer, Void>  {
     }
 
     @Override
-    protected void onPreExecute() {
-        // Лок от изменений mActivity на null
-        synchronized (MainListLongTask.class) {
-            if (mActivity != null) {
-                mActivity.showLoading();
-            }
-        }
-    }
-
-    @Override
     protected Void doInBackground(Runnable... backgroundTask) {
         backgroundTask[0].run();
         return null;
