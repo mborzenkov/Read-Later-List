@@ -42,7 +42,7 @@ public class DebugUtils {
             showNotification = false;
         }
 
-        final long currentTime = System.currentTimeMillis();
+        long currentTime = System.currentTimeMillis();
         final String[] text = context.getString(R.string.debug_large_text).split("\n");
         final int[] predefinedColors = context.getResources().getIntArray(R.array.full_gradient);
         final int textRows = text.length;
@@ -74,6 +74,8 @@ public class DebugUtils {
                         currentTime,
                         currentTime,
                         imageUrl + (300 + (i % 300))));
+
+                currentTime = System.currentTimeMillis();
             }
             ReadLaterDbUtils.bulkInsertItems(context, listItems);
 
