@@ -1,8 +1,9 @@
-package com.example.mborzenkov.readlaterlist.activity;
+package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.drawable.GradientDrawable;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,21 +21,27 @@ import java.util.Locale;
  *      Но так как по заданию было запрещено пользоваться RecyclerView, этого сделано не было
  *      // TODO: Переписать адаптер на RecyclerView
  */
-class ItemListAdapter extends ResourceCursorAdapter {
+class MainListAdapter extends ResourceCursorAdapter {
+
+    /** Формат выводимых дат. */
+    private static final String FORMAT_DATE = "dd.MM.yy HH:mm";
 
     /** Контекст. */
-    private final Context mContext;
+    private final @NonNull Context mContext;
     /** Обработчик нажатий. */
-    private final ItemListAdapterOnClickHandler mClickHandler;
-    /** Формат выводимых дат. */
-    public static final String FORMAT_DATE = "dd.MM.yy HH:mm";
+    private final @NonNull ItemListAdapterOnClickHandler mClickHandler;
 
     /** Интерфейс для обработчика нажатий. */
-    public interface ItemListAdapterOnClickHandler {
+    interface ItemListAdapterOnClickHandler {
         void onClick(int position);
     }
 
-    public ItemListAdapter(Context context, ItemListAdapterOnClickHandler clickHandler) {
+    /** Создает новый объект MainListAdapter для указанного контекста и с указанным ClickHandler'ом.
+     *
+     * @param context контекст (activity)
+     * @param clickHandler интерфейс для колбеков
+     */
+    MainListAdapter(@NonNull Context context, @NonNull ItemListAdapterOnClickHandler clickHandler) {
         super(context, R.layout.content_mainlist_item, null, 0);
         mContext = context;
         mClickHandler = clickHandler;
@@ -49,7 +56,11 @@ class ItemListAdapter extends ResourceCursorAdapter {
         private final TextView dateTextView;
         private int position;
 
-        ItemListViewHolder(View view) {
+        /** Создает новый экземпляр ItemListViewHolder.
+         *
+         * @param view родительская view, содержащая внутри все нужные view
+         */
+        ItemListViewHolder(@NonNull View view) {
             labelTextView = (TextView) view.findViewById(R.id.tv_item_label);
             descriptionTextView = (TextView) view.findViewById(R.id.tv_item_description);
             colorImageView = (ImageView) view.findViewById(R.id.iv_item_color);
@@ -58,7 +69,7 @@ class ItemListAdapter extends ResourceCursorAdapter {
         }
 
         @Override
-        public void onClick(View view) {
+        public void onClick(@NonNull View view) {
             Cursor cursor = getCursor();
             cursor.moveToPosition(position);
             mClickHandler.onClick(position);
@@ -66,20 +77,20 @@ class ItemListAdapter extends ResourceCursorAdapter {
     }
 
     @Override
-    public void bindView(View view, Context context, Cursor cursor) {
+    public void bindView(@NonNull View view, @NonNull Context context, @NonNull Cursor cursor) {
         ItemListViewHolder viewHolder = (ItemListViewHolder) view.getTag();
-        viewHolder.labelTextView.setText(cursor.getString(MainListActivity.INDEX_COLUMN_LABEL));
-        viewHolder.descriptionTextView.setText(cursor.getString(MainListActivity.INDEX_COLUMN_DESCRIPTION));
+        viewHolder.labelTextView.setText(cursor.getString(MainListLoaderManager.INDEX_COLUMN_LABEL));
+        viewHolder.descriptionTextView.setText(cursor.getString(MainListLoaderManager.INDEX_COLUMN_DESCRIPTION));
         ((GradientDrawable) viewHolder.colorImageView.getBackground())
-                .setColor(cursor.getInt(MainListActivity.INDEX_COLUMN_COLOR));
-        long date = cursor.getLong(MainListActivity.INDEX_COLUMN_DATE_LAST_MODIFIED);
+                .setColor(cursor.getInt(MainListLoaderManager.INDEX_COLUMN_COLOR));
+        long date = cursor.getLong(MainListLoaderManager.INDEX_COLUMN_DATE_LAST_MODIFIED);
         SimpleDateFormat sdf = new SimpleDateFormat(FORMAT_DATE, Locale.US);
         viewHolder.dateTextView.setText(sdf.format(date));
         viewHolder.position = cursor.getPosition();
     }
 
     @Override
-    public View newView(Context context, Cursor cursor, ViewGroup parent) {
+    public View newView(@NonNull Context context, @NonNull Cursor cursor, @NonNull ViewGroup parent) {
         View view = LayoutInflater.from(mContext).inflate(R.layout.content_mainlist_item, parent, false);
         ItemListViewHolder viewHolder = new ItemListViewHolder(view);
         view.setTag(viewHolder);

@@ -9,9 +9,14 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /** Контент провайдер для работы с базой данных. */
 public class ReadLaterContentProvider extends ContentProvider {
@@ -20,6 +25,11 @@ public class ReadLaterContentProvider extends ContentProvider {
     private static final int CODE_READLATER_ITEMS = 100;
     /** Код запроса отдельного элемента. */
     private static final int CODE_READLATER_ITEMS_WITH_ID = 101;
+    /** Код запроса отдельного элемента по remoteId. */
+    private static final int CODE_READLATER_ITEMS_WITH_REMOTE_ID = 102;
+
+    /** Запрос для отдельного элемента по remoteId. */
+    private static final String QUERY_REMOTE_ID = ReadLaterEntry.COLUMN_REMOTE_ID + "=?";
 
     /** Матчер для сравнения запрашиваемых uri. */
     private static final UriMatcher sUriMatcher = buildUriMatcher();
@@ -39,7 +49,10 @@ public class ReadLaterContentProvider extends ContentProvider {
         // Uri для доступа ко всем данным
         matcher.addURI(authority, ReadLaterContract.PATH_ITEMS, CODE_READLATER_ITEMS);
         // Uri для доступа к отдельному элементу
-        matcher.addURI(authority, ReadLaterContract.PATH_ITEMS + "/#", CODE_READLATER_ITEMS_WITH_ID);
+        matcher.addURI(authority, ReadLaterContract.PATH_ITEMS + "/#",
+                CODE_READLATER_ITEMS_WITH_ID);
+        matcher.addURI(authority, ReadLaterContract.PATH_ITEMS + "/" + ReadLaterContract.PATH_NOTE + "/#",
+                CODE_READLATER_ITEMS_WITH_REMOTE_ID);
 
         return matcher;
     }
@@ -58,6 +71,10 @@ public class ReadLaterContentProvider extends ContentProvider {
         return null;
     }
 
+    /** {@inheritDoc}
+     *
+     * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     */
     @Override
     public Cursor query(@NonNull Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
@@ -74,14 +91,35 @@ public class ReadLaterContentProvider extends ContentProvider {
                         null,
                         sortOrder);
                 break;
+            case CODE_READLATER_ITEMS_WITH_REMOTE_ID:
+                StringBuilder newSelection = new StringBuilder(QUERY_REMOTE_ID);
+                List<String> newSelectionArgs = new ArrayList<>();
+                newSelectionArgs.add(uri.getPathSegments().get(2));
+                if (!selection.isEmpty()) {
+                    newSelection.append(" AND ").append(selection);
+                    newSelectionArgs.addAll(Arrays.asList(selectionArgs));
+                }
+                cursor = mReadLaterDbHelper.getReadableDatabase().query(
+                        ReadLaterEntry.TABLE_NAME,
+                        projection,
+                        newSelection.toString(),
+                        newSelectionArgs.toArray(new String[newSelectionArgs.size()]),
+                        null,
+                        null,
+                        sortOrder);
+                break;
             default:
                 throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
-        cursor.setNotificationUri(mContext.getContentResolver(), uri);
+        // cursor.setNotificationUri(mContext.getContentResolver(), uri);
         return cursor;
     }
 
+    /** {@inheritDoc}
+     *
+     * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     */
     @Override
     public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
         // Обработчик запросов delete
@@ -94,6 +132,13 @@ public class ReadLaterContentProvider extends ContentProvider {
             case CODE_READLATER_ITEMS:
                 itemDeleted = db.delete(ReadLaterEntry.TABLE_NAME, null, null);
                 db.delete(ReadLaterEntry.TABLE_NAME_FTS, null, null);
+
+                /* Возможно, пересбор таблиц - не лучшее решение, но по какой-то причине ни вызов VACUUM, ни
+                 * PRAGMA auto_vacuum = FULL не уменьшают размер базы данных. Это приводит к тому, что добавление
+                 * тысяч строк несколько раз превращает базу в 2Гб и последующим ошибкам окончания доступной памяти.
+                 * Сброс таблиц и создание их заново решает эту проблему, плюс работает быстро.
+                 */
+                mReadLaterDbHelper.resetDb(db);
                 break;
             case CODE_READLATER_ITEMS_WITH_ID:
                 String[] id = new String[] {uri.getPathSegments().get(1)};
@@ -105,12 +150,16 @@ public class ReadLaterContentProvider extends ContentProvider {
         }
 
         if (itemDeleted != 0) {
-            mContext.getContentResolver().notifyChange(uri, null);
+            // mContext.getContentResolver().notifyChange(uri, null);
         }
 
         return itemDeleted;
     }
 
+    /** {@inheritDoc}
+     *
+     * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     */
     @Override
     public Uri insert(@NonNull Uri uri, ContentValues values) {
         // Обработчик зарпосов insert
@@ -135,15 +184,20 @@ public class ReadLaterContentProvider extends ContentProvider {
                 throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
-        mContext.getContentResolver().notifyChange(uri, null);
+        // mContext.getContentResolver().notifyChange(uri, null);
 
         return returnUri;
     }
 
+    /** {@inheritDoc}
+     *
+     * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     */
     @Override
     public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
         // Обработчик зарпосов bullk insert
         int inserted = 0;
+        Log.d("INSERTING", String.valueOf(values.length));
 
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS:
@@ -169,11 +223,15 @@ public class ReadLaterContentProvider extends ContentProvider {
                 throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
-        mContext.getContentResolver().notifyChange(uri, null);
+        // mContext.getContentResolver().notifyChange(uri, null);
 
         return inserted;
     }
 
+    /** {@inheritDoc}
+     *
+     * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     */
     @Override
     public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         // Обработчик запросов update
@@ -207,7 +265,7 @@ public class ReadLaterContentProvider extends ContentProvider {
         }
 
         if (itemUpdated != 0) {
-            mContext.getContentResolver().notifyChange(uri, null);
+           // mContext.getContentResolver().notifyChange(uri, null);
         }
 
         return itemUpdated;

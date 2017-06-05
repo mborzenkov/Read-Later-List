@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
 
 import com.example.mborzenkov.readlaterlist.R;
-import com.example.mborzenkov.readlaterlist.data.MainListFilter;
+import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
 
 import java.util.ArrayList;
 import java.util.Iterator;

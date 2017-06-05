@@ -38,6 +38,7 @@
     <!-- Текст -->
     <dimen name="size_text_primary">16sp</dimen>
     <dimen name="size_text_secondary">14sp</dimen>
+    <dimen name="size_text_small">12sp</dimen>
 
     <!-- Элементы списков -->
     <dimen name="padding_list_start">8dp</dimen>

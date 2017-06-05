@@ -1,9 +1,10 @@
-package com.example.mborzenkov.readlaterlist.data;
+package com.example.mborzenkov.readlaterlist.adt;
 
 import android.content.Context;
 import android.util.Log;
 
-import com.example.mborzenkov.readlaterlist.activity.MainListActivity;
+import com.example.mborzenkov.readlaterlist.activity.main.MainListActivity;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
@@ -18,6 +19,9 @@ import java.util.Set;
 
 /** Этот класс представляет собой фильтр для MainList. */
 public class MainListFilter {
+
+    /** Формат даты для вывода на формах Drawer. */
+    private static final String FORMAT_DATE = "dd/MM/yy";
 
     /** Типы сортировок. */
     public enum SortType {
@@ -202,7 +206,7 @@ public class MainListFilter {
     /** Возвращает форматированную дату "от". */
     public String getDateFrom() {
         if (dateFrom != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat(MainListActivity.FORMAT_DATE, Locale.US);
+            SimpleDateFormat sdf = new SimpleDateFormat(FORMAT_DATE, Locale.US);
             return sdf.format(dateFrom);
         } else {
             return "";
@@ -212,7 +216,7 @@ public class MainListFilter {
     /** Возвращает форматированную дату "до". */
     public String getDateTo() {
         if (dateTo != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat(MainListActivity.FORMAT_DATE, Locale.US);
+            SimpleDateFormat sdf = new SimpleDateFormat(FORMAT_DATE, Locale.US);
             return sdf.format(dateTo);
         } else {
             return "";

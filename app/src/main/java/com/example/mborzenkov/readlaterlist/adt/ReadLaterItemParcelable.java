@@ -43,8 +43,18 @@ public final class ReadLaterItemParcelable implements Parcelable {
             long dateCreated = source.readLong();
             long dateModified = source.readLong();
             long dateViewed = source.readLong();
+            String imageUrl = source.readString();
+            int remoteId = source.readInt();
             return new ReadLaterItemParcelable(
-                    new ReadLaterItem(label, description, color, dateCreated, dateModified, dateViewed));
+                    new ReadLaterItem.Builder(label)
+                            .description(description)
+                            .color(color)
+                            .dateCreated(dateCreated)
+                            .dateModified(dateModified)
+                            .dateViewed(dateViewed)
+                            .imageUrl(imageUrl)
+                            .remoteId(remoteId)
+                            .build());
         }
 
         @Override
@@ -66,6 +76,8 @@ public final class ReadLaterItemParcelable implements Parcelable {
         dest.writeLong(item.getDateCreated());
         dest.writeLong(item.getDateModified());
         dest.writeLong(item.getDateViewed());
+        dest.writeString(item.getImageUrl());
+        dest.writeInt(item.getRemoteId());
     }
 
 }

@@ -15,6 +15,19 @@ public class ReadLaterItemDbAdapter {
     /** Конструктор по умолчанию. */
     public ReadLaterItemDbAdapter() { }
 
+    /** Используемые колонки базы данных. */
+    public static final String[] PROJECTION = {
+        ReadLaterContract.ReadLaterEntry._ID,
+        ReadLaterContract.ReadLaterEntry.COLUMN_LABEL,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DESCRIPTION,
+        ReadLaterContract.ReadLaterEntry.COLUMN_COLOR,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED,
+        ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW,
+        ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL,
+        ReadLaterContract.ReadLaterEntry.COLUMN_REMOTE_ID
+    };
+
     /** Преобразует текущую позицию cursor в объект ReadLaterItem.
      *
      * @param cursor курсор, как в ReadLaterItemCursorProjection
@@ -37,13 +50,15 @@ public class ReadLaterItemDbAdapter {
      * @see ReadLaterItemCursorProjection
      */
     private ReadLaterItem itemFromCursor(Cursor cursor, @NonNull ReadLaterItemCursorProjection projection) {
-        return new ReadLaterItem(
-                cursor.getString(projection.indexLabel),
-                cursor.getString(projection.indexDescription),
-                cursor.getInt(projection.indexColor),
-                cursor.getLong(projection.indexCreated),
-                cursor.getLong(projection.indexModified),
-                cursor.getLong(projection.indexViewed));
+        return new ReadLaterItem.Builder(cursor.getString(projection.indexLabel))
+                .description(cursor.getString(projection.indexDescription))
+                .color(cursor.getInt(projection.indexColor))
+                .dateCreated(cursor.getLong(projection.indexCreated))
+                .dateModified(cursor.getLong(projection.indexModified))
+                .dateViewed(cursor.getLong(projection.indexViewed))
+                .imageUrl(cursor.getString(projection.indexImageUrl))
+                .remoteId(cursor.getInt(projection.indexRemoteId))
+                .build();
     }
 
     /** Преобразует Cursor в список ReadLaterItem.
@@ -80,6 +95,8 @@ public class ReadLaterItemDbAdapter {
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED, item.getDateCreated());
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, item.getDateModified());
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW, item.getDateViewed());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL, item.getImageUrl());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_REMOTE_ID, item.getRemoteId());
         return contentValues;
     }
 
@@ -91,6 +108,8 @@ public class ReadLaterItemDbAdapter {
         private final int indexCreated;
         private final int indexModified;
         private final int indexViewed;
+        private final int indexImageUrl;
+        private final int indexRemoteId;
 
         /** Получает индексы колонок из курсора, соответствующие полям объекта ReadLaterItem.
          *
@@ -106,6 +125,8 @@ public class ReadLaterItemDbAdapter {
             this.indexCreated = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED);
             this.indexModified = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED);
             this.indexViewed = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW);
+            this.indexImageUrl = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL);
+            this.indexRemoteId = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_REMOTE_ID);
         }
     }
 

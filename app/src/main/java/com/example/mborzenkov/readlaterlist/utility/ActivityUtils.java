@@ -7,13 +7,16 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.widget.EditText;
 
-import java.util.function.Consumer;
-
 /** Вспомогательный класс для Activity. */
 public class ActivityUtils {
 
     private ActivityUtils() {
         throw new UnsupportedOperationException("Класс ActivityUtils - static util, не может иметь экземпляров");
+    }
+
+    // Замена java.util.function.Consumer, совместимая с API 16
+    public interface Consumer<T> {
+        void accept(String param);
     }
 
     /** Показывает окно AlertDialog с двумя кнопками: подтверждение и отмена.

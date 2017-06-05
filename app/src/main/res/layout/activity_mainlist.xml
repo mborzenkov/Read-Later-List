@@ -6,7 +6,7 @@
     android:id="@+id/drawerlayout_mainlist"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.mborzenkov.readlaterlist.activity.MainListActivity"
+    tools:context="com.example.mborzenkov.readlaterlist.activity.main.MainListActivity"
     >
 
     <FrameLayout
@@ -25,12 +25,20 @@
                 style="@style/Toolbar"
                 />
 
-            <ListView
-                android:id="@+id/listview_main_list"
+            <android.support.v4.widget.SwipeRefreshLayout
+                android:id="@+id/swiperefresh_mainlist"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                style="MainList.List"
-                />
+                android:layout_height="match_parent"
+                >
+
+                <ListView
+                    android:id="@+id/listview_main_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    style="MainList.List"
+                    />
+
+            </android.support.v4.widget.SwipeRefreshLayout>
 
         </LinearLayout>
 
