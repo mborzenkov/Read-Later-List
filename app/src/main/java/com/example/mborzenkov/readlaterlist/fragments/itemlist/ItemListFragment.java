@@ -36,7 +36,6 @@ import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.fragments.BasicFragmentCallbacks;
 import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemFragmentActions;
 import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerFragment;
-import com.example.mborzenkov.readlaterlist.utility.view.ItemTouchHelperCallback;
 
 /** Фрагмент со списком ReadLaterItem.
  * Activity, использующая фрагмент, должна реализовывать интерфейс ItemListCallbacks.
