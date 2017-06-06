@@ -59,6 +59,10 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
         /** Оповещает о том, что данные в адаптере изменились. */
         void onDataChanged();
 
+        /** Оповещает о том, что нужно изменить порядок элементов. */
+        void onChangeItemOrder(int localId, int newPosition);
+
+
     }
 
 
@@ -194,14 +198,12 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
 
     @Override
     public void onItemMove(int fromPosition, int toPosition) {
-        // Выполняет перемещение
         if (mCursor != null) {
             mCursor.moveToPosition(fromPosition);
             final int localId = mCursor.getInt(ItemListLoaderManager.INDEX_COLUMN_ID);
             mCursor.moveToPosition(toPosition);
             final int newPosition = mCursor.getInt(ItemListLoaderManager.INDEX_COLUMN_ORDER);
-            ReadLaterDbUtils.changeItemOrder(mContext, localId, newPosition);
-            mEventHandler.onDataChanged();
+            mEventHandler.onChangeItemOrder(localId, newPosition);
         }
     }
 

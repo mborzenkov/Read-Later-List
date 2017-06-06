@@ -417,6 +417,16 @@ public class MainActivity extends AppCompatActivity implements
         toggleSync();
     }
 
+    @Override
+    public void onChangeItemOrder(final int localId, final int newPosition) {
+        mHandlerThreadHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                ReadLaterDbUtils.changeItemOrder(MainActivity.this, localId, newPosition);
+                mItemListFragment.onDataChanged();
+            }
+        });
+    }
 
     /////////////////////////
     // Колбеки FilterDrawerLayout
