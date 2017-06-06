@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements
     private class InternetBroadcastReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (isNetworkConnected() && !MainActivityLongTask.isActive()) {
+            if (isNetworkConnected() && !mBackupFragment.isActive()) {
                 toggleSync();
             }
         }
@@ -158,13 +158,6 @@ public class MainActivity extends AppCompatActivity implements
         mHandlerThread = new HandlerThread(HANDLERTHREAD_TAG);
         mHandlerThread.start();
         mHandlerThreadHandler = new Handler(mHandlerThread.getLooper());
-
-
-        // Проверяет, запущена ли длительная операция
-        if (MainActivityLongTask.isActive()) {
-            // Если запущена, нужно подменить на новую Activity
-            MainActivityLongTask.swapActivity(this);
-        }
 
         // Если это запуск с 0, добавляем itemlistFragment и синхронизируем activity
         if (savedInstanceState == null) {
@@ -227,7 +220,6 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        MainActivityLongTask.swapActivity(null);
         mHandlerThread.quit();
     }
 
@@ -335,6 +327,7 @@ public class MainActivity extends AppCompatActivity implements
                 break;
             case RESTORE:
                 Toast.makeText(this, R.string.toast_backup_restore_finished, Toast.LENGTH_SHORT).show();
+                mItemListFragment.onDataChanged(); // перезагружаем данные сначала и по окончанию синхронизации тоже
                 toggleSync();
                 break;
             default:
@@ -430,11 +423,11 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onActionToggled(FilterDrawerFragment.DrawerActions action) {
 
-        // Если выполняется какая-то работа, кнопки не работают, показывается предупреждение.
-        if (MainActivityLongTask.isActive()) {
+        // Если выполняется резервное копирование, кнопки не работают, показывается предупреждение.
+        if (mBackupFragment.isActive()) {
             ActivityUtils.showAlertDialog(this,
-                    getString(R.string.mainlist_longloading_title),
-                    getString(R.string.mainlist_longloading_text),
+                    getString(R.string.mainlist_backupisactive_title),
+                    getString(R.string.mainlist_backupisactive_text),
                     null,
                     null);
             return;
@@ -515,12 +508,13 @@ public class MainActivity extends AppCompatActivity implements
                                         final int count = Integer.parseInt(param);
                                         // Запускаем бэкграунд таск
                                         mSyncFragment.stopSync();
-                                        MainActivityLongTask.startLongBackgroundTask(new Runnable() {
+                                        mHandlerThreadHandler.post(new Runnable() {
                                             @Override
                                             public void run() {
                                                 DebugUtils.addPlaceholdersToDatabase(MainActivity.this, count);
+                                                mItemListFragment.onDataChanged();
                                             }
-                                        }, MainActivity.this);
+                                        });
                                     } catch (NumberFormatException e) {
                                         Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
                                     }
@@ -541,12 +535,13 @@ public class MainActivity extends AppCompatActivity implements
                                 @Override
                                 public void run() {
                                     mSyncFragment.stopSync();
-                                    MainActivityLongTask.startLongBackgroundTask(new Runnable() {
+                                    mHandlerThreadHandler.post(new Runnable() {
                                         @Override
                                         public void run() {
                                             ReadLaterDbUtils.deleteAll(MainActivity.this);
+                                            mItemListFragment.onDataChanged();
                                         }
-                                    }, MainActivity.this);
+                                    });
                                 }
                             },
                             null);
@@ -683,13 +678,13 @@ public class MainActivity extends AppCompatActivity implements
     // Методы синхронизации
 
     /** Вызывает начало синхронизации.
-     * Синхронизация будет запущена, если не выполняется LongTask.
+     * Синхронизация будет запущена, если не выполняется резервное копирование.
      * По окончанию синхронизации при любом исходе вызывается finishSync.
-     * Если выполняется LongTask, то сразу будет вызван finishSync.
-     * Для справки: по окончанию LongTask вызывается toggleSync и синхронизация проходит в штатном режиме.
+     * Если выполняется резервное копирование, то сразу будет вызван finishSync.
+     * Для справки: при успешном завершении BackupTask, вызывается toggleSync и синхронизация проходит в штатном режиме.
      */
     private void toggleSync() {
-        if (!MainActivityLongTask.isActive()) {
+        if (!mBackupFragment.isActive()) {
             if (mItemListFragment.isVisible()) {
                 mItemListFragment.setRefreshing(true);
             }
@@ -719,17 +714,6 @@ public class MainActivity extends AppCompatActivity implements
             // Оповещаем itemListFragment об изменениях
             mItemListFragment.onDataChanged();
         }
-    }
-
-
-    /////////////////////////
-    // Колбеки MainActivityLongTask
-
-    /** Колбек для MainActivityLongTask об окончании работ. */
-    void onLongTaskFinished() {
-        // Оповещаем itemListFragment об изменениях
-        mItemListFragment.onDataChanged();
-        showData();
     }
 
 

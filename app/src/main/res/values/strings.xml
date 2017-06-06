@@ -64,8 +64,8 @@
         <string name="mainlist_drawer_backup_restore_question_title">Restore from file</string>
         <string name="mainlist_drawer_backup_restore_question_text">This action will replace everything in db with data in backup file. Are you sure to proceed?</string>
         <!-- Предупреждения -->
-        <string name="mainlist_longloading_title">Loading is active</string>
-        <string name="mainlist_longloading_text">Some long action is still running. Please wait until it finished before starting new long action.</string>
+        <string name="mainlist_backupisactive_title">Backup is active</string>
+        <string name="mainlist_backupisactive_text">Backup process is still running. Please wait until it finished before starting other long operations.</string>
         <!-- Обработка конфликтов -->
         <string name="mainlist_conflict_title">Choose version to save</string>
         <string name="mainlist_conflict_button_next">Next</string>
