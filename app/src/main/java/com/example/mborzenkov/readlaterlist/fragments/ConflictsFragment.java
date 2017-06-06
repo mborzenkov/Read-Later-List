@@ -49,8 +49,7 @@ public class ConflictsFragment extends DialogFragment {
         /** Вызывается, когда пользователь разобрал все конфликты. */
         void onConflictsMerged();
     }
-
-    // TODO: issue #29
+    
     /** Список конфликтов. */
     private @NonNull List<Conflict> mConflictsList = new ArrayList<>();
     /** Текущий конфликт. */
