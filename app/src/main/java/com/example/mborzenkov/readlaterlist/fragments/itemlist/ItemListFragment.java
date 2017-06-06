@@ -31,11 +31,13 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.fragments.BasicFragmentCallbacks;
 import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemFragmentActions;
 import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerFragment;
+import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 
 /** Фрагмент со списком ReadLaterItem.
  * Activity, использующая фрагмент, должна реализовывать интерфейс ItemListCallbacks.
@@ -104,6 +106,7 @@ public class ItemListFragment extends Fragment implements
     // Хэлперы
     private @Nullable ItemListAdapter mItemListAdapter = null;
     private @Nullable ItemListLoaderManager mLoaderManager = null;
+    private @Nullable ItemTouchHelperCallback mTouchHelperCallback = null;
 
     // Объекты layout
     private @Nullable DrawerLayout mDrawerLayout;
@@ -144,18 +147,21 @@ public class ItemListFragment extends Fragment implements
         mItemsRecyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
         mItemsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         if (mItemListAdapter != null) {
-            ItemTouchHelperCallback itemTouchHelperCallback = new ItemTouchHelperCallback(mItemListAdapter);
-            ItemTouchHelper itemTouchHelper = new ItemTouchHelper(itemTouchHelperCallback);
+            mTouchHelperCallback = new ItemTouchHelperCallback(mItemListAdapter);
+            ItemTouchHelper itemTouchHelper = new ItemTouchHelper(mTouchHelperCallback);
             itemTouchHelper.attachToRecyclerView(mItemsRecyclerView);
-            mItemsRecyclerView.setOnTouchListener(itemTouchHelperCallback);
+            mItemsRecyclerView.setOnTouchListener(mTouchHelperCallback);
+
+            mTouchHelperCallback.setDragEnabled(MainListFilterUtils.getCurrentFilter().getSortType()
+                    == MainListFilter.SortType.MANUAL);
         }
 
 
         // Инициализация FilterFragment
         FragmentManager fragmentManager = getChildFragmentManager();
-        FilterDrawerFragment filterDrawerFragment = FilterDrawerFragment.getInstance(fragmentManager);
+        FilterDrawerFragment drawerFragment = FilterDrawerFragment.getInstance(fragmentManager);
         fragmentManager.beginTransaction()
-                .replace(CONTAINER_FRAGMENT_FILTER, filterDrawerFragment, FilterDrawerFragment.TAG)
+                .replace(CONTAINER_FRAGMENT_FILTER, drawerFragment, FilterDrawerFragment.TAG)
                 .commit();
 
         // Инициализация Toolbar
@@ -346,6 +352,11 @@ public class ItemListFragment extends Fragment implements
      * Перезагружает лоадер менеджер.
      */
     public void onDataChanged() {
+        // Обновить доступность драг-н-дроп
+        if (mTouchHelperCallback != null) {
+            mTouchHelperCallback.setDragEnabled(MainListFilterUtils.getCurrentFilter().getSortType()
+                    == MainListFilter.SortType.MANUAL);
+        }
         if (mLoaderManager != null) {
             mLoaderManager.restartLoader();
         }

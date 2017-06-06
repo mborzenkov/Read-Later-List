@@ -18,7 +18,7 @@ class ItemTouchHelperCallback extends ItemTouchHelper.Callback implements View.O
     // Обработчики перемещений
 
     /** Интерфейс для адаптера. */
-    public interface ItemTouchHelperAdapter {
+    interface ItemTouchHelperAdapter {
 
         /** Вызывается для оповещения о перемещении элемента.
          * Вызывается после эвента MotionEvent.ACTION_UP, следующего за onMove.
@@ -37,6 +37,8 @@ class ItemTouchHelperCallback extends ItemTouchHelper.Callback implements View.O
 
     /** Ссылка на адаптер для оповещений. */
     private final @NonNull ItemTouchHelperAdapter mAdapter;
+    /** Признак доступности drag event. */
+    private boolean mDragEnabled = false;
 
     /** Переменная для запоминания перемещений в onMove.
      *  mItemMoveValues[0] - предыдущая позиция элемента в адаптере
@@ -44,10 +46,14 @@ class ItemTouchHelperCallback extends ItemTouchHelper.Callback implements View.O
      */
     private @Nullable @Size(value = 2) int[] mItemMoveValues;
 
-    public ItemTouchHelperCallback(@NonNull ItemTouchHelperAdapter adapter) {
+    ItemTouchHelperCallback(@NonNull ItemTouchHelperAdapter adapter) {
         mAdapter = adapter;
     }
 
+    /** Устанавливает доступность drag event. */
+    void setDragEnabled(boolean enabled) {
+        mDragEnabled = enabled;
+    }
 
     /////////////////////////
     // Колбеки ItemTouchHelper.Callback
@@ -61,7 +67,7 @@ class ItemTouchHelperCallback extends ItemTouchHelper.Callback implements View.O
 
     @Override
     public boolean isLongPressDragEnabled() {
-        return MainListFilterUtils.getCurrentFilter().getSortType() == MainListFilter.SortType.MANUAL;
+        return mDragEnabled;
     }
 
     @Override
