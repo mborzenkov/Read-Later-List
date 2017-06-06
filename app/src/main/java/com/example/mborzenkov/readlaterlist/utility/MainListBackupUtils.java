@@ -9,7 +9,7 @@ import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemJsonAdapter;
-import com.example.mborzenkov.readlaterlist.utility.view.LongTaskNotifications;
+import com.example.mborzenkov.readlaterlist.activity.main.LongTaskNotifications;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import com.squareup.moshi.Types;

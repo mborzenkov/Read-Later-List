@@ -51,13 +51,11 @@ import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemViewPager
 import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerCallbacks;
 import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
-import com.example.mborzenkov.readlaterlist.fragments.sync.SyncCallback;
-import com.example.mborzenkov.readlaterlist.fragments.sync.SyncFragment;
+import com.example.mborzenkov.readlaterlist.sync.SyncCallback;
+import com.example.mborzenkov.readlaterlist.sync.SyncFragment;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiComponent;
 import com.example.mborzenkov.readlaterlist.networking.ReadLaterCloudApi;
-import com.example.mborzenkov.readlaterlist.utility.view.ActivityUtils;
 import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
-import com.example.mborzenkov.readlaterlist.utility.view.LongTaskNotifications;
 import com.example.mborzenkov.readlaterlist.utility.MainListBackupUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;

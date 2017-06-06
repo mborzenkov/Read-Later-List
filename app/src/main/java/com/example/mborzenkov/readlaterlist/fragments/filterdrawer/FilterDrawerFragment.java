@@ -26,7 +26,7 @@ import android.widget.LinearLayout;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
-import com.example.mborzenkov.readlaterlist.utility.view.ActivityUtils;
+import com.example.mborzenkov.readlaterlist.activity.main.ActivityUtils;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;

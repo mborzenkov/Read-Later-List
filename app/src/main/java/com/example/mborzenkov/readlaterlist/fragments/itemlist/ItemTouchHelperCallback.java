@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.utility.view;
+package com.example.mborzenkov.readlaterlist.fragments.itemlist;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -12,7 +12,7 @@ import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 
 /** Класс колбеков для ItemTouchHelper. */
-public class ItemTouchHelperCallback extends ItemTouchHelper.Callback implements View.OnTouchListener {
+class ItemTouchHelperCallback extends ItemTouchHelper.Callback implements View.OnTouchListener {
 
     /////////////////////////
     // Обработчики перемещений

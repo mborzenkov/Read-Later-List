@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.utility.view;
+package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.app.DatePickerDialog;
 import android.content.Context;

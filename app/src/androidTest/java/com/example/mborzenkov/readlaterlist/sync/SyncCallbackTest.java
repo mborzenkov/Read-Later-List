@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.fragments.sync;
+package com.example.mborzenkov.readlaterlist.sync;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
