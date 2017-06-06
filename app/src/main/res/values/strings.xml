@@ -12,8 +12,9 @@
         <string name="mainlist_menu_delete_all_question_title">Delete all</string>
         <string name="mainlist_menu_delete_all_question_text">This action will delete everything from db. Are you sure to proceed?</string>
         <string name="mainlist_menu_add_placeholders_question_title">Fill with placeholders</string>
-        <string name="mainlist_menu_add_placeholders_question_text">This action will add placeholders. Proceed?</string>
+        <string name="mainlist_menu_add_placeholders_question_text">Type the number of placeholders you wish to add and press OK.</string>
         <string name="mainlist_menu_add_placeholders_label">Labeeeeel</string>
+        <string name="mainlist_menu_refresh">Refresh</string>
         <!-- Снекбары -->
         <string name="snackbar_item_added">Item added</string>
         <string name="snackbar_item_edited">Item edited</string>
@@ -24,7 +25,6 @@
         <string name="searchable_mainlist_hint">Search items</string>
         <string name="mainlist_menu_search">Search</string>
         <!-- Фильтр -->
-        <!-- TODO: Перевод strings -->
         <string name="mainlist_drawer_title">Settings</string>
         <string name="mainlist_drawer_filters_title">Filter by</string>
         <string name="mainlist_drawer_filters_default">Default</string>
@@ -58,6 +58,17 @@
         <string name="mainlist_drawer_backup_save_question_text">This action will make backup of db in file. Proceed?</string>
         <string name="mainlist_drawer_backup_restore_question_title">Restore from file</string>
         <string name="mainlist_drawer_backup_restore_question_text">This action will replace everything in db with data in backup file. Are you sure to proceed?</string>
+        <!-- Предупреждения -->
+        <string name="mainlist_longloading_title">Loading is active</string>
+        <string name="mainlist_longloading_text">Some long action is still running. Please wait until it finished before starting new long action.</string>
+
+    <!-- Уведомления -->
+        <string name="notification_backup_save_title">Saving backup</string>
+        <string name="notification_backup_restore_title">Restoring from backup</string>
+        <string name="notification_debug_fillplaceholders_title">Filling with placeholders</string>
+        <string name="notification_debug_deleteall_title">Deleting all data</string>
+        <string name="toast_backup_save_finished">All data saved</string>
+        <string name="toast_backup_restore_finished">All data restored</string>
 
     <!-- EditItemActivity -->
         <!-- Заголовки -->
@@ -69,8 +80,12 @@
         <string name="edititem_color_hint">Color</string>
         <string name="edititem_date_created">Created:</string>
         <string name="edititem_date_modified">Modified:</string>
+        <string name="edititem_imageurl_hint">Image url</string>
+        <string name="edititem_image_contentdescription">Image from url</string>
         <!-- Ошибки -->
         <string name="edititem_error_title_empty">Please enter label</string>
+        <string name="edititem_error_imageurl_malformed">Please type correct URL</string>
+        <string name="edititem_error_imageurl_onload">Error loading image from URL</string>
         <!-- Меню -->
         <string name="edititem_menu_delete">Delete</string>
         <string name="edititem_menu_delete_question_title">Delete item</string>

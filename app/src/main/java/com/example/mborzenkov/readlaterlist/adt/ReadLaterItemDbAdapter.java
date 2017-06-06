@@ -43,7 +43,8 @@ public class ReadLaterItemDbAdapter {
                 cursor.getInt(projection.indexColor),
                 cursor.getLong(projection.indexCreated),
                 cursor.getLong(projection.indexModified),
-                cursor.getLong(projection.indexViewed));
+                cursor.getLong(projection.indexViewed),
+                cursor.getString(projection.indexImageUrl));
     }
 
     /** Преобразует Cursor в список ReadLaterItem.
@@ -80,6 +81,7 @@ public class ReadLaterItemDbAdapter {
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED, item.getDateCreated());
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, item.getDateModified());
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW, item.getDateViewed());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL, item.getImageUrl());
         return contentValues;
     }
 
@@ -91,6 +93,7 @@ public class ReadLaterItemDbAdapter {
         private final int indexCreated;
         private final int indexModified;
         private final int indexViewed;
+        private final int indexImageUrl;
 
         /** Получает индексы колонок из курсора, соответствующие полям объекта ReadLaterItem.
          *
@@ -106,6 +109,7 @@ public class ReadLaterItemDbAdapter {
             this.indexCreated = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED);
             this.indexModified = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED);
             this.indexViewed = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW);
+            this.indexImageUrl = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL);
         }
     }
 

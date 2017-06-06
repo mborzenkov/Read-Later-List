@@ -12,7 +12,7 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
     /** Имя базы данных. */
     private static final String DATABASE_NAME = "readlaterlist.db";
     /** Версия базы данных. */
-    private static final int DATABASE_VERSION = 3; // Текущая: 3
+    private static final int DATABASE_VERSION = 6; // Текущая: 6
 
     public ReadLaterDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -20,6 +20,7 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
+        sqLiteDatabase.execSQL("PRAGMA auto_vacuum = FULL;");
         // Создание таблицы
         final String sqlCreateReadLaterTable =
             "CREATE TABLE " + ReadLaterEntry.TABLE_NAME + " ("
@@ -29,7 +30,8 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
                     + ReadLaterEntry.COLUMN_COLOR              + " INTEGER NOT NULL, "
                     + ReadLaterEntry.COLUMN_DATE_CREATED       + " INTEGER NOT NULL, "
                     + ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED + " INTEGER NOT NULL, "
-                    + ReadLaterEntry.COLUMN_DATE_LAST_VIEW     + " INTEGER NOT NULL);";
+                    + ReadLaterEntry.COLUMN_DATE_LAST_VIEW     + " INTEGER NOT NULL, "
+                    + ReadLaterEntry.COLUMN_IMAGE_URL          + " TEXT);";
         sqLiteDatabase.execSQL(sqlCreateReadLaterTable);
 
         final String sqlCreateFtsTable =
@@ -40,13 +42,17 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(sqlCreateFtsTable);
     }
 
+    public void resetDb(SQLiteDatabase db) {
+        db.execSQL("DROP TABLE IF EXISTS " + ReadLaterEntry.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + ReadLaterEntry.TABLE_NAME_FTS);
+        onCreate(db);
+    }
+
     // Создание таблицы для полнотекстового поиска
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
         // Пока что мы просто дропаем всю таблицу и создаем новую
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ReadLaterEntry.TABLE_NAME);
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ReadLaterEntry.TABLE_NAME_FTS);
-        onCreate(sqLiteDatabase);
+        resetDb(sqLiteDatabase);
     }
 
     @Override

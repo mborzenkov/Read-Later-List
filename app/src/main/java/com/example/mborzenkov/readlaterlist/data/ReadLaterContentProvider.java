@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
@@ -78,7 +79,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                 throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
-        cursor.setNotificationUri(mContext.getContentResolver(), uri);
+        // cursor.setNotificationUri(mContext.getContentResolver(), uri);
         return cursor;
     }
 
@@ -94,6 +95,13 @@ public class ReadLaterContentProvider extends ContentProvider {
             case CODE_READLATER_ITEMS:
                 itemDeleted = db.delete(ReadLaterEntry.TABLE_NAME, null, null);
                 db.delete(ReadLaterEntry.TABLE_NAME_FTS, null, null);
+
+                /* Возможно, пересбор таблиц - не лучшее решение, но по какой-то причине ни вызов VACUUM, ни
+                 * PRAGMA auto_vacuum = FULL не уменьшают размер базы данных. Это приводит к тому, что добавление
+                 * тысяч строк несколько раз превращает базу в 2Гб и последующим ошибкам окончания доступной памяти.
+                 * Сброс таблиц и создание их заново решает эту проблему, плюс работает быстро.
+                 */
+                mReadLaterDbHelper.resetDb(db);
                 break;
             case CODE_READLATER_ITEMS_WITH_ID:
                 String[] id = new String[] {uri.getPathSegments().get(1)};
@@ -105,7 +113,7 @@ public class ReadLaterContentProvider extends ContentProvider {
         }
 
         if (itemDeleted != 0) {
-            mContext.getContentResolver().notifyChange(uri, null);
+            // mContext.getContentResolver().notifyChange(uri, null);
         }
 
         return itemDeleted;
@@ -135,7 +143,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                 throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
-        mContext.getContentResolver().notifyChange(uri, null);
+        // mContext.getContentResolver().notifyChange(uri, null);
 
         return returnUri;
     }
@@ -144,6 +152,7 @@ public class ReadLaterContentProvider extends ContentProvider {
     public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
         // Обработчик зарпосов bullk insert
         int inserted = 0;
+        Log.d("INSERTING", String.valueOf(values.length));
 
         switch (sUriMatcher.match(uri)) {
             case CODE_READLATER_ITEMS:
@@ -169,7 +178,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                 throw new UnsupportedOperationException(mContext.getString(R.string.db_error_uriunknown) + uri);
         }
 
-        mContext.getContentResolver().notifyChange(uri, null);
+        // mContext.getContentResolver().notifyChange(uri, null);
 
         return inserted;
     }
@@ -207,7 +216,7 @@ public class ReadLaterContentProvider extends ContentProvider {
         }
 
         if (itemUpdated != 0) {
-            mContext.getContentResolver().notifyChange(uri, null);
+           // mContext.getContentResolver().notifyChange(uri, null);
         }
 
         return itemUpdated;

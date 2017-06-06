@@ -2,60 +2,28 @@ package com.example.mborzenkov.readlaterlist.utility;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
-import android.support.v4.content.CursorLoader;
-import android.util.Log;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
-import com.example.mborzenkov.readlaterlist.data.MainListFilter;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /** Класс для упрощения работы с базой данных.
  * Представляет собой набор static методов
  */
 public class ReadLaterDbUtils {
 
+    /** Запрос на диапзаон. */
+    private static final String QUERY_RANGE = "_ID LIMIT %s OFFSET %s";
+
+
     private ReadLaterDbUtils() {
         throw new UnsupportedOperationException("Класс ReadLaterDbUtils - static util, не может иметь экземпляров");
-    }
-
-    /** Возвращает CursorLoader для указанного запроса, добавляя к нему поисковый запрос и фильтр, если имеются.
-     *
-     * @param context Контекст
-     * @param projection Список необходимых полей
-     * @param searchQuery Поисковый запрос (если имеется)
-     * @param filter Фильтр (если назначен)
-     * @return Новый CursorLoader
-     */
-    public static CursorLoader getNewCursorLoader(Context context, String[] projection,
-                                                  String searchQuery, MainListFilter filter) {
-
-        StringBuilder selection = new StringBuilder();
-        String[] selectionArgs = new String[0];
-        String sortOrder = "";
-        if (filter != null) {
-            sortOrder = filter.getSqlSortOrder();
-            selection.append(filter.getSqlSelection(context));
-            selectionArgs = filter.getSqlSelectionArgs(context);
-        }
-        if (!searchQuery.isEmpty()) {
-            if (!selection.toString().trim().isEmpty()) {
-                selection.append(" AND ");
-            }
-            selection.append(String.format("_id IN (SELECT docid FROM %s WHERE %s MATCH ?)",
-                    ReadLaterEntry.TABLE_NAME_FTS, ReadLaterEntry.TABLE_NAME_FTS));
-            selectionArgs = Arrays.copyOf(selectionArgs, selectionArgs.length + 1);
-            selectionArgs[selectionArgs.length - 1] = searchQuery;
-        }
-        Log.d("SELECTION", String.format("%s, %s", selection.toString(), Arrays.toString(selectionArgs)));
-        Log.d("ORDERING", sortOrder);
-        return new CursorLoader(context, ReadLaterContract.ReadLaterEntry.CONTENT_URI,
-                projection, selection.toString(), selectionArgs, sortOrder);
     }
 
     /** Добавляет новый элемент в базу данных.
@@ -134,6 +102,22 @@ public class ReadLaterDbUtils {
     public static void deleteAll(Context context) {
         context.getContentResolver()
                 .delete(ReadLaterEntry.CONTENT_URI, null, null);
+    }
+
+    /** Выполяняет запрос count количества данных из базы с from позиции.
+     *
+     * @param context контекст
+     * @param from начало, с которого запрашивать данные
+     * @param count колчичество
+     * @return курсор, указывающий на данные
+     */
+    public static Cursor queryRange(Context context, int from, int count) {
+        return context.getContentResolver().query(
+                ReadLaterContract.ReadLaterEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                String.format(Locale.US, QUERY_RANGE, count, from));
     }
 
 }

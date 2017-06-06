@@ -19,15 +19,23 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.mborzenkov.readlaterlist.R;
+
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
 import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+
+// TODO: Еще немного и тут тоже понадобится ViewHolder
 
 /**
  * Activity для редактирования элемента MainListActivity
@@ -61,6 +69,9 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
     private TextInputLayout mLabelInputLayout;
     private TextInputEditText mDescriptionEditText;
     private ImageButton mColorImageButton;
+    private TextInputEditText mImageUrlEditText;
+    private TextInputLayout mImageUrlInputLayout;
+    private ImageView mImageFromUrlImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +95,10 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         mDescriptionEditText = (TextInputEditText) findViewById(R.id.et_edit_item_description);
         mColorImageButton = (ImageButton) findViewById(R.id.ib_edit_item_color);
         mColorImageButton.setOnClickListener(this);
+        mImageUrlEditText = (TextInputEditText) findViewById(R.id.et_edititem_imageurl);
+        mImageUrlInputLayout = (TextInputLayout) findViewById(R.id.til_edititem_imageurl);
+        mImageFromUrlImageView = (ImageView) findViewById(R.id.iv_edititem_imagefromurl);
+        ((ImageButton) findViewById(R.id.ib_edititem_updateimage)).setOnClickListener(this);
 
         // Чтение данных из Intent
         Intent intent = getIntent();
@@ -99,6 +114,11 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
             ((TextView) findViewById(R.id.tv_edititem_modified_value))
                     .setText(dateFormatter.format(mFromItem.getDateModified()));
             mChosenColor = mFromItem.getColor();
+            String imageUrl = mFromItem.getImageUrl();
+            if (!imageUrl.isEmpty()) {
+                mImageUrlEditText.setText(imageUrl);
+                reloadImage();
+            }
             getSupportActionBar().setTitle(getString(R.string.edititem_title_edit));
             fab.setImageResource(R.drawable.ic_edit_24dp);
             mMode = EditModes.EDIT;
@@ -191,9 +211,38 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
             case R.id.fab_edit_item_save:
                 finishEditing();
                 break;
+            case R.id.ib_edititem_updateimage:
+                reloadImage();
+                break;
             default:
                 break;
         }
+    }
+
+    /** Выполняет перезагрузку изображения по введенному url. */
+    private void reloadImage() {
+
+        // Проверяем, url ли там вообще
+        String url = mImageUrlEditText.getText().toString();
+        try {
+            new URL(url);
+        } catch (MalformedURLException e) {
+            mImageUrlInputLayout.setError(getString(R.string.edititem_error_imageurl_malformed));
+            return; // Это не url
+        }
+
+        Picasso.with(this).load(url).into(mImageFromUrlImageView, new Callback() {
+            @Override
+            public void onSuccess() {
+                mImageUrlInputLayout.setError(null);
+            }
+
+            @Override
+            public void onError() {
+                mImageUrlInputLayout.setError(getString(R.string.edititem_error_imageurl_onload));
+            }
+        });
+
     }
 
     /** Выполняет сохранение. */
@@ -247,12 +296,22 @@ public class EditItemActivity extends AppCompatActivity implements View.OnClickL
         String label = mLabelEditText.getText().toString();
         String description = mDescriptionEditText.getText().toString();
         long currentTime = System.currentTimeMillis();
+        String imageUrl = mImageUrlEditText.getText().toString();
+        if (!imageUrl.isEmpty()) {
+            try {
+                new URL(imageUrl);
+            } catch (MalformedURLException e) {
+                mImageUrlInputLayout.setError(getString(R.string.edititem_error_imageurl_malformed));
+                return null; // Это не url
+            }
+        }
         if (!label.trim().isEmpty()) {
             if (mFromItem != null) {
                 return new ReadLaterItem(label, description, mChosenColor,
-                        mFromItem.getDateCreated(), currentTime, currentTime);
+                        mFromItem.getDateCreated(), currentTime, currentTime, imageUrl);
             } else {
-                return new ReadLaterItem(label, description, mChosenColor, currentTime, currentTime, currentTime);
+                return new ReadLaterItem(label, description, mChosenColor,
+                        currentTime, currentTime, currentTime, imageUrl);
             }
         } else {
             mLabelInputLayout.setError(getString(R.string.edititem_error_title_empty));

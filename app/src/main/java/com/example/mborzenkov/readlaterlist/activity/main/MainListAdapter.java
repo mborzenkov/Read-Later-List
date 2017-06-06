@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.activity;
+package com.example.mborzenkov.readlaterlist.activity.main;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -20,21 +20,21 @@ import java.util.Locale;
  *      Но так как по заданию было запрещено пользоваться RecyclerView, этого сделано не было
  *      // TODO: Переписать адаптер на RecyclerView
  */
-class ItemListAdapter extends ResourceCursorAdapter {
+class MainListAdapter extends ResourceCursorAdapter {
 
     /** Контекст. */
     private final Context mContext;
     /** Обработчик нажатий. */
     private final ItemListAdapterOnClickHandler mClickHandler;
     /** Формат выводимых дат. */
-    public static final String FORMAT_DATE = "dd.MM.yy HH:mm";
+    private static final String FORMAT_DATE = "dd.MM.yy HH:mm";
 
     /** Интерфейс для обработчика нажатий. */
-    public interface ItemListAdapterOnClickHandler {
+    interface ItemListAdapterOnClickHandler {
         void onClick(int position);
     }
 
-    public ItemListAdapter(Context context, ItemListAdapterOnClickHandler clickHandler) {
+    MainListAdapter(Context context, ItemListAdapterOnClickHandler clickHandler) {
         super(context, R.layout.content_mainlist_item, null, 0);
         mContext = context;
         mClickHandler = clickHandler;
@@ -68,11 +68,11 @@ class ItemListAdapter extends ResourceCursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         ItemListViewHolder viewHolder = (ItemListViewHolder) view.getTag();
-        viewHolder.labelTextView.setText(cursor.getString(MainListActivity.INDEX_COLUMN_LABEL));
-        viewHolder.descriptionTextView.setText(cursor.getString(MainListActivity.INDEX_COLUMN_DESCRIPTION));
+        viewHolder.labelTextView.setText(cursor.getString(MainListLoaderManager.INDEX_COLUMN_LABEL));
+        viewHolder.descriptionTextView.setText(cursor.getString(MainListLoaderManager.INDEX_COLUMN_DESCRIPTION));
         ((GradientDrawable) viewHolder.colorImageView.getBackground())
-                .setColor(cursor.getInt(MainListActivity.INDEX_COLUMN_COLOR));
-        long date = cursor.getLong(MainListActivity.INDEX_COLUMN_DATE_LAST_MODIFIED);
+                .setColor(cursor.getInt(MainListLoaderManager.INDEX_COLUMN_COLOR));
+        long date = cursor.getLong(MainListLoaderManager.INDEX_COLUMN_DATE_LAST_MODIFIED);
         SimpleDateFormat sdf = new SimpleDateFormat(FORMAT_DATE, Locale.US);
         viewHolder.dateTextView.setText(sdf.format(date));
         viewHolder.position = cursor.getPosition();

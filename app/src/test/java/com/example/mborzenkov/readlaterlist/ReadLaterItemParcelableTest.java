@@ -22,11 +22,38 @@ public class ReadLaterItemParcelableTest {
     private static final String normalDescription = "Описание";
     private static final int normalColor = Color.RED;
     private static final long currentTime = System.currentTimeMillis();
+    private static final String normalImageUrl = "http://i.imgur.com/TyCSG9A.png";
 
     @Test
     public void testParcelable() {
         ReadLaterItem item = new ReadLaterItem(normalLabel, normalDescription, normalColor,
-                currentTime, currentTime, currentTime);
+                currentTime, currentTime, currentTime, normalImageUrl);
+        ReadLaterItemParcelable itemParcelable = new ReadLaterItemParcelable(item);
+        Parcel parcel = Parcel.obtain();
+        itemParcelable.writeToParcel(parcel, itemParcelable.describeContents());
+        parcel.setDataPosition(0);
+
+        ReadLaterItem itemFromParcel = ReadLaterItemParcelable.CREATOR.createFromParcel(parcel).getItem();
+        assertEquals(item, itemFromParcel);
+    }
+
+    @Test
+    public void testParcelableEmptyUrl() {
+        ReadLaterItem item = new ReadLaterItem(normalLabel, normalDescription, normalColor,
+                currentTime, currentTime, currentTime, "");
+        ReadLaterItemParcelable itemParcelable = new ReadLaterItemParcelable(item);
+        Parcel parcel = Parcel.obtain();
+        itemParcelable.writeToParcel(parcel, itemParcelable.describeContents());
+        parcel.setDataPosition(0);
+
+        ReadLaterItem itemFromParcel = ReadLaterItemParcelable.CREATOR.createFromParcel(parcel).getItem();
+        assertEquals(item, itemFromParcel);
+    }
+
+    @Test
+    public void testParcelableNullUrl() {
+        ReadLaterItem item = new ReadLaterItem(normalLabel, normalDescription, normalColor,
+                currentTime, currentTime, currentTime, null);
         ReadLaterItemParcelable itemParcelable = new ReadLaterItemParcelable(item);
         Parcel parcel = Parcel.obtain();
         itemParcelable.writeToParcel(parcel, itemParcelable.describeContents());

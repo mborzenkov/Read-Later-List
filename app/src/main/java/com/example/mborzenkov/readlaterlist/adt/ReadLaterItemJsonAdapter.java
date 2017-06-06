@@ -40,6 +40,7 @@ public class ReadLaterItemJsonAdapter {
         json.created = dateFormatter.format(item.getDateCreated());
         json.edited = dateFormatter.format(item.getDateModified());
         json.viewed = dateFormatter.format(item.getDateViewed());
+        json.imageUrl = item.getImageUrl();
         return json;
     }
 
@@ -64,7 +65,8 @@ public class ReadLaterItemJsonAdapter {
                     Integer.valueOf(json.color.substring(1), 16),
                     dateFormatter.parse(json.created).getTime(),
                     dateFormatter.parse(json.edited).getTime(),
-                    dateFormatter.parse(json.viewed).getTime());
+                    dateFormatter.parse(json.viewed).getTime(),
+                    json.imageUrl);
         } catch (ParseException e) {
             Log.e("Parse error", String.format("%s %s%n%s %s",
                     "Ошибка разбора дат из ReadLaterItemJson:",
@@ -82,13 +84,14 @@ public class ReadLaterItemJsonAdapter {
         private String created;
         private String edited;
         private String viewed;
+        private String imageUrl;
 
         private ReadLaterItemJson() { }
 
         @Override
         public String toString() {
-            return String.format("title:%s, description:%s, color:%s, created:%s, edited:%s, viewed:%s",
-                    title, description, color, created, edited, viewed);
+            return String.format("title:%s, description:%s, color:%s, created:%s, edited:%s, viewed:%s, imageUrl: %s",
+                    title, description, color, created, edited, viewed, imageUrl);
         }
     }
 
