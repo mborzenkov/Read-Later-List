@@ -3,6 +3,7 @@ package com.example.mborzenkov.readlaterlist.adt;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 
@@ -18,11 +19,16 @@ public class ReadLaterItemDbAdapter {
     /** Преобразует текущую позицию cursor в объект ReadLaterItem.
      *
      * @param cursor курсор, как в ReadLaterItemCursorProjection
+     *
      * @return объект ReadLaterItem, соответствующий текущей позиции курсора
-     * @throws IllegalArgumentException если cursor не соответствует требованиям
+     *              или null, если курсор закрыт, пустой или cursor.getPosition() < 0 или >= cursor.getCount()
+     *
+     * @throws NullPointerException если cursor == null
+     * @throws IllegalArgumentException если cursor не содержит всех необходимых колонок
+     *
      * @see ReadLaterItemCursorProjection
      */
-    public ReadLaterItem itemFromCursor(@NonNull Cursor cursor) {
+    public @Nullable ReadLaterItem itemFromCursor(@NonNull Cursor cursor) {
         ReadLaterItemCursorProjection projection = new ReadLaterItemCursorProjection(cursor);
         return itemFromCursor(cursor, projection);
     }
@@ -32,18 +38,32 @@ public class ReadLaterItemDbAdapter {
      *
      * @param cursor курсор, как в ReadLaterItemCursorProjection
      * @param projection объект, содержащий индексы колонок
+     *
      * @return объект ReadLaterItem, соответствующий текущей позиции курсора
-     * @throws IllegalArgumentException если cursor не соответствует требованиям
+     *              или null, если курсор закрыт, пустой или cursor.getPosition() < 0 или >= cursor.getCount()
+     *
+     * @throws NullPointerException если cursor или projection == null
+     * @throws IllegalArgumentException если cursor не содержит всех необходимых колонок
+     *
      * @see ReadLaterItemCursorProjection
      */
-    private ReadLaterItem itemFromCursor(Cursor cursor, @NonNull ReadLaterItemCursorProjection projection) {
-        return new ReadLaterItem(
-                cursor.getString(projection.indexLabel),
-                cursor.getString(projection.indexDescription),
-                cursor.getInt(projection.indexColor),
-                cursor.getLong(projection.indexCreated),
-                cursor.getLong(projection.indexModified),
-                cursor.getLong(projection.indexViewed));
+    private @Nullable ReadLaterItem itemFromCursor(@NonNull Cursor cursor,
+                                                   @NonNull ReadLaterItemCursorProjection projection) {
+
+        if (cursor.isClosed() || (cursor.getCount() == 0) || (cursor.getPosition() < 0)
+                || (cursor.getPosition() >= cursor.getCount())) {
+            return null;
+        }
+        return new ReadLaterItem.Builder(cursor.getString(projection.indexLabel))
+                .description(cursor.getString(projection.indexDescription))
+                .color(cursor.getInt(projection.indexColor))
+                .dateCreated(cursor.getLong(projection.indexCreated))
+                .dateModified(cursor.getLong(projection.indexModified))
+                .dateViewed(cursor.getLong(projection.indexViewed))
+                .imageUrl(cursor.getString(projection.indexImageUrl))
+                .remoteId(cursor.getInt(projection.indexRemoteId))
+                .build();
+
     }
 
     /** Преобразует Cursor в список ReadLaterItem.
@@ -51,8 +71,12 @@ public class ReadLaterItemDbAdapter {
      * Нельзя изменять позицию cursor параллельно с этим методом, иначе работа метода может быть нарушена.
      *
      * @param cursor курсор, как в ReadLaterItemCursorProjection
-     * @return список всех объектов ReadLaterItem, преобразованных из cursor
-     * @throws IllegalArgumentException если cursor не соответствует требованиям
+     * @return список всех объектов ReadLaterItem, преобразованных из cursor или пустой список, если не удалось получить
+     *              объекты из курсора (если курсор закрыт, пустой или не содержит необходимых колонок)
+     *
+     * @throws NullPointerException если cursor или projection == null
+     * @throws IllegalArgumentException если cursor не содержит всех необходимых колонок
+     *
      * @see ReadLaterItemCursorProjection
      */
     public List<ReadLaterItem> allItemsFromCursor(@NonNull Cursor cursor) {
@@ -70,7 +94,10 @@ public class ReadLaterItemDbAdapter {
     /** Возвращает ContentValues на основании ReadLaterItem.
      *
      * @param item ReadLaterItem, на основании которого нужно подготовить ContentValues
+     *
      * @return ContentValues
+     *
+     * @throws NullPointerException если item == null
      */
     public ContentValues contentValuesFromItem(@NonNull ReadLaterItem item) {
         ContentValues contentValues = new ContentValues();
@@ -80,23 +107,29 @@ public class ReadLaterItemDbAdapter {
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED, item.getDateCreated());
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED, item.getDateModified());
         contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW, item.getDateViewed());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL, item.getImageUrl());
+        contentValues.put(ReadLaterContract.ReadLaterEntry.COLUMN_REMOTE_ID, item.getRemoteId());
         return contentValues;
     }
 
     /** Объект, содержащий соответствие индексов колонок в курсоре полям объекта ReadLaterItem. */
-    private class ReadLaterItemCursorProjection {
+    private static class ReadLaterItemCursorProjection {
         private final int indexLabel;
         private final int indexDescription;
         private final int indexColor;
         private final int indexCreated;
         private final int indexModified;
         private final int indexViewed;
+        private final int indexImageUrl;
+        private final int indexRemoteId;
 
         /** Получает индексы колонок из курсора, соответствующие полям объекта ReadLaterItem.
          *
          * @param cur курсор, содержащий колонки из ReadLaterEnrty: COLUMN_LABEL, COLUMN_DESCRIPTION, COLUMN_COLOR,
          *               COLUMN_DATE_CREATED, COLUMN_DATE_LAST_MODIFIED, COLUMN_LAST_VIEW
+         *
          * @throws IllegalArgumentException если курсор не содержит какой либо колонки
+         *
          * @see com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry
          */
         private ReadLaterItemCursorProjection(@NonNull Cursor cur) {
@@ -106,6 +139,8 @@ public class ReadLaterItemDbAdapter {
             this.indexCreated = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_CREATED);
             this.indexModified = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_MODIFIED);
             this.indexViewed = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_DATE_LAST_VIEW);
+            this.indexImageUrl = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_IMAGE_URL);
+            this.indexRemoteId = cur.getColumnIndexOrThrow(ReadLaterContract.ReadLaterEntry.COLUMN_REMOTE_ID);
         }
     }
 

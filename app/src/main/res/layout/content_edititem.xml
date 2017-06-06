@@ -6,8 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.example.mborzenkov.readlaterlist.activity.EditItemActivity"
-    tools:showIn="@layout/activity_edititem"
+    tools:context="com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemFragment"
+    tools:showIn="@layout/fragment_edititem"
     >
 
     <LinearLayout
@@ -64,10 +64,74 @@
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="wrap_content"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/til_edit_item_description"
+            >
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/til_edititem_imageurl"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/marginhorizontal_normal"
+                android:layout_marginStart="@dimen/marginhorizontal_normal"
+                android:layout_marginRight="@dimen/marginhorizontal_small"
+                android:layout_marginEnd="@dimen/marginhorizontal_small"
+                android:layout_marginTop="@dimen/marginvertical_normal"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toLeftOf="@+id/ib_edititem_updateimage"
+                app:layout_constraintTop_toTopOf="parent"
+                >
+
+                <android.support.design.widget.TextInputEditText
+                android:id="@+id/et_edititem_imageurl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/edititem_imageurl_hint"
+                android:inputType="textWebEmailAddress"
+                style="@style/EditItem.TextField"
+                />
+
+            </android.support.design.widget.TextInputLayout>
+
+            <ImageButton
+                android:id="@+id/ib_edititem_updateimage"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginRight="@dimen/marginhorizontal_normal"
+                android:layout_marginEnd="@dimen/marginhorizontal_normal"
+                android:layout_marginTop="@dimen/marginhorizontal_normal"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:background="@drawable/button_refresh"
+                app:srcCompat="@drawable/ic_refresh_24dp"
+                android:contentDescription="@string/edititem_image_contentdescription"
+                />
+
+            <ImageView
+                android:id="@+id/iv_edititem_imagefromurl"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                tools:minHeight="150dp"
+                android:layout_marginLeft="@dimen/marginvertical_small"
+                android:layout_marginStart="@dimen/marginvertical_small"
+                android:layout_marginRight="@dimen/marginvertical_small"
+                android:layout_marginEnd="@dimen/marginvertical_small"
+                android:layout_marginTop="@dimen/marginvertical_normal"
+                android:layout_marginBottom="@dimen/marginvertical_normal"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/til_edititem_imageurl"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:contentDescription="@string/edititem_image_contentdescription"
+                />
+
+        </android.support.constraint.ConstraintLayout>
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
             >
 
             <TextView

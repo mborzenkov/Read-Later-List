@@ -16,9 +16,27 @@ import java.util.Locale;
 public class ReadLaterItemJsonAdapter {
 
     /** Формат дат в JSON. */
-    private static final String FORMAT_DATE = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+    private static final String FORMAT_DATE = "yyyy-MM-dd'T'HH:mm:ssZZZZZ";
     /** Формат цвета в JSON. */
-    private static final String FORMAT_COLOR = "#%s";
+    private static final String FORMAT_COLOR = "#%S";
+    /** Формат toString объекта ReadLaterItemJson. */
+    private static final String FORMAT_JSON_TOSTRING = "{%n"
+            + "  \"id\": \"%s\",%n"
+            + "  \"title\": \"%s\",%n"
+            + "  \"description\": \"%s\",%n"
+            + "  \"color\": \"%s\",%n"
+            + "  \"created\": \"%s\",%n"
+            + "  \"edited\": \"%s\",%n"
+            + "  \"viewed\": \"%s\",%n"
+            + "  \"imageUrl\": \"%s\"%n"
+            + "}";
+    /** Размерность HEX. */
+    private static final int HEX = 16;
+
+    /** Тэг ошибки разбора JSON. */
+    private static final String FROM_JSON_ERROR_TAG = "FROM_JSON";
+    /** String.format ошибки разобра JSON. */
+    private static final String FROM_JSON_ERROR_FORMAT = "%s %s%nJson: %s";
 
     /** Конструктор по умолчанию. */
     public ReadLaterItemJsonAdapter() { }
@@ -34,12 +52,14 @@ public class ReadLaterItemJsonAdapter {
     public ReadLaterItemJson toJson(@NonNull ReadLaterItem item) {
         final SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
         ReadLaterItemJson json = new ReadLaterItemJson();
-        json.title = item.getLabel();
-        json.description = item.getDescription();
-        json.color = String.format(FORMAT_COLOR, Integer.toString(item.getColor(), 16));
-        json.created = dateFormatter.format(item.getDateCreated());
-        json.edited = dateFormatter.format(item.getDateModified());
-        json.viewed = dateFormatter.format(item.getDateViewed());
+        json.id             = String.valueOf(item.getRemoteId());
+        json.title          = item.getLabel();
+        json.description    = item.getDescription();
+        json.color          = String.format(FORMAT_COLOR, Integer.toHexString(item.getColor()));
+        json.created        = dateFormatter.format(item.getDateCreated());
+        json.edited         = dateFormatter.format(item.getDateModified());
+        json.viewed         = dateFormatter.format(item.getDateViewed());
+        json.imageUrl       = item.getImageUrl();
         return json;
     }
 
@@ -58,37 +78,62 @@ public class ReadLaterItemJsonAdapter {
         SimpleDateFormat dateFormatter = new SimpleDateFormat(FORMAT_DATE, Locale.US);
         ReadLaterItem result = null;
         try {
-            result = new ReadLaterItem(
-                    json.title,
-                    json.description,
-                    Integer.valueOf(json.color.substring(1), 16),
-                    dateFormatter.parse(json.created).getTime(),
-                    dateFormatter.parse(json.edited).getTime(),
-                    dateFormatter.parse(json.viewed).getTime());
+            ReadLaterItem.Builder resultBuilder = new ReadLaterItem.Builder(json.title)
+                    .color((int) Long.parseLong(json.color.substring(1), HEX))
+                    .dateCreated(dateFormatter.parse(json.created).getTime())
+                    .dateModified(dateFormatter.parse(json.edited).getTime())
+                    .dateViewed(dateFormatter.parse(json.viewed).getTime());
+            if (json.id != null) {
+                resultBuilder.remoteId(Integer.parseInt(json.id));
+            }
+            if (json.description != null) {
+                resultBuilder.description(json.description);
+            }
+            if (json.imageUrl != null) {
+                resultBuilder.imageUrl(json.imageUrl);
+            }
+            result = resultBuilder.build();
         } catch (ParseException e) {
-            Log.e("Parse error", String.format("%s %s%n%s %s",
-                    "Ошибка разбора дат из ReadLaterItemJson:",
+            Log.e(FROM_JSON_ERROR_TAG, String.format(FROM_JSON_ERROR_FORMAT,
+                    "dateFormatter.parse error:",
                     e.toString(),
-                    "Объект ReadLaterItemJson:",
+                    json.toString()));
+        } catch (NumberFormatException e) {
+            Log.e(FROM_JSON_ERROR_TAG, String.format(FROM_JSON_ERROR_FORMAT,
+                    "color -> Integer error: ",
+                    e.toString(),
+                    json.toString()));
+        } catch (NullPointerException e) { // NPE тут может быть
+            Log.e(FROM_JSON_ERROR_TAG, String.format(FROM_JSON_ERROR_FORMAT,
+                    "NULL in JSON error: ",
+                    e.toString(),
+                    json.toString()));
+        } catch (IllegalArgumentException e) {
+            Log.e(FROM_JSON_ERROR_TAG, String.format(FROM_JSON_ERROR_FORMAT,
+                    "JSON parse error: ",
+                    e.toString(),
                     json.toString()));
         }
         return result;
     }
 
     private static class ReadLaterItemJson {
+        private String id;
         private String title;
         private String description;
         private String color;
         private String created;
         private String edited;
         private String viewed;
+        private String imageUrl;
+        // private String extra; // Зарезервировано API
 
         private ReadLaterItemJson() { }
 
         @Override
         public String toString() {
-            return String.format("title:%s, description:%s, color:%s, created:%s, edited:%s, viewed:%s",
-                    title, description, color, created, edited, viewed);
+            return String.format(Locale.US, FORMAT_JSON_TOSTRING,
+                    id, title, description, color, created, edited, viewed, imageUrl);
         }
     }
 

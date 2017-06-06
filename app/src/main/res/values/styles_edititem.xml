@@ -1,6 +1,6 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="EditItem"/>
+    <style name="EditItem" tools:ignore="UnusedResources"/>
     <style name="EditItem.Date" parent="Text.Secondary"/>
     <style name="EditItem.TextField" parent="Text.Primary">
         <item name="android:inputType">text</item>

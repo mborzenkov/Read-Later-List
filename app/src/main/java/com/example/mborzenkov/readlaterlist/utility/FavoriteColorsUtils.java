@@ -1,27 +1,16 @@
 package com.example.mborzenkov.readlaterlist.utility;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.DrawableContainer;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.StateListDrawable;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.LinearLayout;
 
 import com.example.mborzenkov.readlaterlist.R;
-
-import java.util.Set;
 
 /** Сервисный класс для работы с любимыми цветами. */
 public class FavoriteColorsUtils {
 
-    /** Константа для использования в качестве ключа при сохранении массива Favorites. */
+    /** Константа для использования в качестве ключа при сохранении массива Favorites в SharedPreferences. */
     private static final String FAVORITES_KEY = "com.example.mborzenkov.colorpicker.favorites";
     /** Количество элементов favorites. */
     private static int sMaxFavorites = 0;
@@ -30,37 +19,16 @@ public class FavoriteColorsUtils {
         throw new UnsupportedOperationException("Класс FavoriteColorsUtils - static util, не может иметь экземпляров");
     }
 
-    private static int getMaxFavorites(Context context) {
+    /** Возвращает установленное максимальное количество любимых цветов. */
+    public static int getMaxFavorites(Context context) {
         if (sMaxFavorites == 0) {
             sMaxFavorites = context.getResources().getInteger(R.integer.colorpicker_favorites);
         }
         return sMaxFavorites;
     }
 
-    /** Добавляет Favorite кружки на layout.
-     *
-     * @param activity Активити, где все происходит
-     * @param layout Layout, в котором должны быть кружки
-     */
-    public static void inflateFavLayout(Activity activity, LinearLayout layout) {
-
-        Context context = activity.getApplicationContext();
-        LayoutInflater layoutInflater = activity.getLayoutInflater();
-        sMaxFavorites = getMaxFavorites(context);
-
-        for (int i = 0; i < sMaxFavorites; i++) {
-            StateListDrawable circle =
-                    (StateListDrawable) ContextCompat.getDrawable(context, R.drawable.circle_default);
-            View favCircle = layoutInflater.inflate(R.layout.drawer_mainlist_favorites, layout, false);
-            View circleButton = favCircle.findViewById(R.id.imageButton_favorite_color);
-            circleButton.setBackground(circle);
-            circleButton.setTag(i);
-            layout.addView(favCircle);
-        }
-
-    }
-
     /** Получает любимые цвета из SharedPreferences.
+     * Если какой либо из цветов не задан, он будет Color.TRANSPARENT.
      *
      * @param context Контекст
      * @param sharedPreferences Ссылка на SharedPreferences, если null - получается через контекст
@@ -81,43 +49,37 @@ public class FavoriteColorsUtils {
         return result;
     }
 
-    /** Обновляет layout с любимыми кругами на основании данных в Shared Preferences.
+    /** Сохраняет любимый цвет в SharedPreferences.
+     * Цвет будет сохранен с ключем, равным position.
      *
-     * @param context Контекст
-     * @param layout Layout
-     * @param sharedPreferences Ссылка на Shared Preferences, если null - получается через контекст
-     * @param clickListener Ссылка на OnClickListener, который устанавливается для кругов
-     * @param colorFilter Фильтр цвета, если указан, то круги будут помечены .active
-     * @return Список любимых цветов, как getFavoriteColorsFromSharedPreferences(...)
+     * @param context Контекст, может быть null, если указан sharedPreferences
+     * @param sharedPreferences Ссылка на SharedPreferences, если null - получается через контекста
+     * @param newColor цвет для сохранения в формате sRGB
+     * @param position ключ для сохранения (позиция любимого цвета)
+     *
+     * @throws IllegalArgumentException если context == null и sharedPreferences == null
+     *              так как невозможно получить sharedPreferences
      */
-    public static int[] updateFavLayoutFromSharedPreferences(Context context,
-                                                         LinearLayout layout,
-                                                         @Nullable SharedPreferences sharedPreferences,
-                                                         @Nullable View.OnClickListener clickListener,
-                                                         @Nullable Set<Integer> colorFilter) {
+    public static void saveFavoriteColor(@Nullable Context context,
+                                         @Nullable SharedPreferences sharedPreferences,
+                                         int newColor,
+                                         int position) {
 
-        int[] result = getFavoriteColorsFromSharedPreferences(context, sharedPreferences);
+        if (sharedPreferences == null) {
 
-        for (int i = 0; i < result.length; i++) {
-            int savedColor = result[i];
-            View favCircle = layout.getChildAt(i).findViewById(R.id.imageButton_favorite_color);
-            if (savedColor != Color.TRANSPARENT) {
-                Drawable[] children = ((DrawableContainer.DrawableContainerState) (
-                        (StateListDrawable) favCircle.getBackground()).getConstantState()).getChildren();
-                ((GradientDrawable) children[0]).setColor(savedColor);
-                ((GradientDrawable) children[1]).setColor(savedColor);
-                ((GradientDrawable) children[2]).setColor(savedColor);
-                favCircle.setOnClickListener(clickListener);
-                favCircle.setClickable(true);
-                if (colorFilter != null) {
-                    favCircle.setActivated(colorFilter.contains(savedColor));
-                }
-            } else {
-                favCircle.setOnClickListener(null);
-                favCircle.setClickable(false);
-                favCircle.setActivated(false);
+            if (context == null) {
+                throw new IllegalArgumentException(
+                        "Error @ FavoriteColorsUtils.saveFavoriteColor: context and sharedPreferences both null");
             }
+
+            sharedPreferences = context.getSharedPreferences(FAVORITES_KEY, Context.MODE_PRIVATE);
+
         }
-        return result;
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(String.valueOf(position), newColor);
+        editor.apply();
+
     }
+
 }
