@@ -160,7 +160,6 @@ public class MainActivity extends AppCompatActivity implements
         if (MainActivityLongTask.isActive()) {
             // Если запущена, нужно подменить на новую Activity
             MainActivityLongTask.swapActivity(this);
-            showLoading();
         }
 
         // Если это запуск с 0, добавляем itemlistFragment и синхронизируем activity
@@ -176,9 +175,7 @@ public class MainActivity extends AppCompatActivity implements
     protected void onResume() {
         super.onResume();
         // Вызывает синхронизацию данных с сервером, которая по окончанию вызовет обновление списка.
-        if (!MainActivityLongTask.isActive()) {
-            toggleSync();
-        }
+        toggleSync();
         registerReceiver(mInternetBroadcastReceiver, mInternetChangedIntentFilter);
     }
 
@@ -219,9 +216,7 @@ public class MainActivity extends AppCompatActivity implements
         super.onStop();
         // Синхронизируемся на всякий случай, но не при смене ориентации (там синхронизируемся в onResume)
         if (!isChangingConfigurations()) {
-            if (!MainActivityLongTask.isActive()) {
-                toggleSync();
-            }
+            toggleSync();
         }
     }
 
@@ -467,7 +462,6 @@ public class MainActivity extends AppCompatActivity implements
                                                 DebugUtils.addPlaceholdersToDatabase(MainActivity.this, count);
                                             }
                                         }, MainActivity.this);
-                                        showLoading();
                                     } catch (NumberFormatException e) {
                                         Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
                                     }
@@ -495,7 +489,6 @@ public class MainActivity extends AppCompatActivity implements
                                             LongTaskNotifications.cancelNotification();
                                         }
                                     }, MainActivity.this);
-                                    showLoading();
                                 }
                             },
                             null);
@@ -634,6 +627,8 @@ public class MainActivity extends AppCompatActivity implements
     /** Вызывает начало синхронизации.
      * Синхронизация будет запущена, если не выполняется LongTask.
      * По окончанию синхронизации при любом исходе вызывается finishSync.
+     * Если выполняется LongTask, то сразу будет вызван finishSync.
+     * Для справки: по окончанию LongTask вызывается toggleSync и синхронизация проходит в штатном режиме.
      */
     private void toggleSync() {
         if (!MainActivityLongTask.isActive()) {
@@ -641,6 +636,8 @@ public class MainActivity extends AppCompatActivity implements
                 mItemListFragment.setRefreshing(true);
             }
             mSyncFragment.startFullSync();
+        } else {
+            finishSync();
         }
     }
 
@@ -661,10 +658,8 @@ public class MainActivity extends AppCompatActivity implements
         mSyncFragment.stopSync();
         if (mItemListFragment.isVisible()) {
             mItemListFragment.setRefreshing(false);
-            // Оповещаем itemListFragment об изменениях, если не запущен лонг таск
-            if (!MainActivityLongTask.isActive()) {
-                mItemListFragment.onDataChanged();
-            }
+            // Оповещаем itemListFragment об изменениях
+            mItemListFragment.onDataChanged();
         }
     }
 
@@ -683,20 +678,11 @@ public class MainActivity extends AppCompatActivity implements
     /////////////////////////
     // Все остальное
 
-    /** Показывает индикатор загрузки, скрывая все лишнее. */
-    private void showLoading() {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        Fragment currentFragment = fragmentManager.findFragmentById(FRAGMENT_CONTAINER);
-        getSupportFragmentManager().beginTransaction().hide(currentFragment).commit();
-        mLoadingIndicator.setVisibility(View.VISIBLE);
-    }
-
     /** Показывает данные. */
     private void showData() {
         FragmentManager fragmentManager = getSupportFragmentManager();
         Fragment currentFragment = fragmentManager.findFragmentById(FRAGMENT_CONTAINER);
         getSupportFragmentManager().beginTransaction().show(currentFragment).commit();
-        mLoadingIndicator.setVisibility(View.INVISIBLE);
     }
 
     /** Убирает последний фрагмент из бэкстака и скрывает клавиатуру. */
