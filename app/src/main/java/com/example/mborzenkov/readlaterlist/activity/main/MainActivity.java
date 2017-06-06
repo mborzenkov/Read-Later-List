@@ -36,7 +36,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
@@ -44,6 +43,8 @@ import com.example.mborzenkov.readlaterlist.MyApplication;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.Conflict;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.backup.BackupCallback;
+import com.example.mborzenkov.readlaterlist.backup.BackupFragment;
 import com.example.mborzenkov.readlaterlist.fragments.ColorPickerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.ConflictsFragment;
 import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemFragmentActions;
@@ -51,12 +52,11 @@ import com.example.mborzenkov.readlaterlist.fragments.edititem.EditItemViewPager
 import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerCallbacks;
 import com.example.mborzenkov.readlaterlist.fragments.filterdrawer.FilterDrawerFragment;
 import com.example.mborzenkov.readlaterlist.fragments.itemlist.ItemListFragment;
-import com.example.mborzenkov.readlaterlist.sync.SyncCallback;
-import com.example.mborzenkov.readlaterlist.sync.SyncFragment;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiComponent;
 import com.example.mborzenkov.readlaterlist.networking.ReadLaterCloudApi;
+import com.example.mborzenkov.readlaterlist.sync.SyncCallback;
+import com.example.mborzenkov.readlaterlist.sync.SyncFragment;
 import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
-import com.example.mborzenkov.readlaterlist.utility.MainListBackupUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 
@@ -65,6 +65,7 @@ import java.util.List;
 /** Главная Activity, представляющая собой список. */
 public class MainActivity extends AppCompatActivity implements
         SyncCallback,
+        BackupCallback,
         ConflictsFragment.ConflictsCallback,
         ItemListFragment.ItemListCallbacks,
         EditItemFragmentActions.EditItemCallbacks,
@@ -97,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // Хэлперы
     private SyncFragment mSyncFragment;
+    private BackupFragment mBackupFragment;
     private InternetBroadcastReceiver mInternetBroadcastReceiver;
     private IntentFilter mInternetChangedIntentFilter;
     private HandlerThread mHandlerThread;
@@ -105,10 +107,11 @@ public class MainActivity extends AppCompatActivity implements
 
     // Элементы layout
     private FrameLayout mFragmentContainer;
-    private ProgressBar mLoadingIndicator;
 
     /** Дата последней синхронизации. */
     private long mLastSync;
+    /** Последнее запущенное уведомление. */
+    private @Nullable ReadLaterNotification mLastNotification;
 
     /** Класс {@link android.content.BroadcastReceiver} для получения бродкаста об изменении сети.
      *  Запускает синхронизацию при подключении к интернету.
@@ -135,7 +138,6 @@ public class MainActivity extends AppCompatActivity implements
 
         // Инициализация объектов layout
         mFragmentContainer = (FrameLayout) findViewById(FRAGMENT_CONTAINER);
-        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_mainactivity_loading);
 
         // Инициализациия ItemListFragment
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -143,6 +145,9 @@ public class MainActivity extends AppCompatActivity implements
 
         // Инициализация SyncFragment
         mSyncFragment = SyncFragment.getInstance(fragmentManager);
+
+        // Инициализация BackupFragment
+        mBackupFragment = BackupFragment.getInstance(fragmentManager);
 
         // Инициализация BroadcastReceiver
         mInternetBroadcastReceiver = new InternetBroadcastReceiver();
@@ -233,12 +238,20 @@ public class MainActivity extends AppCompatActivity implements
         switch (requestCode) {
             case PERMISSION_WRITE_EXTERNAL_STORAGE:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    startBackupSaving();
+                    if (mBackupFragment.startBackup(BackupCallback.BackupMode.SAVE)) {
+                        int notificationId = ReadLaterNotification.nextId();
+                        mLastNotification = new ReadLaterNotification(this, "", notificationId);
+                        mLastNotification.showWithProgress(0, true);
+                    }
                 }
                 break;
             case PERMISSION_READ_EXTERNAL_STORAGE:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    startBackupRestoring();
+                    if (mBackupFragment.startBackup(BackupCallback.BackupMode.RESTORE)) {
+                        int notificationId = ReadLaterNotification.nextId();
+                        mLastNotification = new ReadLaterNotification(this, "", notificationId);
+                        mLastNotification.showWithProgress(0, true);
+                    }
                 }
                 break;
             default:
@@ -286,6 +299,47 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
         finishSync();
+    }
+
+
+    /////////////////////////
+    // Колбеки SyncAsyncTask
+
+    @Override
+    public void onBackupProgressUpdate(@NonNull BackupMode mode,
+                                       @IntRange(from = PROGRESS_MIN, to = PROGRESS_MAX) int progress) {
+
+        if (mLastNotification != null) {
+            mLastNotification.showWithProgress(progress, false);
+        }
+
+    }
+
+    @Override
+    public void onBackupFailed(@NonNull BackupMode mode) {
+        mBackupFragment.stopBackup();
+        if (mLastNotification != null) {
+            mLastNotification.cancel();
+        }
+    }
+
+    @Override
+    public void onBackupSuccess(@NonNull BackupMode mode) {
+        mBackupFragment.stopBackup();
+        if (mLastNotification != null) {
+            mLastNotification.cancel();
+        }
+        switch (mode) {
+            case SAVE:
+                Toast.makeText(this, R.string.toast_backup_save_finished, Toast.LENGTH_SHORT).show();
+                break;
+            case RESTORE:
+                Toast.makeText(this, R.string.toast_backup_restore_finished, Toast.LENGTH_SHORT).show();
+                toggleSync();
+                break;
+            default:
+                break;
+        }
     }
 
 
@@ -404,8 +458,11 @@ public class MainActivity extends AppCompatActivity implements
                                     ActivityCompat.requestPermissions(MainActivity.this,
                                             new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                                             PERMISSION_WRITE_EXTERNAL_STORAGE);
-                                } else {
-                                    startBackupSaving();
+                                } else if (mBackupFragment.startBackup(BackupCallback.BackupMode.SAVE)) {
+                                    int notificationId = ReadLaterNotification.nextId();
+                                    mLastNotification =
+                                            new ReadLaterNotification(MainActivity.this, "", notificationId);
+                                    mLastNotification.showWithProgress(0, true);
                                 }
                             }
                         },
@@ -428,8 +485,11 @@ public class MainActivity extends AppCompatActivity implements
                                     ActivityCompat.requestPermissions(MainActivity.this,
                                             new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                                             PERMISSION_READ_EXTERNAL_STORAGE);
-                                } else {
-                                    startBackupRestoring();
+                                } else if (mBackupFragment.startBackup(BackupCallback.BackupMode.RESTORE)) {
+                                    int notificationId = ReadLaterNotification.nextId();
+                                    mLastNotification =
+                                            new ReadLaterNotification(MainActivity.this, "", notificationId);
+                                    mLastNotification.showWithProgress(0, true);
                                 }
                             }
                         },
@@ -485,7 +545,6 @@ public class MainActivity extends AppCompatActivity implements
                                         @Override
                                         public void run() {
                                             ReadLaterDbUtils.deleteAll(MainActivity.this);
-                                            LongTaskNotifications.cancelNotification();
                                         }
                                     }, MainActivity.this);
                                 }
@@ -714,42 +773,5 @@ public class MainActivity extends AppCompatActivity implements
         transaction.replace(FRAGMENT_CONTAINER, fragment, EditItemViewPagerFragment.TAG)
                 .addToBackStack(null).commit();
     }
-
-    private void startBackupSaving() {
-        MainActivityLongTask.startLongBackgroundTask(new Runnable() {
-            @Override
-            public void run() {
-                MainListBackupUtils.saveEverythingAsJsonFile(MainActivity.this);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MainActivity.this,
-                                getString(R.string.toast_backup_save_finished), Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        }, MainActivity.this);
-        // showLoading();
-    }
-
-    private void startBackupRestoring() {
-
-        MainActivityLongTask.startLongBackgroundTask(new Runnable() {
-            @Override
-            public void run() {
-                MainListBackupUtils.restoreEverythingFromJsonFile(MainActivity.this);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MainActivity.this,
-                                getString(R.string.toast_backup_restore_finished), Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        }, MainActivity.this);
-        // showLoading();
-    }
-
-
 
 }
