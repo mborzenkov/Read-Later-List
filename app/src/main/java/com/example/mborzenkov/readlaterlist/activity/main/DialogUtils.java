@@ -11,16 +11,19 @@ import android.widget.EditText;
 
 import java.util.Calendar;
 
-/** Вспомогательный класс для Activity. */
-public class ActivityUtils {
+/** Вспомогательный класс для диалоговых окон. */
+public class DialogUtils {
 
-    private ActivityUtils() {
-        throw new UnsupportedOperationException("Класс ActivityUtils - static util, не может иметь экземпляров");
+    private DialogUtils() {
+        throw new UnsupportedOperationException("Класс DialogUtils - static util, не может иметь экземпляров");
     }
 
-    // Замена java.util.function.Consumer, совместимая с API 16
-    public interface Consumer<T> {
-        void accept(String param);
+    public interface OnClickWithTextInput {
+        /** Вызывается при нажатии на кнопку в диалоге с вводом текста.
+         *
+         * @param input ввод пользователя, может быть пустым
+         */
+        void onClick(@NonNull String input);
     }
 
     /** Показывает окно AlertDialog с двумя кнопками: подтверждение и отмена.
@@ -29,14 +32,14 @@ public class ActivityUtils {
      * @param context контекст, в котором запускается AlertDialog
      * @param title заголовок окна или null, если заголовок не нужен
      * @param message сообщение в окне или null, если сообщение не нужно
-     * @param positiveAction действие при нажатии на кнопку подтверждения или null, если действие не нужно
-     * @param negativeAction действие при нажатии на кнопку отмены или null, если действие не нужно
+     * @param positiveAction интерфейс для оповещения о нажатии на кнопку подтверждения или null, если действие не нужно
+     * @param negativeAction интерфейс для оповещения о нажатии на кнопку отмены или null, если действие не нужно
      */
     public static void showAlertDialog(@NonNull  final Context context,
                                        @Nullable final String title,
                                        @Nullable final String message,
-                                       @Nullable final Runnable positiveAction,
-                                       @Nullable final Runnable negativeAction) {
+                                       @Nullable final DialogInterface.OnClickListener positiveAction,
+                                       @Nullable final DialogInterface.OnClickListener negativeAction) {
 
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
         if (title != null) {
@@ -46,22 +49,12 @@ public class ActivityUtils {
         if (message != null) {
             dialogBuilder.setMessage(message);
         }
-        dialogBuilder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (positiveAction != null) {
-                    positiveAction.run();
-                }
-            }
-        });
-        dialogBuilder.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (negativeAction != null) {
-                    negativeAction.run();
-                }
-            }
-        });
+        if (positiveAction != null) {
+            dialogBuilder.setPositiveButton(android.R.string.yes, positiveAction);
+        }
+        if (negativeAction != null) {
+            dialogBuilder.setNegativeButton(android.R.string.no, negativeAction);
+        }
         dialogBuilder.show();
 
     }
@@ -73,16 +66,15 @@ public class ActivityUtils {
      * @param editText элемент EditText для ввода текста
      * @param title заголовок окна или null, если заголовок не нужен
      * @param message сообщение в окне или null, если сообщение не нужно
-     * @param positiveAction действие при нажатии на кнопку подтверждения или null, если действие не нужно
-     *                       в действие передается введенный пользователем текст (даже пустой) без крайних пробелов
-     * @param negativeAction действие при нажатии на кнопку отмены или null, если действие не нужно
+     * @param positiveAction интерфейс для оповещения о нажатии на кнопку подтверждения или null, если действие не нужно
+     * @param negativeAction интерфейс для оповещения о нажатии на кнопку отмены или null, если действие не нужно
      */
     public static void showInputTextDialog(@NonNull  final Context context,
                                            @NonNull  final EditText editText,
                                            @Nullable final String title,
                                            @Nullable final String message,
-                                           @Nullable final Consumer<String> positiveAction,
-                                           @Nullable final Runnable negativeAction) {
+                                           @Nullable final OnClickWithTextInput positiveAction,
+                                           @Nullable final DialogInterface.OnClickListener negativeAction) {
 
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
         dialogBuilder.setTitle(title);
@@ -94,22 +86,17 @@ public class ActivityUtils {
         if (message != null) {
             dialogBuilder.setMessage(message);
         }
-        dialogBuilder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (positiveAction != null) {
-                    positiveAction.accept(editText.getText().toString().trim());
+        if (positiveAction != null) {
+            dialogBuilder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    positiveAction.onClick(editText.getText().toString().trim());
                 }
-            }
-        });
-        dialogBuilder.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (negativeAction != null) {
-                    negativeAction.run();
-                }
-            }
-        });
+            });
+        }
+        if (negativeAction != null) {
+            dialogBuilder.setNegativeButton(android.R.string.no, negativeAction);
+        }
         dialogBuilder.show();
 
     }

@@ -3,6 +3,7 @@ package com.example.mborzenkov.readlaterlist.activity.main;
 import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -425,7 +426,7 @@ public class MainActivity extends AppCompatActivity implements
 
         // Если выполняется резервное копирование, кнопки не работают, показывается предупреждение.
         if (mBackupFragment.isActive()) {
-            ActivityUtils.showAlertDialog(this,
+            DialogUtils.showAlertDialog(this,
                     getString(R.string.mainlist_backupisactive_title),
                     getString(R.string.mainlist_backupisactive_text),
                     null,
@@ -437,13 +438,13 @@ public class MainActivity extends AppCompatActivity implements
             case BACKUP_SAVE:
                 // Действие "Сохранить бэкап" открывает окно подтверждения и по положительному ответу
                 // вызывает функцию для сохранения
-                ActivityUtils.showAlertDialog(
+                DialogUtils.showAlertDialog(
                         this,
                         getString(R.string.mainlist_drawer_backup_save_question_title),
                         getString(R.string.mainlist_drawer_backup_save_question_text),
-                        new Runnable() {
+                        new DialogInterface.OnClickListener() {
                             @Override
-                            public void run() {
+                            public void onClick(DialogInterface dialog, int which) {
                                 mSyncFragment.stopSync();
                                 if (ContextCompat.checkSelfPermission(MainActivity.this,
                                         Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -464,13 +465,13 @@ public class MainActivity extends AppCompatActivity implements
             case BACKUP_RESTORE:
                 // Действие "Восстановить из бэкапа" открывает окно подтверждения и по положительному ответу
                 // вызывает функцию для восстановления
-                ActivityUtils.showAlertDialog(
+                DialogUtils.showAlertDialog(
                         this,
                         getString(R.string.mainlist_drawer_backup_restore_question_title),
                         getString(R.string.mainlist_drawer_backup_restore_question_text),
-                        new Runnable() {
+                        new DialogInterface.OnClickListener() {
                             @Override
-                            public void run() {
+                            public void onClick(DialogInterface dialog, int which) {
                                 mSyncFragment.stopSync();
                                 if (ContextCompat.checkSelfPermission(MainActivity.this,
                                         Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -492,20 +493,20 @@ public class MainActivity extends AppCompatActivity implements
                 // Действие "Заполнить данными" открывает окно подтверждения и по положительному ответу
                 // вызывает функцию для заполнения
                 if (BuildConfig.DEBUG) {
-                    EditText inputNumber = new EditText(this);
+                    final EditText inputNumber = new EditText(this);
                     inputNumber.setInputType(InputType.TYPE_CLASS_NUMBER);
                     inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(1)}); // 0-9
-                    ActivityUtils.showInputTextDialog(
+                    DialogUtils.showInputTextDialog(
                             this,
                             inputNumber,
                             getString(R.string.mainlist_menu_add_placeholders_question_title),
                             getString(R.string.mainlist_menu_add_placeholders_question_text),
-                            new ActivityUtils.Consumer<String>() {
+                            new DialogUtils.OnClickWithTextInput() {
                                 @Override
-                                public void accept(String param) {
+                                public void onClick(@NonNull String input) {
                                     try {
                                         // Смотрим введенное значение
-                                        final int count = Integer.parseInt(param);
+                                        final int count = Integer.parseInt(input);
                                         // Запускаем бэкграунд таск
                                         mSyncFragment.stopSync();
                                         mHandlerThreadHandler.post(new Runnable() {
@@ -527,13 +528,13 @@ public class MainActivity extends AppCompatActivity implements
                 // Действие "Удалить все" открывает окно подтверждения и по положительному ответу
                 // вызывает функцию для очистки
                 if (BuildConfig.DEBUG) {
-                    ActivityUtils.showAlertDialog(
+                    DialogUtils.showAlertDialog(
                             this,
                             getString(R.string.mainlist_menu_delete_all_question_title),
                             getString(R.string.mainlist_menu_delete_all_question_text),
-                            new Runnable() {
+                            new DialogInterface.OnClickListener() {
                                 @Override
-                                public void run() {
+                                public void onClick(DialogInterface dialog, int which) {
                                     mSyncFragment.stopSync();
                                     mHandlerThreadHandler.post(new Runnable() {
                                         @Override

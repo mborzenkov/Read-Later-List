@@ -2,6 +2,7 @@ package com.example.mborzenkov.readlaterlist.fragments.filterdrawer;
 
 import android.app.DatePickerDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.DrawableContainer;
@@ -24,9 +25,9 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 
 import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.activity.main.DialogUtils;
 import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
-import com.example.mborzenkov.readlaterlist.activity.main.ActivityUtils;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
@@ -155,20 +156,20 @@ public class FilterDrawerFragment extends Fragment {
                     // Показываем окно ввода текста, сохраняем при успешном вводе
                     Context context = getContext();
                     final EditText editText = new EditText(context);
-                    ActivityUtils.showInputTextDialog(
+                    DialogUtils.showInputTextDialog(
                             context,
                             editText,
                             context.getString(R.string.mainlist_drawer_filters_save_question_title),
                             null,
-                            new ActivityUtils.Consumer<String>() {
+                            new DialogUtils.OnClickWithTextInput() {
                                 @Override
-                                public void accept(String param) {
-                                    saveFilter(param);
+                                public void onClick(@NonNull String input) {
+                                    saveFilter(input);
                                 }
                             },
-                            new Runnable() {
+                            new DialogInterface.OnClickListener() {
                                 @Override
-                                public void run() {
+                                public void onClick(DialogInterface dialog, int which) {
                                     resetSavedFilterSelection();
                                 }
                             });
@@ -181,19 +182,19 @@ public class FilterDrawerFragment extends Fragment {
                         mViewHolder.mSavedFiltersSpinner.setSelection(currentIndex);
                         return;
                     }
-                    ActivityUtils.showAlertDialog(
+                    DialogUtils.showAlertDialog(
                             getContext(),
                             getString(R.string.mainlist_drawer_filters_remove_question_title),
                             getString(R.string.mainlist_drawer_filters_remove_question_text),
-                            new Runnable() {
+                            new DialogInterface.OnClickListener() {
                                 @Override
-                                public void run() {
+                                public void onClick(DialogInterface dialog, int which) {
                                     removeSavedFilter();
                                 }
                             },
-                            new Runnable() {
+                            new DialogInterface.OnClickListener() {
                                 @Override
-                                public void run() {
+                                public void onClick(DialogInterface dialog, int which) {
                                     resetSavedFilterSelection();
                                 }
                             });
@@ -414,17 +415,17 @@ public class FilterDrawerFragment extends Fragment {
         inputNumber.setInputType(InputType.TYPE_CLASS_NUMBER);
         inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(UserInfo.USER_ID_MAX_LENGTH)});
         inputNumber.setText(mViewHolder.mCurrentUserTextView.getText().toString());
-        ActivityUtils.showInputTextDialog(
+        DialogUtils.showInputTextDialog(
                 getContext(),
                 inputNumber,
                 getString(R.string.mainlist_user_change_question_title),
                 getString(R.string.mainlist_user_change_question_text),
-                new ActivityUtils.Consumer<String>() {
+                new DialogUtils.OnClickWithTextInput() {
                     @Override
-                    public void accept(String param) {
+                    public void onClick(@NonNull String input) {
                         try {
                             // Смотрим введенное значение
-                            int number = Integer.parseInt(param);
+                            int number = Integer.parseInt(input);
                             if (number != UserInfoUtils.getCurentUser(context).getUserId()) {
                                 UserInfoUtils.changeCurrentUser(context, number);
                                 mViewHolder.mCurrentUserTextView.setText(String.valueOf(
@@ -464,7 +465,7 @@ public class FilterDrawerFragment extends Fragment {
                         rightDateBorder = System.currentTimeMillis();
                     }
                 }
-                ActivityUtils.openDatePickerDialog(getContext(), timeSelected, leftDateBorder, rightDateBorder,
+                DialogUtils.openDatePickerDialog(getContext(), timeSelected, leftDateBorder, rightDateBorder,
                         new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {

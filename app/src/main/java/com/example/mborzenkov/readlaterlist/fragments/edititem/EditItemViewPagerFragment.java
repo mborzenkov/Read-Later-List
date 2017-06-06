@@ -1,6 +1,7 @@
 package com.example.mborzenkov.readlaterlist.fragments.edititem;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.IntRange;
 import android.support.annotation.Nullable;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.mborzenkov.readlaterlist.R;
+import com.example.mborzenkov.readlaterlist.activity.main.DialogUtils;
 import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
@@ -304,16 +306,21 @@ public class EditItemViewPagerFragment extends Fragment
 
                     final int lastPosition = mCurrentItemPosition;
                     final EditItemFragment lastFragment = mCurrentFragment;
-                    mCurrentFragment.showModifiedAlertWithOptions(
-                            new Runnable() {
+                    DialogUtils.showAlertDialog(
+                            getContext(),
+                            getString(R.string.edititem_menu_back_question_title),
+                            getString(R.string.edititem_menu_back_question_text),
+                            new DialogInterface.OnClickListener() {
                                 @Override
-                                public void run() {
-                                    lastFragment.reloadDataFromItem(null);
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (mCallbacks != null) {
+                                        lastFragment.reloadDataFromItem(null);
+                                    }
                                 }
                             },
-                            new Runnable() {
+                            new DialogInterface.OnClickListener() {
                                 @Override
-                                public void run() {
+                                public void onClick(DialogInterface dialog, int which) {
                                     mViewPager.setCurrentItem(lastPosition);
                                 }
                             });

@@ -1,6 +1,7 @@
 package com.example.mborzenkov.readlaterlist.fragments.edititem;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.support.annotation.IntRange;
@@ -29,9 +30,9 @@ import android.widget.TextView;
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.R;
 
+import com.example.mborzenkov.readlaterlist.activity.main.DialogUtils;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
-import com.example.mborzenkov.readlaterlist.activity.main.ActivityUtils;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
@@ -322,13 +323,13 @@ public class EditItemFragment extends Fragment implements
         int id = item.getItemId();
         switch (id) {
             case R.id.edititem_action_delete:
-                ActivityUtils.showAlertDialog(
+                DialogUtils.showAlertDialog(
                         getContext(),
                         getString(R.string.edititem_menu_delete_question_title),
                         getString(R.string.edititem_menu_delete_question_text),
-                        new Runnable() {
+                        new DialogInterface.OnClickListener() {
                             @Override
-                            public void run() {
+                            public void onClick(DialogInterface dialog, int which) {
                                 if (mCallbacks != null) {
                                     if (mFromItemLocalId > UID_EMPTY) {
                                         mCallbacks.onDeleteItem(mFromItemLocalId);
@@ -405,10 +406,13 @@ public class EditItemFragment extends Fragment implements
     /** Вызывается при попытке выйти из фрагмента без сохранения. */
     private void onExitAttempt() {
         if (isModified()) {
-            showModifiedAlertWithOptions(
-                    new Runnable() {
+            DialogUtils.showAlertDialog(
+                    getContext(),
+                    getString(R.string.edititem_menu_back_question_title),
+                    getString(R.string.edititem_menu_back_question_text),
+                    new DialogInterface.OnClickListener() {
                         @Override
-                        public void run() {
+                        public void onClick(DialogInterface dialog, int which) {
                             if (mCallbacks != null) {
                                 mCallbacks.onExitWithoutModifying(mFromItem, mFromItemLocalId);
                             }
@@ -596,20 +600,6 @@ public class EditItemFragment extends Fragment implements
 
         }
 
-    }
-
-    /** Показывает AlertDialog с текстом об имеющихся изменениях и кнопками "ОК И ОТМЕНА".
-     *
-     * @param onExitWithoutSaving действие, которое нужно выполнить в случае сброса изменений
-     * @param onCancelExit действие, которое нужно выполнить в случае возвращения к редактированию
-     */
-    void showModifiedAlertWithOptions(@Nullable Runnable onExitWithoutSaving, @Nullable Runnable onCancelExit) {
-        ActivityUtils.showAlertDialog(
-                getContext(),
-                getString(R.string.edititem_menu_back_question_title),
-                getString(R.string.edititem_menu_back_question_text),
-                onExitWithoutSaving,
-                onCancelExit);
     }
 
 }
