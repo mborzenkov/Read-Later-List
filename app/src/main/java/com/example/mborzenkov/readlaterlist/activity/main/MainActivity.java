@@ -55,9 +55,9 @@ import com.example.mborzenkov.readlaterlist.fragments.sync.SyncCallback;
 import com.example.mborzenkov.readlaterlist.fragments.sync.SyncFragment;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiComponent;
 import com.example.mborzenkov.readlaterlist.networking.ReadLaterCloudApi;
-import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
+import com.example.mborzenkov.readlaterlist.utility.view.ActivityUtils;
 import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
-import com.example.mborzenkov.readlaterlist.utility.LongTaskNotifications;
+import com.example.mborzenkov.readlaterlist.utility.view.LongTaskNotifications;
 import com.example.mborzenkov.readlaterlist.utility.MainListBackupUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements
         FilterDrawerCallbacks,
         ColorPickerFragment.ColorPickerCallbacks {
 
+    // TODO: MVP
 
     /////////////////////////
     // Константы

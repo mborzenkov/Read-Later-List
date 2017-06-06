@@ -1,4 +1,4 @@
-package com.example.mborzenkov.readlaterlist.utility;
+package com.example.mborzenkov.readlaterlist.utility.view;
 
 import android.app.NotificationManager;
 import android.content.Context;

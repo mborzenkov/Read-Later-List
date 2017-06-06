@@ -31,7 +31,7 @@ import com.example.mborzenkov.readlaterlist.R;
 
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemParcelable;
-import com.example.mborzenkov.readlaterlist.utility.ActivityUtils;
+import com.example.mborzenkov.readlaterlist.utility.view.ActivityUtils;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 

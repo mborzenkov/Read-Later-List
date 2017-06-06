@@ -18,7 +18,7 @@ import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItemDbAdapter;
-import com.example.mborzenkov.readlaterlist.utility.ItemTouchHelperCallback;
+import com.example.mborzenkov.readlaterlist.utility.view.ItemTouchHelperCallback;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 
 import java.text.SimpleDateFormat;
