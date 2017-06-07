@@ -20,7 +20,7 @@ public class FavoriteColorsUtils {
     }
 
     /** Возвращает установленное максимальное количество любимых цветов. */
-    public static int getMaxFavorites(Context context) {
+    private static int getMaxFavorites(Context context) {
         if (sMaxFavorites == 0) {
             sMaxFavorites = context.getResources().getInteger(R.integer.colorpicker_favorites);
         }

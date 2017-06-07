@@ -62,8 +62,6 @@
     <string name="edititem_menu_back_question_title">Отменить изменения</string>
     <string name="edititem_date_created">Создан:</string>
     <string name="edititem_date_modified">Изменен:</string>
-    <string name="mainlist_longloading_title">Длительное действие уже запущено</string>
-    <string name="mainlist_longloading_text">В данный момент уже выполняется длительное действие. Пожалуйста дождитесь его завершения, прежде чем начать другое.</string>
     <string name="edititem_error_imageurl_malformed">Пожалуйста введите корректный URL</string>
     <string name="edititem_error_imageurl_onload">Ошибка загрузки изображения</string>
     <string name="edititem_image_contentdescription">Картинка из URL</string>
@@ -81,4 +79,6 @@
     <string name="mainlist_user_change_question_text">Пожалуйста введите ID пользователя:</string>
     <string name="mainlist_user_change_question_title">Смена пользователя</string>
     <string name="mainlist_drawer_sort_manual">Вручную</string>
+    <string name="mainlist_backupisactive_text">Работа с резервными копиями еще не завершилась. Пожалуйста дождитесь завершения, прежде чем запускать другую длительную операцию.</string>
+    <string name="mainlist_backupisactive_title">Резервное копирование</string>
 </resources>

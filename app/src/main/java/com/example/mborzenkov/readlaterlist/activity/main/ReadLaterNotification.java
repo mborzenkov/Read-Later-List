@@ -42,7 +42,9 @@ class ReadLaterNotification {
      * @param title заголовок оповещения
      * @param id уникальный идентификатор для уведомления
      */
-    ReadLaterNotification(@NonNull Context context, @NonNull String title, @IntRange(from = NOTIFICATION_ID_FROM) int id) {
+    ReadLaterNotification(@NonNull Context context,
+                          @NonNull String title,
+                          @IntRange(from = NOTIFICATION_ID_FROM) int id) {
         mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationBuilder = new NotificationCompat.Builder(context);
         mNotificationBuilder.setOngoing(true)

@@ -26,14 +26,14 @@ class ItemListViewHolder {
     private static final int SYNC_ICON_MAX_DURATION = 6000; // 6 сек
 
     /** Ссылка на Presenter (ItemListFragment. */
-    private @NonNull ItemListFragment mItemListFragment;
+    private final @NonNull ItemListFragment mItemListFragment;
 
     // Объекты layout
-    private @NonNull View mRootView;
-    private @NonNull DrawerLayout mDrawerLayout;
-    private @NonNull SwipeRefreshLayout mSwipeRefreshLayout;
-    private @NonNull RecyclerView mItemsRecyclerView;
-    private @NonNull LinearLayout mEmptyListView;
+    private final @NonNull View mRootView;
+    private final @NonNull DrawerLayout mDrawerLayout;
+    private final @NonNull SwipeRefreshLayout mSwipeRefreshLayout;
+    private final @NonNull RecyclerView mItemsRecyclerView;
+    private final @NonNull LinearLayout mEmptyListView;
 
     /** Создает новый ItemListViewHolder и инфлейтит его.
      *

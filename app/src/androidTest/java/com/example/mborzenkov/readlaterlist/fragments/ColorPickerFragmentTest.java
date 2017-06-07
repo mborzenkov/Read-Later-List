@@ -22,7 +22,7 @@ import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiComponent;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiMockDispatcher;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiModule;
-import com.example.mborzenkov.readlaterlist.networking.DaggerCloudApiComponent;
+
 import java.io.IOException;
 
 import okhttp3.HttpUrl;

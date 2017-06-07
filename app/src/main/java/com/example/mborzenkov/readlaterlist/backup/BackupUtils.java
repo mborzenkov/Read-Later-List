@@ -103,7 +103,7 @@ class BackupUtils {
         if (backupFile.exists() && !backupFile.delete()) {
             Log.e("File remove fail", String.format(FORMAT_ERROR, "Не удалось перезаписать файл",
                     backupFile.toString()));
-            return result; // Не удалось удалить существующий файл
+            return false; // Не удалось удалить существующий файл
         }
 
         FileOutputStream outStream = null;
@@ -255,7 +255,7 @@ class BackupUtils {
             JsonAdapter<List<ReadLaterItem>> jsonAdapter =
                     moshi.adapter(Types.newParameterizedType(List.class, ReadLaterItem.class));
 
-            List<ReadLaterItem> restoredData = new ArrayList<>();
+            List<ReadLaterItem> restoredData;
             try {
                 restoredData = jsonAdapter.fromJson(jsonString);
             } catch (IOException e) {

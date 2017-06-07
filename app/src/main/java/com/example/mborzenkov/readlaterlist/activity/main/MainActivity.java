@@ -236,7 +236,8 @@ public class MainActivity extends AppCompatActivity implements
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (mBackupFragment.startBackup(BackupCallback.BackupMode.SAVE)) {
                         int notificationId = ReadLaterNotification.nextId();
-                        mLastNotification = new ReadLaterNotification(this, "", notificationId);
+                        mLastNotification = new ReadLaterNotification(this,
+                                getString(R.string.notification_backup_save_title), notificationId);
                         mLastNotification.showWithProgress(0, true);
                     }
                 }
@@ -245,7 +246,8 @@ public class MainActivity extends AppCompatActivity implements
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (mBackupFragment.startBackup(BackupCallback.BackupMode.RESTORE)) {
                         int notificationId = ReadLaterNotification.nextId();
-                        mLastNotification = new ReadLaterNotification(this, "", notificationId);
+                        mLastNotification = new ReadLaterNotification(this,
+                                getString(R.string.notification_backup_restore_title), notificationId);
                         mLastNotification.showWithProgress(0, true);
                     }
                 }
@@ -470,7 +472,8 @@ public class MainActivity extends AppCompatActivity implements
                                 } else if (mBackupFragment.startBackup(BackupCallback.BackupMode.SAVE)) {
                                     int notificationId = ReadLaterNotification.nextId();
                                     mLastNotification =
-                                            new ReadLaterNotification(MainActivity.this, "", notificationId);
+                                            new ReadLaterNotification(MainActivity.this,
+                                                    getString(R.string.notification_backup_save_title), notificationId);
                                     mLastNotification.showWithProgress(0, true);
                                 }
                             }
@@ -497,7 +500,9 @@ public class MainActivity extends AppCompatActivity implements
                                 } else if (mBackupFragment.startBackup(BackupCallback.BackupMode.RESTORE)) {
                                     int notificationId = ReadLaterNotification.nextId();
                                     mLastNotification =
-                                            new ReadLaterNotification(MainActivity.this, "", notificationId);
+                                            new ReadLaterNotification(MainActivity.this,
+                                                    getString(R.string.notification_backup_restore_title),
+                                                    notificationId);
                                     mLastNotification.showWithProgress(0, true);
                                 }
                             }

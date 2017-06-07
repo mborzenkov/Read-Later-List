@@ -15,7 +15,6 @@ import com.example.mborzenkov.readlaterlist.data.ReadLaterContract;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiComponent;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiMockDispatcher;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiModule;
-import com.example.mborzenkov.readlaterlist.networking.DaggerCloudApiComponent;
 import com.example.mborzenkov.readlaterlist.networking.ReadLaterCloudApi;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;

@@ -309,8 +309,8 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
         mDivVal = (int) (hi * DIV_VAL_MODIFIER);
 
         // Контекст, максимальное количество Favorites, общее число квадратиков
-        Context context = getContext();
-        Resources resources = getResources();
+        final Context context = getContext();
+        final Resources resources = getResources();
         final int numberOfSquares = resources.getInteger(R.integer.colorpicker_circles);
 
         // Массив Favorites, список цветов на поле градиента и шаг между цветами

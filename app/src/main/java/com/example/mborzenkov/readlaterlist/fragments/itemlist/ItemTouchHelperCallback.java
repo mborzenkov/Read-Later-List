@@ -8,9 +8,6 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
-import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
-
 /** Класс колбеков для ItemTouchHelper. */
 class ItemTouchHelperCallback extends ItemTouchHelper.Callback implements View.OnTouchListener {
 
