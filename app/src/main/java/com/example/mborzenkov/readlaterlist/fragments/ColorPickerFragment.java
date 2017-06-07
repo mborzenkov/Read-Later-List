@@ -34,7 +34,6 @@ import android.widget.TextView;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.activity.main.MainActivity;
-import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -120,6 +119,16 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
 
     /** Интерфейс для оповещений о событиях во фрагменте. */
     public interface ColorPickerCallbacks extends BasicFragmentCallbacks {
+
+        /** Возвращает список любимых цветов. */
+        int[] getFavoriteColors();
+
+        /** Вызывается, когда пользователь желает соханить цвет.
+         *
+         * @param newColor цвет для сохранения в формате sRGB
+         * @param position позиция любимого цвета
+         */
+        void saveFavoriteColor(int newColor, int position);
 
         /** Вызывается при завершении редактирования объекта и необходимости сохранения изменений.
          * Если ничего не изменено, onColorChosen не вызывается.
@@ -305,7 +314,10 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
         final int numberOfSquares = resources.getInteger(R.integer.colorpicker_circles);
 
         // Массив Favorites, список цветов на поле градиента и шаг между цветами
-        mFavoriteColors = FavoriteColorsUtils.getFavoriteColorsFromSharedPreferences(context, null);
+        if (mCallbacks != null) {
+            mFavoriteColors = mCallbacks.getFavoriteColors();
+        }
+
         mSquareStandardColorsHsv = new ArrayList<>(numberOfSquares);
         mSquareColorsHsv = new ArrayList<>(numberOfSquares);
         final int colorGradientStart = ContextCompat.getColor(context, R.color.gradient_start);
@@ -694,11 +706,13 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
                 break;
             case R.id.imageButton_favorite_color:
                 if (v.getTag() != null) {
-                    int position = (Integer) v.getTag();
-                    int colorFavorite = Color.HSVToColor(mChosenColorHsv);
-                    setFavoriteColor(position, colorFavorite);
-                    FavoriteColorsUtils.saveFavoriteColor(getContext(), null, colorFavorite, position);
-                    vibrate();
+                    if (mCallbacks != null) {
+                        int position = (Integer) v.getTag();
+                        int colorFavorite = Color.HSVToColor(mChosenColorHsv);
+                        setFavoriteColor(position, colorFavorite);
+                        mCallbacks.saveFavoriteColor(colorFavorite, position);
+                        vibrate();
+                    }
                     return true;
                 }
                 break;

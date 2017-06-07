@@ -58,6 +58,7 @@ import com.example.mborzenkov.readlaterlist.networking.ReadLaterCloudApi;
 import com.example.mborzenkov.readlaterlist.sync.SyncCallback;
 import com.example.mborzenkov.readlaterlist.sync.SyncFragment;
 import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
+import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 
@@ -667,6 +668,17 @@ public class MainActivity extends AppCompatActivity implements
 
     /////////////////////////
     // Колбеки ColorPickerCallbacks
+
+
+    @Override
+    public int[] getFavoriteColors() {
+        return FavoriteColorsUtils.getFavoriteColorsFromSharedPreferences(this, null);
+    }
+
+    @Override
+    public void saveFavoriteColor(int newColor, int position) {
+        FavoriteColorsUtils.saveFavoriteColor(this, null, newColor, position);
+    }
 
     @Override
     public void onColorPicked(int newColor) {
