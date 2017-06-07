@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 
 import com.example.mborzenkov.readlaterlist.networking.CloudApiComponent;
 import com.example.mborzenkov.readlaterlist.networking.CloudApiModule;
+import com.example.mborzenkov.readlaterlist.networking.DaggerCloudApiComponent;
 
 public class MyApplication extends Application {
 
