@@ -56,9 +56,6 @@ public class ItemListFragment extends Fragment implements
     /** ID контейнера для Drawer. */
     private static final @IdRes int CONTAINER_FRAGMENT_FILTER = R.id.filterfragmentcontainer_itemlist;
 
-    /** Максимальная длительность показа индикатора загрузки. */
-    private static final int SYNC_ICON_MAX_DURATION = 6000; // 6 сек
-
 
     /////////////////////////
     // Static
@@ -104,15 +101,10 @@ public class ItemListFragment extends Fragment implements
     private @Nullable ItemListCallbacks mCallbacks = null;
 
     // Хэлперы
+    private ItemListViewHolder mViewHolder;
     private @Nullable ItemListAdapter mItemListAdapter = null;
     private @Nullable ItemListLoaderManager mLoaderManager = null;
     private @Nullable ItemTouchHelperCallback mTouchHelperCallback = null;
-
-    // Объекты layout
-    private @Nullable DrawerLayout mDrawerLayout;
-    private SwipeRefreshLayout mSwipeRefreshLayout;
-    private RecyclerView mItemsRecyclerView;
-    private LinearLayout mEmptyListView;
 
 
     /////////////////////////
@@ -134,28 +126,20 @@ public class ItemListFragment extends Fragment implements
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        View rootView = inflater.inflate(R.layout.fragment_itemlist, container, false);
+        mViewHolder = new ItemListViewHolder(this, inflater, container);
 
-        // Инициализируем элементы layout
-        mDrawerLayout = (DrawerLayout) rootView.findViewById(R.id.drawerlayout_itemlist);
-        mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swiperefreshlayout_itemlist);
-        mItemsRecyclerView = (RecyclerView) rootView.findViewById(R.id.listview_itemlist);
-        mEmptyListView = (LinearLayout) rootView.findViewById(R.id.linearLayout_emptylist);
+        // Подключаем адаптер к RecyclerView
+        mViewHolder.setAdapterToRecyclerView(mItemListAdapter);
 
-        // Настройка RecyclerView
-        mItemsRecyclerView.setAdapter(mItemListAdapter);
-        mItemsRecyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
-        mItemsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+        // Настройка тачев
         if (mItemListAdapter != null) {
             mTouchHelperCallback = new ItemTouchHelperCallback(mItemListAdapter);
             ItemTouchHelper itemTouchHelper = new ItemTouchHelper(mTouchHelperCallback);
-            itemTouchHelper.attachToRecyclerView(mItemsRecyclerView);
-            mItemsRecyclerView.setOnTouchListener(mTouchHelperCallback);
-
+            mViewHolder.attachTouchHelperToRecyclerView(itemTouchHelper);
+            mViewHolder.setOnTouchListener(mTouchHelperCallback);
             mTouchHelperCallback.setDragEnabled(MainListFilterUtils.getCurrentFilter().getSortType()
                     == MainListFilter.SortType.MANUAL);
         }
-
 
         // Инициализация FilterFragment
         FragmentManager fragmentManager = getChildFragmentManager();
@@ -164,38 +148,9 @@ public class ItemListFragment extends Fragment implements
                 .replace(CONTAINER_FRAGMENT_FILTER, drawerFragment, FilterDrawerFragment.TAG)
                 .commit();
 
-        // Инициализация Toolbar
-        Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar_itemlist);
-        toolbar.setTitleTextColor(ContextCompat.getColor(getContext(), R.color.icons));
-
-        // Объекты и действия, имеющие смысл только при наличии колбеков
-        if (mCallbacks != null) {
-            mCallbacks.setNewToolbar(toolbar, getString(R.string.app_name));
-
-            // Инициализируем FloatingActionButton
-            FloatingActionButton floatingAddButton = (FloatingActionButton) rootView.findViewById(R.id.fab_item_add);
-            floatingAddButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mCallbacks.onNewItemClick();
-                }
-            });
-
-            // Слушаем о потягивании refresh
-            mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                @Override
-                public void onRefresh() {
-                    mCallbacks.onRefreshToggled();
-                }
-            });
-
-        } else {
-            mSwipeRefreshLayout.setEnabled(false);
-        }
-
         setHasOptionsMenu(true);
 
-        return rootView;
+        return mViewHolder.getRootView();
 
     }
 
@@ -237,12 +192,9 @@ public class ItemListFragment extends Fragment implements
         searchView.setSubmitButtonEnabled(true);
         searchView.setOnQueryTextListener(this);
 
-
         if (mCallbacks == null) {
             menu.findItem(R.id.mainlist_action_refresh).setVisible(false);
         }
-
-        menu.findItem(R.id.mainlist_settings).setVisible(mDrawerLayout != null);
 
     }
 
@@ -250,9 +202,7 @@ public class ItemListFragment extends Fragment implements
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.mainlist_settings:
-                if (mDrawerLayout != null) {
-                    mDrawerLayout.openDrawer(Gravity.END);
-                }
+                mViewHolder.openDrawer();
                 return true;
             case R.id.mainlist_action_refresh:
                 if (mCallbacks != null) {
@@ -310,13 +260,7 @@ public class ItemListFragment extends Fragment implements
         if (mItemListAdapter != null) {
             mItemListAdapter.swapCursor(data);
             boolean listIsEmpty = ((data == null) || (data.getCount() == 0));
-            if (listIsEmpty) {
-                mItemsRecyclerView.setVisibility(View.INVISIBLE);
-                mEmptyListView.setVisibility(View.VISIBLE);
-            } else {
-                mEmptyListView.setVisibility(View.INVISIBLE);
-                mItemsRecyclerView.setVisibility(View.VISIBLE);
-            }
+            mViewHolder.showData(listIsEmpty);
         }
     }
 
@@ -330,6 +274,31 @@ public class ItemListFragment extends Fragment implements
 
 
     /////////////////////////
+    // Колбеки ViewHolder
+
+    /** Вызывается, когда готов новый toolbar и его нужно установить. */
+    void setToolbar(Toolbar toolbar) {
+        if (mCallbacks != null) {
+            mCallbacks.setNewToolbar(toolbar, getString(R.string.app_name));
+        }
+    }
+
+    /** Вызывается при нажатии на FloatingActionButton ADD. */
+    void onFabAddClick() {
+        if (mCallbacks != null) {
+            mCallbacks.onNewItemClick();
+        }
+    }
+
+    /** Вызывается при потягивании swipe refresh layout. */
+    void onSwipeRefreshToggled() {
+        if (mCallbacks != null) {
+            mCallbacks.onRefreshToggled();
+        }
+    }
+
+
+    /////////////////////////
     // Все остальное
 
     /** Устанавливает индикатор загрузки.
@@ -337,15 +306,7 @@ public class ItemListFragment extends Fragment implements
      * @param refreshing true - индикатор появляется, false - убирается
      */
     public void setRefreshing(boolean refreshing) {
-        mSwipeRefreshLayout.setRefreshing(refreshing);
-        if (refreshing) {
-            mSwipeRefreshLayout.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mSwipeRefreshLayout.setRefreshing(false);
-                }
-            }, SYNC_ICON_MAX_DURATION);
-        }
+        mViewHolder.setRefreshing(refreshing);
     }
 
     /** Метод для оповещения об изменениях данных.
