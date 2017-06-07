@@ -21,7 +21,6 @@ import android.support.annotation.Nullable;
 import android.support.annotation.Size;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
@@ -43,7 +42,9 @@ import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.MyApplication;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.Conflict;
+import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
+import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 import com.example.mborzenkov.readlaterlist.backup.BackupCallback;
 import com.example.mborzenkov.readlaterlist.backup.BackupFragment;
 import com.example.mborzenkov.readlaterlist.fragments.ColorPickerFragment;
@@ -59,6 +60,7 @@ import com.example.mborzenkov.readlaterlist.sync.SyncCallback;
 import com.example.mborzenkov.readlaterlist.sync.SyncFragment;
 import com.example.mborzenkov.readlaterlist.utility.DebugUtils;
 import com.example.mborzenkov.readlaterlist.utility.FavoriteColorsUtils;
+import com.example.mborzenkov.readlaterlist.utility.MainListFilterUtils;
 import com.example.mborzenkov.readlaterlist.utility.ReadLaterDbUtils;
 import com.example.mborzenkov.readlaterlist.utility.UserInfoUtils;
 
@@ -379,6 +381,7 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+
     /////////////////////////
     // Колбеки ItemListFragment
 
@@ -428,6 +431,7 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
     }
+
 
     /////////////////////////
     // Колбеки FilterDrawerLayout
@@ -566,14 +570,180 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onUserChanged() {
-        toggleSync();
+    public void onSavedFilterClick(int position) {
+
+        int indexSavedAdd = MainListFilterUtils.getIndexSavedAdd();
+        int indexSavedDelete = MainListFilterUtils.getIndexSavedDelete();
+        if (position == indexSavedAdd) {
+            // Вариант 1: Клик на кнопку "+ Добавить"
+            // Показываем окно ввода текста, сохраняем при успешном вводе
+            final int currentIndex = MainListFilterUtils.getIndexSavedCurrent();
+            final EditText editText = new EditText(this);
+            DialogUtils.showInputTextDialog(
+                    this,
+                    editText,
+                    getString(R.string.mainlist_drawer_filters_save_question_title),
+                    null,
+                    new DialogUtils.OnClickWithTextInput() {
+                        @Override
+                        public void onClick(@NonNull String input) {
+                            if (!input.isEmpty()
+                                    && !input.equals(getString(R.string.mainlist_drawer_filters_default))) {
+                                MainListFilterUtils.saveFilter(MainActivity.this, input);
+                                mItemListFragment.onFilterChanged(MainListFilterUtils.getCurrentFilter());
+                                mItemListFragment.onDataChanged();
+                                mItemListFragment.setSavedFilterSelection(
+                                        MainListFilterUtils.getIndexSavedCurrent(), true);
+                            } else {
+                                mItemListFragment.setSavedFilterSelection(currentIndex, false);
+                            }
+                        }
+                    },
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            mItemListFragment.setSavedFilterSelection(currentIndex, false);
+                        }
+                    });
+
+        } else if (position == indexSavedDelete) {
+            // Вариант 2: Клик на кнопку "- Удалить"
+            // Показываем окно подтверждения, удаляем при положительном ответе
+            final int currentIndex = MainListFilterUtils.getIndexSavedCurrent();
+            if (currentIndex == MainListFilterUtils.INDEX_SAVED_DEFAULT) {
+                mItemListFragment.setSavedFilterSelection(currentIndex, false);
+                return;
+            }
+            DialogUtils.showAlertDialog(
+                    this,
+                    getString(R.string.mainlist_drawer_filters_remove_question_title),
+                    getString(R.string.mainlist_drawer_filters_remove_question_text),
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            MainListFilterUtils.removeCurrentFilter(MainActivity.this);
+                            mItemListFragment.onFilterChanged(MainListFilterUtils.getCurrentFilter());
+                            mItemListFragment.onDataChanged();
+                            mItemListFragment.setSavedFilterSelection(MainListFilterUtils.getIndexSavedCurrent(), true);
+                        }
+                    },
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            mItemListFragment.setSavedFilterSelection(currentIndex, false);
+                        }
+                    });
+        } else {
+            Log.d("FILTER", "CREATION w position: " + position);
+            // Остальные варианты - выбираем
+            MainListFilterUtils.clickOnSavedFilter(position);
+            mItemListFragment.onFilterChanged(MainListFilterUtils.getCurrentFilter());
+            mItemListFragment.onDataChanged();
+        }
     }
 
     @Override
-    public void onFilterChanged() {
+    public void onDateFilterClick(int position) {
+        MainListFilter filter = MainListFilterUtils.getCurrentFilter();
+        filter.setSelection(MainListFilterUtils.getDateFilterSelection(position));
+        mItemListFragment.onFilterChanged(filter);
         mItemListFragment.onDataChanged();
     }
+
+    @Override
+    public void onDateFromSet(long date) {
+        MainListFilter filter = MainListFilterUtils.getCurrentFilter();
+        filter.setDateFrom(date);
+        mItemListFragment.onFilterChanged(filter);
+        mItemListFragment.onDataChanged();
+    }
+
+    @Override
+    public void onDateToSet(long date) {
+        MainListFilter filter = MainListFilterUtils.getCurrentFilter();
+        filter.setDateTo(date);
+        mItemListFragment.onFilterChanged(filter);
+        mItemListFragment.onDataChanged();
+    }
+
+    @Override
+    public void onFavoriteColorClick(int color) {
+        MainListFilter filter = MainListFilterUtils.getCurrentFilter();
+        if (filter.getColorFilter().contains(color)) {
+            filter.removeColorFilter(color);
+        } else {
+            filter.addColorFilter(color);
+        }
+        mItemListFragment.onFilterChanged(filter);
+        mItemListFragment.onDataChanged();
+    }
+
+    @Override
+    public void onChangeUserClick() {
+        // Нажатие на "сменить пользователя"
+        final int userId = UserInfoUtils.getCurentUser(this).getUserId();
+        EditText inputNumber = new EditText(this);
+        inputNumber.setInputType(InputType.TYPE_CLASS_NUMBER);
+        inputNumber.setFilters(new InputFilter[] {new InputFilter.LengthFilter(UserInfo.USER_ID_MAX_LENGTH)});
+        inputNumber.setText(String.valueOf(userId));
+        DialogUtils.showInputTextDialog(
+                this,
+                inputNumber,
+                getString(R.string.mainlist_user_change_question_title),
+                getString(R.string.mainlist_user_change_question_text),
+                new DialogUtils.OnClickWithTextInput() {
+                    @Override
+                    public void onClick(@NonNull String input) {
+                        try {
+                            // Смотрим введенное значение
+                            int number = Integer.parseInt(input);
+                            if (number != userId) {
+                                UserInfoUtils.changeCurrentUser(MainActivity.this, number);
+                                mItemListFragment.onUserChanged(String.valueOf(number));
+                                toggleSync();
+                            }
+                        } catch (ClassCastException e) {
+                            Log.e("CAST ERROR", "Ошибка преобразования ввода пользователя в число");
+                        }
+                    }
+                },
+                null);
+    }
+
+    @Override
+    public void onSortButtonClick(MainListFilter.SortType type) {
+        MainListFilter filter = MainListFilterUtils.getCurrentFilter();
+        if (filter.getSortType().equals(type)) {
+            filter.nextSortOrder();
+        } else {
+            filter.setSortType(type);
+        }
+        mItemListFragment.onFilterChanged(filter);
+        mItemListFragment.onDataChanged();
+    }
+
+    @NonNull
+    @Override
+    public String getCurrentUser() {
+        return String.valueOf(UserInfoUtils.getCurentUser(this).getUserId());
+    }
+
+    @NonNull
+    @Override
+    public MainListFilter getCurrentFilter() {
+        return MainListFilterUtils.getCurrentFilter();
+    }
+
+    @Override
+    public List<String> getSavedFiltersList() {
+        return MainListFilterUtils.getSavedFiltersList(this);
+    }
+
+    @Override
+    public List<String> getDateFiltersList() {
+        return MainListFilterUtils.getDateFiltersList(this);
+    }
+
 
     /////////////////////////
     // Колбеки EditItemFragment
@@ -669,7 +839,6 @@ public class MainActivity extends AppCompatActivity implements
     /////////////////////////
     // Колбеки ColorPickerCallbacks
 
-
     @Override
     public int[] getFavoriteColors() {
         return FavoriteColorsUtils.getFavoriteColorsFromSharedPreferences(this, null);
@@ -742,13 +911,6 @@ public class MainActivity extends AppCompatActivity implements
 
     /////////////////////////
     // Все остальное
-
-    /** Показывает данные. */
-    private void showData() {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        Fragment currentFragment = fragmentManager.findFragmentById(FRAGMENT_CONTAINER);
-        getSupportFragmentManager().beginTransaction().show(currentFragment).commit();
-    }
 
     /** Убирает последний фрагмент из бэкстака и скрывает клавиатуру. */
     private void popFragmentFromBackstack() {

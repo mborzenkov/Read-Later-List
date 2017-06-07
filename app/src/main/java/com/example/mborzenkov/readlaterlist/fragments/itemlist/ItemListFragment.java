@@ -102,9 +102,10 @@ public class ItemListFragment extends Fragment implements
 
     // Хэлперы
     private ItemListViewHolder mViewHolder;
-    private @Nullable ItemListAdapter mItemListAdapter = null;
+    private ItemListAdapter mItemListAdapter;
     private @Nullable ItemListLoaderManager mLoaderManager = null;
     private @Nullable ItemTouchHelperCallback mTouchHelperCallback = null;
+    private FilterDrawerFragment mDrawerFragment;
 
 
     /////////////////////////
@@ -143,9 +144,9 @@ public class ItemListFragment extends Fragment implements
 
         // Инициализация FilterFragment
         FragmentManager fragmentManager = getChildFragmentManager();
-        FilterDrawerFragment drawerFragment = FilterDrawerFragment.getInstance(fragmentManager);
+        mDrawerFragment = FilterDrawerFragment.getInstance(fragmentManager);
         fragmentManager.beginTransaction()
-                .replace(CONTAINER_FRAGMENT_FILTER, drawerFragment, FilterDrawerFragment.TAG)
+                .replace(CONTAINER_FRAGMENT_FILTER, mDrawerFragment, FilterDrawerFragment.TAG)
                 .commit();
 
         setHasOptionsMenu(true);
@@ -357,6 +358,21 @@ public class ItemListFragment extends Fragment implements
             }
         }
         return EditItemFragmentActions.UID_EMPTY;
+    }
+
+    /** Устанавливает нового пользователя в интерфейсе. */
+    public void onUserChanged(@NonNull String newUser) {
+        mDrawerFragment.setCurrentUser(newUser);
+    }
+
+    /** Обновляет Drawer в соответствии с новым фильтром. */
+    public void onFilterChanged(MainListFilter newFilter) {
+        mDrawerFragment.onFilterChanged(newFilter);
+    }
+
+    /** Устанавливает выбор текущего фильтра. */
+    public void setSavedFilterSelection(int position, boolean reload) {
+        mDrawerFragment.setSavedFilterSelection(position, reload);
     }
 
 }

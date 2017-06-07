@@ -14,6 +14,9 @@ import java.util.Calendar;
 /** Вспомогательный класс для диалоговых окон. */
 public class DialogUtils {
 
+    /** Один день в милилсекундах. */
+    private static final long DAY_IN_MILLIS = 86400000;
+
     private DialogUtils() {
         throw new UnsupportedOperationException("Класс DialogUtils - static util, не может иметь экземпляров");
     }
@@ -131,7 +134,7 @@ public class DialogUtils {
         DatePicker picker = dialog.getDatePicker();
 
         picker.setMinDate(dateFromBorder);
-        picker.setMaxDate(dateToBorder);
+        picker.setMaxDate(dateToBorder + DAY_IN_MILLIS);
         dialog.show();
 
     }

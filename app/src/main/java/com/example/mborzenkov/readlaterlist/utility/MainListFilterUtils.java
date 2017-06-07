@@ -19,8 +19,6 @@ public class MainListFilterUtils {
     /** Ключ для хранения фильтров в SharedPreferences. */
     private static final String FILTER_KEY = "com.example.mborzenkov.mainlist.filter";
 
-    /** Индекс варианта "Без фильтра по датам". */
-    public static final int INDEX_DATE_ALL = 0;
     /** индекс варианта "Default" в сохраненных фильтрах. */
     public static final int INDEX_SAVED_DEFAULT = 0;
 
@@ -77,7 +75,7 @@ public class MainListFilterUtils {
      * @param context Контекст
      * @return Список имен отборов для использования в выпадающем списке
      */
-    public static List<String> getsDateFiltersList(Context context) {
+    public static List<String> getDateFiltersList(Context context) {
         List<String> dateFilters = new ArrayList<>();
         dateFilters.add(context.getString(R.string.mainlist_drawer_date_all));
         dateFilters.add(context.getString(R.string.mainlist_drawer_date_creation));

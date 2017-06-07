@@ -26,6 +26,8 @@ public class MainListFilter {
 
     /** Формат даты для вывода на формах Drawer. */
     static final String FORMAT_DATE = "dd/MM/yy";
+    /** Индекс варианта "Без фильтра по датам". */
+    public static final int INDEX_DATE_ALL = 0;
 
     /** Типы сортировок. */
     public enum SortType {
