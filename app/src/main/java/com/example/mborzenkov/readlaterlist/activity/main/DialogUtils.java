@@ -52,12 +52,8 @@ public class DialogUtils {
         if (message != null) {
             dialogBuilder.setMessage(message);
         }
-        if (positiveAction != null) {
-            dialogBuilder.setPositiveButton(android.R.string.yes, positiveAction);
-        }
-        if (negativeAction != null) {
-            dialogBuilder.setNegativeButton(android.R.string.no, negativeAction);
-        }
+        dialogBuilder.setPositiveButton(android.R.string.yes, positiveAction);
+        dialogBuilder.setNegativeButton(android.R.string.no, negativeAction);
         dialogBuilder.show();
 
     }
@@ -89,17 +85,15 @@ public class DialogUtils {
         if (message != null) {
             dialogBuilder.setMessage(message);
         }
-        if (positiveAction != null) {
-            dialogBuilder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
+        dialogBuilder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (positiveAction != null) {
                     positiveAction.onClick(editText.getText().toString().trim());
                 }
-            });
-        }
-        if (negativeAction != null) {
-            dialogBuilder.setNegativeButton(android.R.string.no, negativeAction);
-        }
+            }
+        });
+        dialogBuilder.setNegativeButton(android.R.string.no, negativeAction);
         dialogBuilder.show();
 
     }
