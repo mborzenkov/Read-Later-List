@@ -11,7 +11,7 @@ import com.example.mborzenkov.readlaterlist.R;
 public class FavoriteColorsUtils {
 
     /** Константа для использования в качестве ключа при сохранении массива Favorites в SharedPreferences. */
-    private static final String FAVORITES_KEY = "com.example.mborzenkov.colorpicker.favorites";
+    static final String FAVORITES_KEY = "com.example.mborzenkov.colorpicker.favorites";
     /** Количество элементов favorites. */
     private static int sMaxFavorites = 0;
 
