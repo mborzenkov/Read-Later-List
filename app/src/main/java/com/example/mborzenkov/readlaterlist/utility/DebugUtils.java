@@ -1,6 +1,8 @@
 package com.example.mborzenkov.readlaterlist.utility;
 
 import android.content.Context;
+import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
@@ -26,10 +28,17 @@ public class DebugUtils {
      *  Добавляет number штук записей с заранее определенными
      *  Label, случайными description и случайными цветами.
      *
-     * @param context контекст
+     * @param context контекст, не null
      * @param number число добавляемых плейсхолдеров
+     *
+     * @throws NullPointerException если context == null
+     * @throws IllegalArgumentException если number < 0
      */
-    public static void addPlaceholdersToDatabase(Context context, int number) {
+    public static void addPlaceholdersToDatabase(@NonNull Context context, @IntRange(from = 0) int number) {
+
+        if (number < 0) {
+            throw new IllegalArgumentException("Error @ DebugUtils.addPlaceholdersToDatabase: number < 0 == " + number);
+        }
 
         final String[] text = context.getString(R.string.debug_large_text).split("\n");
         final int[] predefinedColors = context.getResources().getIntArray(R.array.full_gradient);
