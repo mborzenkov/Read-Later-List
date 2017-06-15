@@ -47,20 +47,14 @@ public class BackupFragment extends Fragment {
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         if (context instanceof BackupCallback) {
-            mBackupCallback = (BackupCallback) context;
-            if (mBackupTask != null) {
-                mBackupTask.setCallback(mBackupCallback);
-            }
+            setCallback((BackupCallback) context);
         }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mBackupCallback = null;
-        if (mBackupTask != null) {
-            mBackupTask.setCallback(null);
-        }
+        setCallback(null);
     }
 
     @Override
@@ -109,6 +103,17 @@ public class BackupFragment extends Fragment {
             }
         }
         backupInAction = false;
+    }
+
+    /** Устанавливает колбек у AsyncTask.
+     *
+     * @param callback колбек или null
+     */
+    private synchronized void setCallback(@Nullable BackupCallback callback) {
+        mBackupCallback = callback;
+        if (mBackupTask != null) {
+            mBackupTask.setCallback(mBackupCallback);
+        }
     }
 
 }

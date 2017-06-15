@@ -29,11 +29,6 @@ public class ConflictsFragment extends DialogFragment {
 
     /** Формат поля описания текущего конфликта (remoteId). */
     private static final String FORMAT_DESCRIPTION = "ID: %s";
-    /** Название кнопки, если элемент всего 1. */
-
-    private static String sButtonSaveName = null;
-    /** Название кнопки, если элементов несколько. */
-    private static String sButtonNextName = null;
 
     /** Коллбэк для оповещения о результатах обработки конфликтов. */
     public interface ConflictsCallback {
@@ -98,11 +93,6 @@ public class ConflictsFragment extends DialogFragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        // Ленивая инициализация строк из ресурсов и спасает от лишней переменной с контекстом.
-        if (sButtonNextName == null) {
-            sButtonSaveName = context.getString(R.string.mainlist_conflict_button_save);
-            sButtonNextName = context.getString(R.string.mainlist_conflict_button_next);
-        }
         mConflictsCallback = (ConflictsCallback) context;
     }
 
@@ -177,8 +167,8 @@ public class ConflictsFragment extends DialogFragment {
         // Устанавливаем заголовок и кнопку
         mConflictDescriptionTextView.setText(String.format(FORMAT_DESCRIPTION, leftItem.getRemoteId()));
         final String buttonText = mConflictsList.size() == 1
-                ? sButtonSaveName
-                : sButtonNextName;
+                ? getContext().getString(R.string.mainlist_conflict_button_save)
+                : getContext().getString(R.string.mainlist_conflict_button_next);
         mProceedButton.setText(buttonText);
 
 

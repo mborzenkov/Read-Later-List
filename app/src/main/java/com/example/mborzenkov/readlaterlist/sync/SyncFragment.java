@@ -51,20 +51,14 @@ public class SyncFragment extends Fragment {
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         if (context instanceof SyncCallback) {
-            mSyncCallback = (SyncCallback) context;
-            if (mSyncTask != null) {
-                mSyncTask.setCallback(mSyncCallback);
-            }
+            setCallback((SyncCallback) context);
         }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mSyncCallback = null;
-        if (mSyncTask != null) {
-            mSyncTask.setCallback(null);
-        }
+        setCallback(null);
     }
 
     @Override
@@ -111,6 +105,17 @@ public class SyncFragment extends Fragment {
             }
         }
         syncInAction = false;
+    }
+
+    /** Устанавливает колбек у AsyncTask.
+     *
+     * @param callback колбек или null
+     */
+    private synchronized void setCallback(@Nullable SyncCallback callback) {
+        mSyncCallback = callback;
+        if (mSyncTask != null) {
+            mSyncTask.setCallback(mSyncCallback);
+        }
     }
 
 }

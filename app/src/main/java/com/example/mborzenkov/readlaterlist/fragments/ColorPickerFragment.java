@@ -198,10 +198,10 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
         float[] tmpColor = copyOfColor(color);
         switch (border) {
             case LEFT:
-                tmpColor[0] -= (stepHue / 2);
+                tmpColor[0] -= ((float) stepHue / 2);
                 break;
             case RIGHT:
-                tmpColor[0] += (stepHue / 2);
+                tmpColor[0] += ((float) stepHue / 2);
                 break;
             default:
                 break;
@@ -348,7 +348,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
             Color.colorToHSV(Color.TRANSPARENT, transparentColorHsv);
             float[] curColorHsv = new float[HSV_SIZE];
             Color.colorToHSV(colorGradientStart, curColorHsv);
-            curColorHsv[0] += mStepHue / 2;
+            curColorHsv[0] += (float) mStepHue / 2;
             for (int i = 0; i < numberOfSquares; i++) {
                 mSquareStandardColorsHsv.add(copyOfColor(curColorHsv));
                 mSquareColorsHsv.add(copyOfColor(curColorHsv));

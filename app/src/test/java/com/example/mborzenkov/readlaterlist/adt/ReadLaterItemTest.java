@@ -452,6 +452,8 @@ public class ReadLaterItemTest {
     @Test(expected = IllegalArgumentException.class)
     public void testLabelEmpty() {
         ReadLaterItem item = new ReadLaterItem.Builder("").build();
+        // throws exception
+        assertEquals(null, item);
     }
 
     /* Покрывает label: многострочный */
@@ -459,6 +461,8 @@ public class ReadLaterItemTest {
     @Test(expected = IllegalArgumentException.class)
     public void testLabelMultiline() {
         ReadLaterItem item = new ReadLaterItem.Builder(normalLabel + "\n" + normalLabel).build();
+        // throws exception
+        assertEquals(null, item);
     }
 
     /* Покрывает imageUrl: неправильно сформированная ссылка */
@@ -468,6 +472,8 @@ public class ReadLaterItemTest {
         ReadLaterItem item = new ReadLaterItem.Builder(normalLabel)
                 .imageUrl(malformedUrl)
                 .build();
+        // throws exception
+        assertEquals(null, item);
     }
 
     /* Покрывает remoteId: <0 */
@@ -478,6 +484,8 @@ public class ReadLaterItemTest {
         ReadLaterItem item = new ReadLaterItem.Builder(normalLabel)
                 .remoteId(illegalRemoteId)
                 .build();
+        // throws exception
+        assertEquals(null, item);
     }
 
     /* Покрывает Builder: из объекта ReadLaterItem */

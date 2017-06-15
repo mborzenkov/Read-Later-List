@@ -251,7 +251,9 @@ public class MainListFilterTest {
     @SuppressWarnings("UnusedAssignment")
     @Test(expected = IllegalArgumentException.class)
     public void testFromStringException() {
-        MainListFilter filterFromString = MainListFilter.fromString("233");
+        MainListFilter filter = MainListFilter.fromString("233");
+        // throws exception
+        assertEquals(null, filter);
     }
 
 }

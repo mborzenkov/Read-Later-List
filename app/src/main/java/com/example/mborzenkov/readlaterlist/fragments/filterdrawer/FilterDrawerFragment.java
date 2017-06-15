@@ -483,11 +483,8 @@ public class FilterDrawerFragment extends Fragment {
             currentFilter.getColorFilter());
 
         resetButtons();
-        Button selectedSortButton = null;
+        Button selectedSortButton;
         switch (currentFilter.getSortType()) {
-            case MANUAL:
-                selectedSortButton = mSortByManualOrderButton;
-                break;
             case LABEL:
                 selectedSortButton = mSortByLabelButton;
                 break;
@@ -500,10 +497,11 @@ public class FilterDrawerFragment extends Fragment {
             case DATE_VIEWED:
                 selectedSortButton = mSortByDateViewedButton;
                 break;
-            default:
+            default: // case MANUAL
+                selectedSortButton = mSortByManualOrderButton;
                 break;
         }
-        selectedSortButton.setActivated(true); // NOTNULL всегда, кроме если добавят SortType и тут не поменять
+        selectedSortButton.setActivated(true);
         if (selectedSortButton != mSortByManualOrderButton) {
             selectedSortButton.setText(selectedSortButton.getText().toString()
                     + " " + mSortOrderSymbols.get(currentFilter.getSortOrder()));

@@ -5,6 +5,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -45,7 +47,7 @@ public class ReadLaterItem {
         private long dateCreated;
         private long dateModified;
         private long dateViewed;
-        private @Nullable URL imageUrl = null;
+        private @Nullable URI imageUrl = null;
         private @IntRange(from = 0) int remoteId = 0;
 
         /** Начинает создание элемента.
@@ -183,10 +185,12 @@ public class ReadLaterItem {
          */
         public Builder imageUrl(@NonNull String imageUrl) {
             if (!imageUrl.trim().isEmpty()) {
+                URL url;
                 try {
-                    this.imageUrl = new URL(imageUrl);
-                } catch (MalformedURLException e) {
-                    throw new IllegalArgumentException("imageUrl != URL: " + imageUrl, e);
+                    url = new URL(imageUrl);
+                    this.imageUrl = url.toURI();
+                } catch (URISyntaxException | MalformedURLException e) {
+                    throw new IllegalArgumentException("imageUrl is not url: " + imageUrl, e);
                 }
             } else {
                 this.imageUrl = null;
@@ -228,8 +232,8 @@ public class ReadLaterItem {
     private final @NonNull String description;
     /** Цвет. */
     private final int color;
-    /** URL картинки. */
-    private final @Nullable URL imageUrl;
+    /** URI картинки. */
+    private final @Nullable URI imageUrl;
     /** Дата создания. */
     private final long dateCreated;
     /** Дата изменения. */

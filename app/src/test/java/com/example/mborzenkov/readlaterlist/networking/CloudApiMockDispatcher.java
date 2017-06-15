@@ -81,7 +81,6 @@ class CloudApiMockDispatcher extends Dispatcher {
                         response = new MockResponse().setResponseCode(RESPONSE_OK)
                                 .setBody("{\"status\":\"ok\", \"data\":" + insertItem(userId, itemFromRequest) + "}");
                     } catch (Exception e) {
-                        System.out.println("EXC INSERT: " + e.toString());
                         response = new MockResponse().setResponseCode(RESPONSE_OK)
                                 .setBody("{\"status\":\"error\",\"error\":\"malformed_item\"}");
                     }

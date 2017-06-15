@@ -57,20 +57,18 @@ public class ConflictTest {
         assertTrue(conflictString.contains(item2.toString()));
     }
 
-    @SuppressWarnings("UnusedAssignment")
     @Test(expected = IllegalArgumentException.class)
     public void testEqualRemoteIdException() {
         ReadLaterItem item1 = new ReadLaterItem.Builder("label").remoteId(1).build();
         ReadLaterItem item2 = new ReadLaterItem.Builder(item1).remoteId(0).build();
-        Conflict conflict = new Conflict(item1, item2);
+        assertEquals(null, new Conflict(item1, item2)); // throws exception
     }
 
-    @SuppressWarnings("UnusedAssignment")
     @Test(expected = IllegalArgumentException.class)
     public void testEqualByContentException() {
         ReadLaterItem item1 = new ReadLaterItem.Builder("label").remoteId(1).build();
         ReadLaterItem item2 = new ReadLaterItem.Builder(item1).allDates(0).build();
-        Conflict conflict = new Conflict(item1, item2);
+        assertEquals(null, new Conflict(item1, item2)); // throws exception
     }
 
 }

@@ -45,6 +45,8 @@ public class UserInfoTest {
     public void testMaxLengthError() {
         final int userId = 123456789;
         UserInfo userInfo = new UserInfo(userId);
+        // throws exception
+        assertEquals(null, userInfo);
     }
 
     @SuppressWarnings("UnusedAssignment")
@@ -52,6 +54,8 @@ public class UserInfoTest {
     public void testNegativeIdError() {
         //noinspection Range
         UserInfo userInfo = new UserInfo(-1);
+        // throws exception
+        assertEquals(null, userInfo);
     }
 
 }
