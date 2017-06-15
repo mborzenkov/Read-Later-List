@@ -1,5 +1,6 @@
 package com.example.mborzenkov.readlaterlist.fragments.edititem;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.drawable.GradientDrawable;
@@ -319,6 +320,7 @@ public class EditItemFragment extends Fragment implements
     }
 
     @Override
+    @SuppressLint("Range") // есть явная проверка > -1
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         switch (id) {
@@ -332,7 +334,7 @@ public class EditItemFragment extends Fragment implements
                             public void onClick(DialogInterface dialog, int which) {
                                 if (mCallbacks != null) {
                                     if (mFromItemLocalId > UID_EMPTY) {
-                                        mCallbacks.onDeleteItem(mFromItemLocalId);
+                                        mCallbacks.onDeleteItem(mFromItemLocalId); // должен быть > 1
                                     } else {
                                         mCallbacks.onExitWithoutModifying(mFromItem, mFromItemLocalId);
                                     }

@@ -1,5 +1,6 @@
 package com.example.mborzenkov.readlaterlist.fragments;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -638,12 +639,13 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
     // Колбеки onTouchListener
 
     @Override
+    @SuppressLint("ClickableViewAccessibility") // в ACTION_UP вызывается performClick
     public boolean onTouch(View view, MotionEvent event) {
         if (view.getId() != R.id.imageButton_colored_square) {
             return false;
         }
 
-        ImageButton square = (ImageButton) view;
+        final ImageButton square = (ImageButton) view;
         // Получаем позицию эвента
         final int X = (int) event.getRawX();
         final int Y = (int) event.getRawY();
@@ -666,7 +668,17 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
                 } else {
                     doubleClick = true;
                     lastClickedSquare = square;
-                    mHandler.postDelayed(new HandleClick(square), QUALIFICATION_SPAN);
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (doubleClick) {
+                                square.performClick();
+                                clickOnSquare(square);
+                                doubleClick = false;
+                            }
+
+                        }
+                    }, QUALIFICATION_SPAN);
                 }
                 return false;
             case MotionEvent.ACTION_MOVE:
@@ -751,24 +763,6 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
                 mCallbacks.onColorPicked(Color.HSVToColor(mChosenColorHsv));
             }
         }
-    }
-
-    /** Класс для обработки двойного клика. */
-    private class HandleClick implements Runnable {
-
-        final ImageButton view;
-
-        HandleClick(ImageButton view) {
-            this.view = view;
-        }
-
-        public void run() {
-            if (doubleClick) {
-                clickOnSquare(view);
-                doubleClick = false;
-            }
-        }
-
     }
 
     /** Обработчик нажатия на квадратик.

@@ -81,7 +81,7 @@ class BackupAsyncTask extends AsyncTask<Void, Void, Boolean> {
     @Override
     protected void onPostExecute(@Nullable Boolean backupSuccess) {
         if (mBackupCallback != null) {
-            if (backupSuccess == Boolean.TRUE) {
+            if (Boolean.TRUE.equals(backupSuccess)) {
                 mBackupCallback.onBackupSuccess(mBackupMode);
             } else {
                 mBackupCallback.onBackupFailed(mBackupMode);

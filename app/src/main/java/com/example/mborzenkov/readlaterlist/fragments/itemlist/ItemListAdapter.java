@@ -38,6 +38,7 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemListViewH
     // Static
 
     /** Интерфейс для обработчика нажатий. */
+    @SuppressWarnings("unused")
     interface ItemListAdapterEventHandler {
 
         /** Вызывается при клике на элемент списка.

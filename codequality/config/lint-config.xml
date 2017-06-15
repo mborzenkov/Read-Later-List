@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <issue id="InvalidPackage">
+        <ignore regexp=".*junit.*"/>
+    </issue>
+
+    <issue id="InconsistentLayout">
+        <ignore regexp=".*appcompat.*"/>
+    </issue>
+
+	<issue id="InvalidPackage">
+        <ignore regexp="okio-1.13.0.jar"/>
+		<ignore regexp="retrofit-2.3.0.jar"/>
+    </issue>
+</lint>

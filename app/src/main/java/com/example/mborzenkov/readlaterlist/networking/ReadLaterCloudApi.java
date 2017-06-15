@@ -23,6 +23,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory;
 /** Класс для синхронизации объектов ReadLaterItem с облачным API.
  * Методы для обращения к серверу вызывают NetworkOnMainThreadException, если исполняются в основном потоке
  */
+@SuppressWarnings("unused") // Dagger
 public class ReadLaterCloudApi {
 
     /////////////////////////

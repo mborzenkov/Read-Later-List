@@ -93,6 +93,9 @@ class ItemTouchHelperCallback extends ItemTouchHelper.Callback implements View.O
             if (mItemMoveValues != null) {
                 mAdapter.onItemMove(mItemMoveValues[0], mItemMoveValues[1]);
                 mItemMoveValues = null;
+            } else {
+                v.performClick();
+                return true;
             }
         }
         return false;

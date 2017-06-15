@@ -44,6 +44,8 @@ class BackupUtils {
     private static final String WRITE_EXCEPTION = "Write exception";
     /** Тэг для ошибки разбора. */
     private static final String PARSE_EXCEPTION = "Parse exception";
+    /** Тэг для ошибки удаления файлв. */
+    private static final String DELETEFILE_EXCEPTION = "Delete file exception";
 
     /** Имя папки. */
     private static final String FOLDER_NAME = "/ReadLaterItem/Backups";
@@ -81,7 +83,9 @@ class BackupUtils {
         for (File file : backupFiles) {
             if (file.exists()) {
                 //noinspection ResultOfMethodCallIgnored
-                file.delete();
+                if (!file.delete()) {
+                    Log.e(DELETEFILE_EXCEPTION, "Unable to delete " + file);
+                }
             }
         }
     }
@@ -95,6 +99,7 @@ class BackupUtils {
      *
      * @return успешность выполнения записи
      */
+    @SuppressWarnings("UnusedReturnValue") // будет used в следующих версиях
     static boolean writeStringToFile(File folder, String fileName, String content) {
 
         boolean result = false;

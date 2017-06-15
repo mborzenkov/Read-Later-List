@@ -7,6 +7,8 @@ import android.provider.BaseColumns;
  */
 public class ReadLaterContract {
 
+    private ReadLaterContract() { }
+
     /** Имя идентификатор поставщика. */
     public static final String CONTENT_AUTHORITY = "com.example.mborzenkov.readlaterlist";
     /** Uri для поставщика. */

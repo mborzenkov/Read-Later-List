@@ -5,6 +5,7 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 
 /** Колбек для оповещений о результатах резервного копирования / восстановления. */
+@SuppressWarnings("UnusedParameters") // могут быть used
 public interface BackupCallback {
 
     /** Минимальное значение прогресса для onBackupProgressUpdate. */

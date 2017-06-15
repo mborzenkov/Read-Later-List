@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Read Later</string>
     <string name="content_authority" translatable="false">com.example.mborzenkov.readlaterlist</string>
     <string name="title_activity_colorpicker">Choose color</string>
@@ -41,8 +41,8 @@
         <string name="mainlist_drawer_date_creation">Creation date</string>
         <string name="mainlist_drawer_date_modified">Last modify date</string>
         <string name="mainlist_drawer_date_viewed">Last view date</string>
-        <string name="mainlist_drawer_datefrom_hint"><font size="12">from</font></string>
-        <string name="mainlist_drawer_dateto_hint"><font size="12">to</font></string>
+        <string name="mainlist_drawer_datefrom_hint"><font size="12" tools:ignore="UnusedResources">from</font></string>
+        <string name="mainlist_drawer_dateto_hint"><font size="12" tools:ignore="UnusedResources">to</font></string>
         <string name="mainlist_drawer_color_title">Colors</string>
         <string name="mainlist_drawer_sort_title">Order</string>
         <string name="mainlist_drawer_sort_label">Label</string>

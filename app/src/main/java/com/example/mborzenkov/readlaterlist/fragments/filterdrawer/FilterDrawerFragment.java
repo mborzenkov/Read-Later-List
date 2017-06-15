@@ -1,5 +1,6 @@
 package com.example.mborzenkov.readlaterlist.fragments.filterdrawer;
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.graphics.Color;
@@ -446,6 +447,7 @@ public class FilterDrawerFragment extends Fragment {
     // Методы для перезагрузки данных в layout
 
     /** Обновляет Drawer в соответствии с выбранным фильтром. */
+    @SuppressLint("SetTextI18n")
     public void onFilterChanged(MainListFilter currentFilter) {
 
         if (mCallbacks == null) {

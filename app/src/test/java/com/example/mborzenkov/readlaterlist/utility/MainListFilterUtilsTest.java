@@ -1,16 +1,15 @@
 package com.example.mborzenkov.readlaterlist.utility;
 
-import android.graphics.Color;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import android.graphics.Color;
 
 import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
 
 import java.util.List;
 
-import org.apache.tools.ant.Main;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;

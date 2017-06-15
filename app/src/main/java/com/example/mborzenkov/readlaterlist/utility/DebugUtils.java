@@ -49,7 +49,7 @@ public class DebugUtils {
         final String imageUrl = "https://unsplash.it/1200/";
 
         // Вставляем number строк
-        for (int inserted = 0; inserted < number; ) {
+        for (int inserted = 0; inserted < number;) {
             List<ReadLaterItem> listItems = new ArrayList<>();
             // По BULK_INSERT_MAX
             for (int i = 0, step = Math.min(BULK_INSERT_MAX, number - inserted); i < step; i++, inserted++) {

@@ -7,6 +7,7 @@ import dagger.Provides;
 import javax.inject.Singleton;
 import okhttp3.HttpUrl;
 
+@SuppressWarnings("unused") // Dagger
 @Module
 public class CloudApiModule {
 

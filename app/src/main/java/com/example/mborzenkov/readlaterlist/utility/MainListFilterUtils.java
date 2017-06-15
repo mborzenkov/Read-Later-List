@@ -20,6 +20,12 @@ public class MainListFilterUtils {
     /** Ключ для хранения фильтров в SharedPreferences. */
     private static final String FILTER_KEY = "com.example.mborzenkov.mainlist.filter";
 
+    // Позиции MainListFilter.Selection
+    private static final int POSITION_DATE_CREATED = 1;
+    private static final int POSITION_DATE_MODIFIED = 2;
+    private static final int POSITION_DATE_VIEWED = 3;
+
+
     /** индекс варианта "Default" в сохраненных фильтрах. */
     public static final int INDEX_SAVED_DEFAULT = 0;
 
@@ -27,7 +33,7 @@ public class MainListFilterUtils {
     private static @NonNull MainListFilter sCurrentFilter = new MainListFilter();
 
     /** Сохраненные фильтры. */
-    private static @NonNull Map<String, MainListFilter> sCustomFilters = new LinkedHashMap<>();
+    private static final @NonNull Map<String, MainListFilter> sCustomFilters = new LinkedHashMap<>();
     /** Имя текущего фильтра. Может быть null, что означает - по умолчанию. */
     private static @Nullable String sCurrentFilterName = null;
     /** Индекс варианта "+ Добавить" в сохраненных фильтрах. Изменяется. */
@@ -92,11 +98,11 @@ public class MainListFilterUtils {
      */
     public static MainListFilter.Selection getDateFilterSelection(int position) {
         switch (position) {
-            case 1:
+            case POSITION_DATE_CREATED:
                 return MainListFilter.Selection.DATE_CREATED;
-            case 2:
+            case POSITION_DATE_MODIFIED:
                 return MainListFilter.Selection.DATE_MODIFIED;
-            case 3:
+            case POSITION_DATE_VIEWED:
                 return MainListFilter.Selection.DATE_VIEWED;
             default:
                 return MainListFilter.Selection.ALL;
