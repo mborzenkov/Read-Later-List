@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 /** Вспомогательный static util класс для работы с фильтрами. Соединяет Activity с MainListFilter. */
-public class MainListFilterUtils {
+public final class MainListFilterUtils {
 
     /** Ключ для хранения фильтров в SharedPreferences. */
     private static final String FILTER_KEY = "com.example.mborzenkov.mainlist.filter";

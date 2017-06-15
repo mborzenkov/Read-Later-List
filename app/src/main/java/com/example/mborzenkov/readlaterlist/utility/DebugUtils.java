@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class DebugUtils {
+public final class DebugUtils {
 
     /** Количество строк в description для автоматического создания. */
     private static final int DESCRIPTION_LINES = 3;

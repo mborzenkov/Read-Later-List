@@ -25,6 +25,7 @@
         <exclude name="EmptyMethodInAbstractClassShouldBeAbstract"/>
         <!-- Allows non static block initializer -->
         <exclude name="NonStaticInitializer"/>
+		<exclude name="SingletonClassReturningNewInstance"/>
     </rule>
 
     <rule ref="rulesets/java/strictexception.xml">

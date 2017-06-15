@@ -18,7 +18,7 @@ import java.util.Locale;
 /** Класс для упрощения работы с базой данных.
  * Представляет собой набор static методов
  */
-public class ReadLaterDbUtils {
+public final class ReadLaterDbUtils {
 
     /** Запрос на диапзаон. */
     private static final String QUERY_RANGE = "_ID LIMIT %s OFFSET %s";

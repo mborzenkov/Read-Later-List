@@ -5,7 +5,7 @@ import android.provider.BaseColumns;
 
 /** Описание базы данных, контракт и класс со всеми колонками.
  */
-public class ReadLaterContract {
+public final class ReadLaterContract {
 
     private ReadLaterContract() { }
 

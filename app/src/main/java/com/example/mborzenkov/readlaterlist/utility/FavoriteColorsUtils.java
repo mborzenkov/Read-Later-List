@@ -8,7 +8,7 @@ import android.support.annotation.Nullable;
 import com.example.mborzenkov.readlaterlist.R;
 
 /** Сервисный класс для работы с любимыми цветами. */
-public class FavoriteColorsUtils {
+public final class FavoriteColorsUtils {
 
     /** Константа для использования в качестве ключа при сохранении массива Favorites в SharedPreferences. */
     static final String FAVORITES_KEY = "com.example.mborzenkov.colorpicker.favorites";
@@ -31,11 +31,12 @@ public class FavoriteColorsUtils {
      * Если какой либо из цветов не задан, он будет Color.TRANSPARENT.
      *
      * @param context Контекст
-     * @param sharedPreferences Ссылка на SharedPreferences, если null - получается через контекст
+     * @param sharedPrefs Ссылка на SharedPreferences, если null - получается через контекст
      * @return Список любимых цветов, размерностью maxFavorites
      */
     public static int[] getFavoriteColorsFromSharedPreferences(Context context,
-                                                               @Nullable SharedPreferences sharedPreferences) {
+                                                               @Nullable SharedPreferences sharedPrefs) {
+        SharedPreferences sharedPreferences = sharedPrefs;
         if (sharedPreferences == null) {
             sharedPreferences = context.getSharedPreferences(FAVORITES_KEY, Context.MODE_PRIVATE);
         }
@@ -53,7 +54,7 @@ public class FavoriteColorsUtils {
      * Цвет будет сохранен с ключем, равным position.
      *
      * @param context Контекст, может быть null, если указан sharedPreferences
-     * @param sharedPreferences Ссылка на SharedPreferences, если null - получается через контекста
+     * @param sharedPrefs Ссылка на SharedPreferences, если null - получается через контекста
      * @param newColor цвет для сохранения в формате sRGB
      * @param position ключ для сохранения (позиция любимого цвета)
      *
@@ -61,9 +62,11 @@ public class FavoriteColorsUtils {
      *              так как невозможно получить sharedPreferences
      */
     public static void saveFavoriteColor(@Nullable Context context,
-                                         @Nullable SharedPreferences sharedPreferences,
+                                         @Nullable SharedPreferences sharedPrefs,
                                          int newColor,
                                          int position) {
+
+        SharedPreferences sharedPreferences = sharedPrefs;
 
         if (sharedPreferences == null) {
 

@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.List;
 
 /** Сервисный static util класс для работы с бэкапами базы данных в формате Json. */
-class BackupUtils {
+final class BackupUtils {
 
     /** Кодировка файлов с бэкапами. */
     private static final String ENCODING = "UTF8";

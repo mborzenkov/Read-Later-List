@@ -10,7 +10,7 @@ import com.example.mborzenkov.readlaterlist.adt.UserInfo;
 /** Вспомогательный static класс для получения работы с UserInfo.
  * Предоставляет работу с SharedPreferences, получени, изменение и сохранение текущего пользователя.
  */
-public class UserInfoUtils {
+public final class UserInfoUtils {
 
     /** Ключ для доступа к данным о пользователях в SharedPreferences. */
     private static final String USERS_KEY = "com.example.mborzenkov.mainlist.users";

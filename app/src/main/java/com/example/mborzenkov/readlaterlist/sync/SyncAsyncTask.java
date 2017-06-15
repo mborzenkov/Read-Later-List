@@ -125,7 +125,7 @@ class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResult> {
 
         if (isCancelled() || mSyncCallback == null) {
             return null;
-        }Log.d("SYNC", "GOGOGO");
+        }
 
         // Запоминаем дату начала синхронизации, контекст приложения (для бд), объект для доступа к API и тек. польз.
         final Context appContext = mSyncCallback.getApplicationContext();

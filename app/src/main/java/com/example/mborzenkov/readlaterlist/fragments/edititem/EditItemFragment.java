@@ -545,11 +545,13 @@ public class EditItemFragment extends Fragment implements
     /** Загружает данные в фрагмент из mFromItem.
      * Если mFromItem == null (создание нового элемента), не делает ничего.
      *
-     * @param rootView корневой элемент фрагмента или null (если вызывается после onCreateView)
+     * @param root корневой элемент фрагмента или null (если вызывается после onCreateView)
      *
      * @throws IllegalStateException если вызван до onCreateView и rootView == null
      */
-    void reloadDataFromItem(@Nullable View rootView) {
+    void reloadDataFromItem(@Nullable View root) {
+
+        View rootView = root;
 
         if (getView() != null) {
             rootView = getView();
@@ -580,11 +582,13 @@ public class EditItemFragment extends Fragment implements
 
     /** Вызывает перезагрузку menu, устанавливает новый тулбар.
      *
-     * @param rootView корневной элемент фрагмента или null (если вызывается после onCreateView)
+     * @param root корневной элемент фрагмента или null (если вызывается после onCreateView)
      *
      * @throws IllegalStateException если вызван до onCreateView и rootView == null
      */
-    void reloadMenu(@Nullable View rootView) {
+    void reloadMenu(@Nullable View root) {
+
+        View rootView = root;
 
         if (getView() != null) {
             rootView = getView();
