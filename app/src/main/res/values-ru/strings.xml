@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Read Later</string>
     <string name="colorpicker_chosen_label">Выбрать цвет</string>
     <string name="colorpicker_favorites_label">Сохраненные цвета</string>
-    <string name="db_error_insert">"Ошибка добавления данных в: "</string>
-    <string name="db_error_uriunknown">"Неизвестный uri: "</string>
     <string name="edititem_color_hint">Цвет</string>
     <string name="edititem_description_hint">Описание</string>
     <string name="edititem_error_title_empty">Пожалуйста введите заголовок</string>
@@ -25,7 +23,6 @@
     <string name="snackbar_item_edited">Запись изменена</string>
     <string name="snackbar_item_removed">Запись удалена</string>
     <string name="title_activity_colorpicker">Выбор цвета</string>
-    <string name="title_activity_edit_item">Редактирование записи</string>
     <string name="edititem_menu_save">Сохранить</string>
     <string name="mainlist_icon_contentdescription">Цвет элемента</string>
     <!--<string name="edititem_icon_contentdescription">Цвет элемента</string>-->
@@ -41,8 +38,8 @@
     <string name="mainlist_drawer_date_creation">По дате создания</string>
     <string name="mainlist_drawer_date_modified">По дате изменения</string>
     <string name="mainlist_drawer_date_viewed">По дате просмотра</string>
-    <string name="mainlist_drawer_datefrom_hint"><font size="12">от</font></string>
-    <string name="mainlist_drawer_dateto_hint"><font size="12">до</font></string>
+    <string name="mainlist_drawer_datefrom_hint"><font size="12" tools:ignore="UnusedResources">от</font></string>
+    <string name="mainlist_drawer_dateto_hint"><font size="12" tools:ignore="UnusedResources">до</font></string>
     <string name="mainlist_drawer_debug_title">Специальные возможности</string>
     <string name="mainlist_drawer_deleteall_title">Очистить БД</string>
     <string name="mainlist_drawer_fillplaceholders_title">Заполнить БД</string>
@@ -53,11 +50,11 @@
     <string name="mainlist_drawer_filters_remove_question_title">Удаление фильтра</string>
     <string name="mainlist_drawer_filters_save_question_title">Назовите новый фильтр</string>
     <string name="mainlist_drawer_filters_title">Фильтры</string>
-    <string name="mainlist_drawer_sort_created">Добавлению</string>
-    <string name="mainlist_drawer_sort_title">Сортировать по</string>
-    <string name="mainlist_drawer_sort_label">Названию</string>
-    <string name="mainlist_drawer_sort_modified">Изменению</string>
-    <string name="mainlist_drawer_sort_viewed">Просмотру</string>
+    <string name="mainlist_drawer_sort_created">Добавлено</string>
+    <string name="mainlist_drawer_sort_title">Порядок</string>
+    <string name="mainlist_drawer_sort_label">Название</string>
+    <string name="mainlist_drawer_sort_modified">Изменено</string>
+    <string name="mainlist_drawer_sort_viewed">Просмотрено</string>
     <string name="mainlist_drawer_title">Настройки</string>
     <string name="mainlist_menu_search">Поиск</string>
     <string name="searchable_mainlist_hint">Поиск по базе</string>
@@ -65,16 +62,23 @@
     <string name="edititem_menu_back_question_title">Отменить изменения</string>
     <string name="edititem_date_created">Создан:</string>
     <string name="edititem_date_modified">Изменен:</string>
-    <string name="mainlist_longloading_title">Длительное действие уже запущено</string>
-    <string name="mainlist_longloading_text">В данный момент уже выполняется длительное действие. Пожалуйста дождитесь его завершения, прежде чем начать другое.</string>
     <string name="edititem_error_imageurl_malformed">Пожалуйста введите корректный URL</string>
     <string name="edititem_error_imageurl_onload">Ошибка загрузки изображения</string>
     <string name="edititem_image_contentdescription">Картинка из URL</string>
     <string name="edititem_imageurl_hint">URL картинки</string>
     <string name="notification_backup_restore_title">Восстановление данных</string>
     <string name="notification_backup_save_title">Сохранение данных</string>
-    <string name="notification_debug_deleteall_title">Очистка списка</string>
-    <string name="notification_debug_fillplaceholders_title">Автозаполнение списка</string>
     <string name="toast_backup_restore_finished">Данные восстановлены</string>
     <string name="toast_backup_save_finished">Данные сохранены</string>
+    <string name="mainlist_menu_refresh">Обновить</string>
+    <string name="mainlist_user_change">(изменить)</string>
+    <string name="mainlist_user_title">Логин:</string>
+    <string name="mainlist_conflict_button_next">Далее</string>
+    <string name="mainlist_conflict_button_save">Сохранить</string>
+    <string name="mainlist_conflict_title">Выберите версию для сохранения</string>
+    <string name="mainlist_user_change_question_text">Пожалуйста введите ID пользователя:</string>
+    <string name="mainlist_user_change_question_title">Смена пользователя</string>
+    <string name="mainlist_drawer_sort_manual">Вручную</string>
+    <string name="mainlist_backupisactive_text">Работа с резервными копиями еще не завершилась. Пожалуйста дождитесь завершения, прежде чем запускать другую длительную операцию.</string>
+    <string name="mainlist_backupisactive_title">Резервное копирование</string>
 </resources>

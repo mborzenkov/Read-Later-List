@@ -18,7 +18,7 @@
 
     <!-- Общие элементы -->
     <dimen name="height_divider">1px</dimen>
-    <dimen name="width_drawer">240dp</dimen>
+    <dimen name="width_drawer">220dp</dimen>
     <dimen name="size_progressbar">42dp</dimen>
     <dimen name="size_fab">56dp</dimen>
     <dimen name="margin_fab">16dp</dimen>
@@ -38,6 +38,7 @@
     <!-- Текст -->
     <dimen name="size_text_primary">16sp</dimen>
     <dimen name="size_text_secondary">14sp</dimen>
+    <dimen name="size_text_small">12sp</dimen>
 
     <!-- Элементы списков -->
     <dimen name="padding_list_start">8dp</dimen>

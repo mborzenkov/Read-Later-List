@@ -2,10 +2,11 @@ package com.example.mborzenkov.readlaterlist.utility;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.example.mborzenkov.readlaterlist.R;
-import com.example.mborzenkov.readlaterlist.data.MainListFilter;
+import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -14,21 +15,25 @@ import java.util.List;
 import java.util.Map;
 
 /** Вспомогательный static util класс для работы с фильтрами. Соединяет Activity с MainListFilter. */
-public class MainListFilterUtils {
+public final class MainListFilterUtils {
 
     /** Ключ для хранения фильтров в SharedPreferences. */
     private static final String FILTER_KEY = "com.example.mborzenkov.mainlist.filter";
 
-    /** Индекс варианта "Без фильтра по датам". */
-    public static final int INDEX_DATE_ALL = 0;
+    // Позиции MainListFilter.Selection
+    private static final int POSITION_DATE_CREATED = 1;
+    private static final int POSITION_DATE_MODIFIED = 2;
+    private static final int POSITION_DATE_VIEWED = 3;
+
+
     /** индекс варианта "Default" в сохраненных фильтрах. */
     public static final int INDEX_SAVED_DEFAULT = 0;
 
     /** Текущий фильтр. */
-    private static MainListFilter sCurrentFilter = null;
+    private static @NonNull MainListFilter sCurrentFilter = new MainListFilter();
 
     /** Сохраненные фильтры. */
-    private static Map<String, MainListFilter> sCustomFilters = null;
+    private static final @NonNull Map<String, MainListFilter> sCustomFilters = new LinkedHashMap<>();
     /** Имя текущего фильтра. Может быть null, что означает - по умолчанию. */
     private static @Nullable String sCurrentFilterName = null;
     /** Индекс варианта "+ Добавить" в сохраненных фильтрах. Изменяется. */
@@ -45,7 +50,7 @@ public class MainListFilterUtils {
      * @param context Контекст
      */
     private static void reloadCustomFilters(Context context) {
-        sCustomFilters = new LinkedHashMap<>();
+        sCustomFilters.clear();
         sCustomFilters.put(context.getString(R.string.mainlist_drawer_filters_default), new MainListFilter());
         SharedPreferences sharedPreferences = context.getSharedPreferences(FILTER_KEY, Context.MODE_PRIVATE);
         Map<String, ?> userFilters = sharedPreferences.getAll();
@@ -62,7 +67,7 @@ public class MainListFilterUtils {
      * @return Список имен сохраненных фильтров для использования в выпадающем списке
      */
     public static List<String> getSavedFiltersList(Context context) {
-        if (sCustomFilters == null) {
+        if (sCustomFilters.isEmpty()) {
             reloadCustomFilters(context);
         }
         List<String> result = new ArrayList<>();
@@ -77,7 +82,7 @@ public class MainListFilterUtils {
      * @param context Контекст
      * @return Список имен отборов для использования в выпадающем списке
      */
-    public static List<String> getsDateFiltersList(Context context) {
+    public static List<String> getDateFiltersList(Context context) {
         List<String> dateFilters = new ArrayList<>();
         dateFilters.add(context.getString(R.string.mainlist_drawer_date_all));
         dateFilters.add(context.getString(R.string.mainlist_drawer_date_creation));
@@ -93,11 +98,11 @@ public class MainListFilterUtils {
      */
     public static MainListFilter.Selection getDateFilterSelection(int position) {
         switch (position) {
-            case 1:
+            case POSITION_DATE_CREATED:
                 return MainListFilter.Selection.DATE_CREATED;
-            case 2:
+            case POSITION_DATE_MODIFIED:
                 return MainListFilter.Selection.DATE_MODIFIED;
-            case 3:
+            case POSITION_DATE_VIEWED:
                 return MainListFilter.Selection.DATE_VIEWED;
             default:
                 return MainListFilter.Selection.ALL;
@@ -109,9 +114,6 @@ public class MainListFilterUtils {
      * @return Текущий выбранный фильтр.
      */
     public static MainListFilter getCurrentFilter() {
-        if (sCurrentFilter == null) {
-            sCurrentFilter = new MainListFilter();
-        }
         return sCurrentFilter;
     }
 
@@ -159,6 +161,7 @@ public class MainListFilterUtils {
             editor.apply();
             reloadCustomFilters(context);
             sCurrentFilterName = null;
+            sCurrentFilter = new MainListFilter();
         }
     }
 

@@ -16,7 +16,6 @@
         android:layout_margin="@dimen/margin_circle_large"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:onClick="clickOnFavSquare"
         android:contentDescription="@string/colorpicker_favorites_label"
         style="@style/ColorPicker.ColoredCircle.Favorite"
         />

@@ -7,9 +7,6 @@ import android.support.annotation.NonNull;
 /** Представляет вспомогательный класс для ReadLaterItem, который реализует интерфейс parcelable. */
 public final class ReadLaterItemParcelable implements Parcelable {
 
-    /** Константа для использования в Intent в качестве ключа при передаче объекта ReadLaterItem. */
-    public static final String KEY_EXTRA = "com.example.mborzenkov.readlaterlist.readlateritem.extra";
-
     /** Объект ReadLaterItem, соответствующий экземпляру этого вспомогательного класса. */
     private final ReadLaterItem item;
 
@@ -44,8 +41,17 @@ public final class ReadLaterItemParcelable implements Parcelable {
             long dateModified = source.readLong();
             long dateViewed = source.readLong();
             String imageUrl = source.readString();
+            int remoteId = source.readInt();
             return new ReadLaterItemParcelable(
-                    new ReadLaterItem(label, description, color, dateCreated, dateModified, dateViewed, imageUrl));
+                    new ReadLaterItem.Builder(label)
+                            .description(description)
+                            .color(color)
+                            .dateCreated(dateCreated)
+                            .dateModified(dateModified)
+                            .dateViewed(dateViewed)
+                            .imageUrl(imageUrl)
+                            .remoteId(remoteId)
+                            .build());
         }
 
         @Override
@@ -68,6 +74,7 @@ public final class ReadLaterItemParcelable implements Parcelable {
         dest.writeLong(item.getDateModified());
         dest.writeLong(item.getDateViewed());
         dest.writeString(item.getImageUrl());
+        dest.writeInt(item.getRemoteId());
     }
 
 }

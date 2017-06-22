@@ -1,6 +1,8 @@
 package com.example.mborzenkov.readlaterlist.utility;
 
 import android.content.Context;
+import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
@@ -9,12 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class DebugUtils {
+public final class DebugUtils {
 
     /** Количество строк в description для автоматического создания. */
     private static final int DESCRIPTION_LINES = 3;
     /** Добавляется за раз. */
     private static final int BULK_INSERT_MAX = 5000;
+    /** Минимальное разрешение картинки по вертикали. */
+    private static final int IMAGE_HEIGHT = 300;
 
     private DebugUtils() {
         throw new UnsupportedOperationException("Класс DebugUtils - static util, не может иметь экземпляров");
@@ -24,25 +28,18 @@ public class DebugUtils {
      *  Добавляет number штук записей с заранее определенными
      *  Label, случайными description и случайными цветами.
      *
-     * @param context контекст
+     * @param context контекст, не null
      * @param number число добавляемых плейсхолдеров
+     *
+     * @throws NullPointerException если context == null
+     * @throws IllegalArgumentException если number < 0
      */
-    public static void addPlaceholdersToDatabase(Context context, int number) {
+    public static void addPlaceholdersToDatabase(@NonNull Context context, @IntRange(from = 0) int number) {
 
-        // Оцениваем длительность операций и если вставок будет > 1, показываем процесс в панели уведомлений.
-        final boolean showNotification;
-        if (number > BULK_INSERT_MAX) {
-
-            showNotification = true;
-            LongTaskNotifications.setupNotification(context,
-                    context.getString(R.string.notification_debug_fillplaceholders_title));
-            LongTaskNotifications.showNotificationWithProgress(0, false);
-
-        } else {
-            showNotification = false;
+        if (number < 0) {
+            throw new IllegalArgumentException("Error @ DebugUtils.addPlaceholdersToDatabase: number < 0 == " + number);
         }
 
-        long currentTime = System.currentTimeMillis();
         final String[] text = context.getString(R.string.debug_large_text).split("\n");
         final int[] predefinedColors = context.getResources().getIntArray(R.array.full_gradient);
         final int textRows = text.length;
@@ -52,7 +49,7 @@ public class DebugUtils {
         final String imageUrl = "https://unsplash.it/1200/";
 
         // Вставляем number строк
-        for (int inserted = 0; inserted < number; ) {
+        for (int inserted = 0; inserted < number;) {
             List<ReadLaterItem> listItems = new ArrayList<>();
             // По BULK_INSERT_MAX
             for (int i = 0, step = Math.min(BULK_INSERT_MAX, number - inserted); i < step; i++, inserted++) {
@@ -66,29 +63,15 @@ public class DebugUtils {
                 // Каждая новая конвертация может дать новый результат. Поэтому решено использовать предопределенные
                 // цвета.
 
-                listItems.add(new ReadLaterItem(
-                        label + " " + inserted,
-                        description.toString().trim(),
-                        predefinedColors[randomizer.nextInt(numberOfColors)],
-                        currentTime,
-                        currentTime,
-                        currentTime,
-                        imageUrl + (300 + (i % 300))));
-
-                currentTime = System.currentTimeMillis();
+                listItems.add(new ReadLaterItem.Builder(label + " " + inserted)
+                        .description(description.toString())
+                        .color(predefinedColors[randomizer.nextInt(numberOfColors)])
+                        .imageUrl(imageUrl + (IMAGE_HEIGHT + (i % IMAGE_HEIGHT)))
+                        .build());
             }
             ReadLaterDbUtils.bulkInsertItems(context, listItems);
-
-            if (showNotification) {
-                // Обновляем нотификешн
-                LongTaskNotifications.showNotificationWithProgress((100 * inserted) / number, false);
-            }
         }
 
-        if (showNotification) {
-            // Сворачиваемся
-            LongTaskNotifications.cancelNotification();
-        }
     }
 
 }

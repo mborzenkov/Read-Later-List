@@ -1,20 +1,19 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Read Later</string>
     <string name="content_authority" translatable="false">com.example.mborzenkov.readlaterlist</string>
-    <string name="title_activity_edit_item">Edit Item</string>
     <string name="title_activity_colorpicker">Choose color</string>
 
-    <!-- MainListActivity -->
+    <!-- MainActivity -->
         <!-- Онбординг для пустого списка -->
         <string name="mainlist_empty_label">List is empty</string>
         <string name="mainlist_empty_description">Add something to list with button on bottom right corner.</string>
         <!-- Меню -->
+        <string name="mainlist_menu_refresh">Refresh</string>
         <string name="mainlist_menu_delete_all_question_title">Delete all</string>
         <string name="mainlist_menu_delete_all_question_text">This action will delete everything from db. Are you sure to proceed?</string>
         <string name="mainlist_menu_add_placeholders_question_title">Fill with placeholders</string>
         <string name="mainlist_menu_add_placeholders_question_text">Type the number of placeholders you wish to add and press OK.</string>
         <string name="mainlist_menu_add_placeholders_label">Labeeeeel</string>
-        <string name="mainlist_menu_refresh">Refresh</string>
         <!-- Снекбары -->
         <string name="snackbar_item_added">Item added</string>
         <string name="snackbar_item_edited">Item edited</string>
@@ -24,6 +23,11 @@
         <!-- Поиск -->
         <string name="searchable_mainlist_hint">Search items</string>
         <string name="mainlist_menu_search">Search</string>
+        <!-- Пользователи -->
+        <string name="mainlist_user_title">User:</string>
+        <string name="mainlist_user_change">(change)</string>
+        <string name="mainlist_user_change_question_title">Change user</string>
+        <string name="mainlist_user_change_question_text">Please type ID of user:</string>
         <!-- Фильтр -->
         <string name="mainlist_drawer_title">Settings</string>
         <string name="mainlist_drawer_filters_title">Filter by</string>
@@ -37,14 +41,15 @@
         <string name="mainlist_drawer_date_creation">Creation date</string>
         <string name="mainlist_drawer_date_modified">Last modify date</string>
         <string name="mainlist_drawer_date_viewed">Last view date</string>
-        <string name="mainlist_drawer_datefrom_hint"><font size="12">from</font></string>
-        <string name="mainlist_drawer_dateto_hint"><font size="12">to</font></string>
+        <string name="mainlist_drawer_datefrom_hint"><font size="12" tools:ignore="UnusedResources">from</font></string>
+        <string name="mainlist_drawer_dateto_hint"><font size="12" tools:ignore="UnusedResources">to</font></string>
         <string name="mainlist_drawer_color_title">Colors</string>
-        <string name="mainlist_drawer_sort_title">Sort by</string>
+        <string name="mainlist_drawer_sort_title">Order</string>
         <string name="mainlist_drawer_sort_label">Label</string>
         <string name="mainlist_drawer_sort_created">Created</string>
         <string name="mainlist_drawer_sort_modified">Modified</string>
         <string name="mainlist_drawer_sort_viewed">Viewed</string>
+        <string name="mainlist_drawer_sort_manual">Manual</string>
         <string name="mainlist_drawer_sort_symb_asc" translatable="false">↡</string>
         <string name="mainlist_drawer_sort_symb_desc" translatable="false">↑</string>
         <string name="mainlist_drawer_debug_title">Debug options</string>
@@ -59,18 +64,20 @@
         <string name="mainlist_drawer_backup_restore_question_title">Restore from file</string>
         <string name="mainlist_drawer_backup_restore_question_text">This action will replace everything in db with data in backup file. Are you sure to proceed?</string>
         <!-- Предупреждения -->
-        <string name="mainlist_longloading_title">Loading is active</string>
-        <string name="mainlist_longloading_text">Some long action is still running. Please wait until it finished before starting new long action.</string>
+        <string name="mainlist_backupisactive_title">Backup is active</string>
+        <string name="mainlist_backupisactive_text">Backup process is still running. Please wait until it finished before starting other long operations.</string>
+        <!-- Обработка конфликтов -->
+        <string name="mainlist_conflict_title">Choose version to save</string>
+        <string name="mainlist_conflict_button_next">Next</string>
+        <string name="mainlist_conflict_button_save">Save</string>
 
     <!-- Уведомления -->
         <string name="notification_backup_save_title">Saving backup</string>
         <string name="notification_backup_restore_title">Restoring from backup</string>
-        <string name="notification_debug_fillplaceholders_title">Filling with placeholders</string>
-        <string name="notification_debug_deleteall_title">Deleting all data</string>
         <string name="toast_backup_save_finished">All data saved</string>
         <string name="toast_backup_restore_finished">All data restored</string>
 
-    <!-- EditItemActivity -->
+    <!-- EditItemFragment -->
         <!-- Заголовки -->
         <string name="edititem_title_add">New item</string>
         <string name="edititem_title_edit">Edit item</string>
@@ -96,7 +103,7 @@
         <!-- Список -->
         <!--<string name="edititem_icon_contentdescription">Color</string>-->
 
-    <!-- ColorPickerActivity -->
+    <!-- ColorPickerFragment -->
     <string name="colorpicker_chosen_label">Choose color</string>
     <string name="colorpicker_favorites_label">Favorite colors</string>
     <string name="colorpicker_RGB" translatable="false">RGB</string>
@@ -105,8 +112,6 @@
     <string name="colorpicker_HSV_VAL" translatable="false">299.30, 0.67, 0.54</string>
 
     <!-- Ошибки базы данных -->
-    <string name="db_error_uriunknown">Unknown uri: </string>
-    <string name="db_error_insert">Failed to insert row in: </string>
 
     <!-- Дебаг -->
     <string name="debug_large_text" translatable="false">
