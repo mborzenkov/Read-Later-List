@@ -31,6 +31,7 @@ public class CustomColorTest {
     @Test
     public void testGetTransparent() {
         assertTrue(CustomColor.getTransparent().isTransparent());
+        assertFalse(new CustomColor(Color.BLUE).isTransparent());
     }
 
     @Test
@@ -65,6 +66,7 @@ public class CustomColorTest {
         assertEquals(colorBlue1.hashCode(), colorBlue2.hashCode());
         assertFalse(colorBlue1.equals(colorRed));
         assertFalse(colorBlue2.equals(colorRed));
+        assertFalse(colorBlue1.equals(new Object()));
     }
 
     @Test

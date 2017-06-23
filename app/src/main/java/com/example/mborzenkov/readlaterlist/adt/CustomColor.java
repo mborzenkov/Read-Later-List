@@ -1,9 +1,7 @@
 package com.example.mborzenkov.readlaterlist.adt;
 
 import android.graphics.Color;
-import android.support.annotation.FloatRange;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import java.util.Arrays;
 

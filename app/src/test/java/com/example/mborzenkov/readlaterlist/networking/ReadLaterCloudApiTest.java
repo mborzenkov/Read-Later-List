@@ -42,9 +42,8 @@ public class ReadLaterCloudApiTest {
     private final MockWebServer mServer = new MockWebServer();
     private ReadLaterCloudApi mCloudApi;
 
-
+    /** Создает, запускает и подключает fake-сервер. */
     @Before
-    @SuppressWarnings("CheckStyle")
     public void onStart() throws IOException {
         mServer.start();
         HttpUrl serverUrl = mServer.url("");
@@ -56,6 +55,7 @@ public class ReadLaterCloudApiTest {
         // ShadowLog.stream = System.out; // Раскомментируйте строчку для вывода в лог всех обращений
     }
 
+    /** Выключает fake-сервер. */
     @After
     public void onStop() throws IOException {
         mServer.shutdown();

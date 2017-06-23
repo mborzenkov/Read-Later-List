@@ -88,6 +88,24 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
     /** Варианты границ градиента: Левая и Правая. */
     private enum GradientBorders { LEFT, RIGHT }
 
+    /** Изменяемый класс, представляющий собой пару цветов градиента: цвет по умолчанию и текущий цвет. */
+    private static class CustomColorEntry {
+        /** Цвет по умолчанию. */
+        private final CustomColor defaultColor;
+        /** Текущий цвет. */
+        private CustomColor currentColor;
+
+        /** Создает новую пару цветов.
+         *
+         * @param defaultColor цвет по умолчанию
+         * @param currentColor текущий цвет
+         */
+        private CustomColorEntry(@NonNull CustomColor defaultColor, @NonNull CustomColor currentColor) {
+            this.defaultColor = defaultColor;
+            this.currentColor = currentColor;
+        }
+    }
+
     /** Последняя случившаяся вибрация. */
     private static long sLastVibrate = 0;
 
@@ -207,10 +225,8 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
     //      mDivHue - значение, на которое изменяется HUE при перетягивании, >0
     //      mDivVal - значение, на которое изменяется VAL при перятягивании, >0
     //      mDefaultColor - главный цвет по умолчанию
-    //      mStandardColors - список цветов в градиенте по умолчанию,
-    //              не null, не пустой, каждый цвет отличается от следующего по HUE на mStepHue, каждый элемент float[3]
-    //      mCurrentColors - список текущих цветов в градиенте,
-    //              не null, не пустой, размер равен mStandardColors, каждый элемент float[3]
+    //      mColorEntries - список цветов в градиенте по умолчанию, содержащий значения цветов по умолчанию и текущее
+    //              не null, не пустой, каждый цвет по умолчанию отличается от следующего по HUE на одинаковый шаг
     //      mFavoriteColors - список любимых цветов, не null
     //      mChosenColor - текущий выбранный цвет, не null, размерность 3
 
@@ -219,10 +235,8 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
     /** Скорость перетягивания по вертикали. */
     private int mDivVal;
 
-    /** Список цветов у элементов градиента по умолчанию. */
-    private @NonNull List<CustomColor> mStandardColors = Collections.emptyList();
-    /** Список текущих цветов у элементов градиента. */
-    private @NonNull List<CustomColor> mCurrentColors = Collections.emptyList();
+    /** Список цветов у элементов градиента. */
+    private @NonNull List<CustomColorEntry> mColorEntries = Collections.emptyList();
     /** Список любимых цветов в формате CustomColor. */
     private @NonNull List<CustomColor> mFavoriteColors = Collections.emptyList();
     /** Выбранный цвет. */
@@ -310,20 +324,18 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
             }
         }
 
-        mStandardColors = new ArrayList<>(numberOfElements);
-        mCurrentColors = new ArrayList<>(numberOfElements);
+        mColorEntries = new ArrayList<>(numberOfElements);
         final int step = (int) ((Hsv.HUE.to()) / (float) numberOfElements);
         final CustomColor baseColor = CustomColor.colorWithModifiedHsv(
                 new CustomColor(ContextCompat.getColor(context, R.color.gradient_start)), Hsv.HUE, Hsv.HUE.from());
 
-        /* Рассчитывает mStandardColors.
-         * Каждый элемент mStandardColors - это середина между левым краем градиента и правым.
+        /* Рассчитывает mColorEntries.
+         * Каждый элемент mColorEntries - это середина между левым краем градиента и правым.
          * Элементы начинаются с colorGradientStart + (mStepHue / 2) и каждый следующий равен предыдущему + mStepHue.
          */
         CustomColor curColor = CustomColor.colorWithModifiedHsv(baseColor, Hsv.HUE, (float) step / 2);
         for (int i = 0; i < numberOfElements; i++) {
-            mStandardColors.add(curColor);
-            mCurrentColors.add(curColor);
+            mColorEntries.add(new CustomColorEntry(curColor, curColor));
             curColor = CustomColor.colorWithModifiedHsv(curColor, Hsv.HUE, step);
         }
 
@@ -358,7 +370,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
         if ((savedInstanceState != null) && savedInstanceState.containsKey(SAVEDINSTANCE_CHOSENCOLOR_KEY)
                 && savedInstanceState.containsKey(SAVEDINSTANCE_GRADIENTCOLORS_KEY)) {
 
-            final int numberOfElements = mCurrentColors.size();
+            final int numberOfElements = mColorEntries.size();
 
             // Восстановление из SavedInstanceState
             final int savedChosenColor = savedInstanceState.getInt(SAVEDINSTANCE_CHOSENCOLOR_KEY, Color.TRANSPARENT);
@@ -375,7 +387,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
             if ((savedGradientColors != null) && (savedGradientColors.size() == numberOfElements)) {
                 for (int i = 0; i < numberOfElements; i++) {
                     int color = savedGradientColors.get(i);
-                    mCurrentColors.set(i, new CustomColor(color));
+                    mColorEntries.get(i).currentColor = new CustomColor(color);
                 }
             } else {
                 throw new IllegalStateException(
@@ -429,8 +441,8 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
         super.onSaveInstanceState(outState);
         outState.putInt(SAVEDINSTANCE_CHOSENCOLOR_KEY, mChosenColor.getColorRgb());
         ArrayList<Integer> mainGradientElements = new ArrayList<>();
-        for (CustomColor elementColor : mCurrentColors) {
-            mainGradientElements.add(elementColor.getColorRgb());
+        for (CustomColorEntry colorEntry : mColorEntries) {
+            mainGradientElements.add(colorEntry.currentColor.getColorRgb());
         }
         outState.putIntegerArrayList(SAVEDINSTANCE_GRADIENTCOLORS_KEY, mainGradientElements);
     }
@@ -500,13 +512,13 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
      * Очищает mColorsLinearLayout и добавляет mCurrentColors.size() элементов в него.
      * Устанавливает каждому элементу цвет в соответствии с mCurrentColors.
      * Каждому добавленному элементу станавливает Tag в соответствии с его порядовым номером.
-     * Устанавливает градиент в mColorsLinearLayout в соответствии с mStandardColors.
+     * Устанавливает градиент в mColorsLinearLayout в соответствии с mColorEntries.
      *
      * @param inflater инфлейтер для создания view
      * @param context контекст для обращения к ресурсам
      *
      * @throws IllegalStateException если mCurrentColors.size() == 0
-     * @throws IllegalStateException если mStandardColors.size() == 0
+     * @throws IllegalStateException если mColorEntries.size() == 0
      * @throws IllegalStateException если mColorsLinearLayout == null
      * @throws IllegalStateException если mStepHue <= 0
      * @throws android.view.InflateException если не удалось добавить view в mColorsLinearLayout
@@ -515,14 +527,14 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
     private void inflateGradientDrawables(@NonNull LayoutInflater inflater,
                                           @NonNull Context context) {
 
-        final int numberOfElements = mCurrentColors.size();
+        final int numberOfElements = mColorEntries.size();
 
-        if (mCurrentColors.isEmpty()) {
+        if (mColorEntries.isEmpty()) {
             throw new IllegalStateException(
                     "Error @ ColorPickerFragment.inflateGradientDrawables: mCurrentColors is empty");
-        } else if (mStandardColors.isEmpty()) {
+        } else if (mColorEntries.isEmpty()) {
             throw new IllegalStateException(
-                    "Error @ ColorPickerFragment.inflateGradientDrawables: mStandardColors is empty");
+                    "Error @ ColorPickerFragment.inflateGradientDrawables: mColorEntries is empty");
         } else if (mColorsLinearLayout == null) {
             throw new IllegalStateException(
                     "Error @ ColorPickerFragment.inflateGradientDrawables: mColorsLinearLayout == null");
@@ -538,7 +550,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
         final int step = (int) ((Hsv.HUE.to()) / (float) numberOfElements);
 
         // Считаем начальный цвет
-        mArrayOfGradient[0] = getBorder(mStandardColors.get(0), GradientBorders.LEFT, step).getColorRgb();
+        mArrayOfGradient[0] = getBorder(mColorEntries.get(0).defaultColor, GradientBorders.LEFT, step).getColorRgb();
         arrayOfPositions[0] = 0;
 
         // Заполняем цветными элементами поле градиента
@@ -546,12 +558,12 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
 
             // Запоминаем правую границу градиента и ее положение
             mArrayOfGradient[i + 1] =
-                    getBorder(mStandardColors.get(i), GradientBorders.RIGHT, step).getColorRgb();
+                    getBorder(mColorEntries.get(i).defaultColor, GradientBorders.RIGHT, step).getColorRgb();
             arrayOfPositions[i + 1] = (float) i / (float) numberOfElements;
 
             // Создаем цветной элемент внутри градиента
             GradientDrawable gradientChildDrawable = newColorDrawable(context);
-            gradientChildDrawable.setColor(mCurrentColors.get(i).getColorRgb());
+            gradientChildDrawable.setColor(mColorEntries.get(i).currentColor.getColorRgb());
 
             // Создаем View, устанавливаем ему бэкграунд в виде цветного элемента
             View gradientChild = inflater.inflate(R.layout.content_colorpicker_circle, mColorsLinearLayout, false);
@@ -677,7 +689,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
                     editingMode = true;
                     mScrollView.requestDisallowInterceptTouchEvent(true);
                     int position = (Integer) v.getTag();
-                    changeMainColor(mCurrentColors.get(position), false);
+                    changeMainColor(mColorEntries.get(position).currentColor, false);
                     // Затеняем градиент
                     mColorsLinearLayout.getBackground().setColorFilter(
                             Color.argb(GRADIENT_FADE_MASK, 0, 0, 0), PorterDuff.Mode.DARKEN);
@@ -747,7 +759,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
     private void clickOnElement(@NonNull ImageButton element) {
         if (element.getTag() != null) {
             final int position = (Integer) element.getTag();
-            changeMainColor(mCurrentColors.get(position), true);
+            changeMainColor(mColorEntries.get(position).currentColor, true);
         }
     }
 
@@ -802,15 +814,15 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
         final int position = (Integer) element.getTag();
 
         final float leftBorderHue  = position == 0
-                ? Hsv.HUE.from() : mStandardColors.get(position - 1).getHsvAttr(Hsv.HUE);
-        final float rightBorderHue = position == (mStandardColors.size() - 1)
-                ? Hsv.HUE.to() : mStandardColors.get(position + 1).getHsvAttr(Hsv.HUE);
+                ? Hsv.HUE.from() : mColorEntries.get(position - 1).defaultColor.getHsvAttr(Hsv.HUE);
+        final float rightBorderHue = position == (mColorEntries.size() - 1)
+                ? Hsv.HUE.to() : mColorEntries.get(position + 1).defaultColor.getHsvAttr(Hsv.HUE);
 
-        final float standardVal = mStandardColors.get(position).getHsvAttr(Hsv.VAL);
+        final float standardVal = mColorEntries.get(position).defaultColor.getHsvAttr(Hsv.VAL);
         final float leftBorderVal = Math.max(standardVal - (standardVal / QUARTER), Hsv.VAL.from());
         final float rightBorderVal = Math.min(standardVal + (standardVal / QUARTER), Hsv.VAL.to());
 
-        final CustomColor currentColorAtPosition  = mCurrentColors.get(position);
+        final CustomColor currentColorAtPosition  = mColorEntries.get(position).currentColor;
         float modifiedHue = currentColorAtPosition.getHsvAttr(Hsv.HUE) + hue;
         float modifiedVal = currentColorAtPosition.getHsvAttr(Hsv.VAL) + val;
 
@@ -839,7 +851,7 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
                         Hsv.VAL,
                         modifiedVal - currentColorAtPosition.getHsvAttr(Hsv.VAL));
 
-        mCurrentColors.set(position, newColor);
+        mColorEntries.get(position).currentColor = newColor;
         setElementColor(element, newColor);
         changeMainColor(newColor, false);
 
@@ -853,8 +865,8 @@ public class ColorPickerFragment extends Fragment implements View.OnTouchListene
      */
     private void reverseColor(@NonNull ImageButton element) {
         final int position = (Integer) element.getTag();
-        CustomColor standardColor = mStandardColors.get(position);
-        mCurrentColors.set(position, standardColor);
+        CustomColor standardColor = mColorEntries.get(position).defaultColor;
+        mColorEntries.get(position).currentColor = standardColor;
         setElementColor(element, standardColor);
     }
 
