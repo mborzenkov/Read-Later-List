@@ -27,7 +27,7 @@ public class ReadLaterDbHelperTest extends ProviderTestCase2<ReadLaterContentPro
     /** Количество колонок в таблице items. */
     private static final int ITEMS_COLUMNS_COUNT = 11;
     /** Количество колонок в таблице fts. */
-    private static final int FTS_COLUMNS_COUNT = 2;
+    private static final int FTS_COLUMNS_COUNT = 3;
 
     public ReadLaterDbHelperTest() {
         super(ReadLaterContentProvider.class, ReadLaterContentProvider.class.getName());

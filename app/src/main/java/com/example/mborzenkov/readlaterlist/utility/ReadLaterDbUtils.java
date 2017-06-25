@@ -22,8 +22,6 @@ public final class ReadLaterDbUtils {
 
     /** Запрос на диапзаон. */
     private static final String QUERY_RANGE = "_ID LIMIT %s OFFSET %s";
-    /** Запрос на заметки пользователя. */
-    private static final String QUERY_USER_ID = String.format("%s = ?", ReadLaterEntry.COLUMN_USER_ID);
 
 
     private ReadLaterDbUtils() {
@@ -47,11 +45,7 @@ public final class ReadLaterDbUtils {
                                                             @IntRange(from = 0) int remoteId) {
         ReadLaterItem result = null;
         Cursor queryCursor = context.getContentResolver().query(
-                ReadLaterEntry.buildUriForRemoteId(remoteId),
-                null,
-                QUERY_USER_ID,
-                new String[] { String.valueOf(userId) },
-                null);
+                ReadLaterEntry.buildUriForRemoteId(userId, remoteId), null, null, null, null);
         if (queryCursor != null) {
             if (queryCursor.getCount() > 0) {
                 queryCursor.moveToPosition(0);
@@ -78,11 +72,7 @@ public final class ReadLaterDbUtils {
                                                 @IntRange(from = 0) int userId,
                                                 @IntRange(from = 0) int remoteId) {
         Cursor queryCursor = context.getContentResolver().query(
-                ReadLaterEntry.buildUriForRemoteId(remoteId),
-                null,
-                QUERY_USER_ID,
-                new String[] { String.valueOf(userId) },
-                null);
+                ReadLaterEntry.buildUriForRemoteId(userId, remoteId), null, null, null, null);
 
         if (queryCursor == null) {
             return -1;
@@ -111,12 +101,7 @@ public final class ReadLaterDbUtils {
      */
     public static @Nullable Cursor queryAllItems(@NonNull Context context,
                                                  @IntRange(from = 0) int userId) {
-        return context.getContentResolver().query(
-                ReadLaterEntry.CONTENT_URI,
-                null,
-                QUERY_USER_ID,
-                new String[] { String.valueOf(userId) },
-                null);
+        return context.getContentResolver().query(ReadLaterEntry.buildUriForUserItems(userId), null, null, null, null);
     }
 
     /** Добавляет новый элемент в базу данных.
@@ -128,10 +113,11 @@ public final class ReadLaterDbUtils {
      * @throws NullPointerException если context == null или item == null
      */
     public static void insertItem(@NonNull Context context, @NonNull ReadLaterItem item) {
+        final int currentUser = UserInfoUtils.getCurentUser(context).getUserId();
         ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
-        ContentValues contentValues = dbAdapter.contentValuesFromItem(item);
-        contentValues.put(ReadLaterEntry.COLUMN_USER_ID, UserInfoUtils.getCurentUser(context).getUserId());
-        context.getContentResolver().insert(ReadLaterEntry.CONTENT_URI, contentValues);
+        context.getContentResolver().insert(
+                ReadLaterEntry.buildUriForUserItems(currentUser),
+                dbAdapter.contentValuesFromItem(item));
     }
 
     /** Производит массовое добавление данных. При этом все даты задаются равными текущему времени.
@@ -148,9 +134,8 @@ public final class ReadLaterDbUtils {
         ContentValues[] values = new ContentValues[itemList.size()];
         for (int i = 0; i < itemList.size(); i++) {
             values[i] = dbAdapter.contentValuesFromItem(itemList.get(i));
-            values[i].put(ReadLaterEntry.COLUMN_USER_ID, currentUser);
         }
-        context.getContentResolver().bulkInsert(ReadLaterEntry.CONTENT_URI, values);
+        context.getContentResolver().bulkInsert(ReadLaterEntry.buildUriForUserItems(currentUser), values);
     }
 
     /** Обновляет заметку с указанным remoteId.
@@ -185,9 +170,11 @@ public final class ReadLaterDbUtils {
      * @throws UnsupportedOperationException если uid < 0
      */
     public static void updateItem(@NonNull Context context, @NonNull ReadLaterItem item, @IntRange(from = 0) int uid) {
+        final int currentUser = UserInfoUtils.getCurentUser(context).getUserId();
         ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentValues contentValues = dbAdapter.contentValuesFromItem(item);
-        context.getContentResolver().update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
+        context.getContentResolver().update(
+                ReadLaterEntry.buildUriForOneItem(currentUser, uid), contentValues, null, null);
     }
 
     /** Обновляет дату просмотра элемента в базе данных с uid.
@@ -199,10 +186,12 @@ public final class ReadLaterDbUtils {
      * @throws UnsupportedOperationException если uid < 0
      */
     public static void updateItemViewDate(@NonNull Context context, @IntRange(from = 0) int uid) {
+        final int currentUser = UserInfoUtils.getCurentUser(context).getUserId();
         final long currentTime = System.currentTimeMillis();
         ContentValues contentValues = new ContentValues();
         contentValues.put(ReadLaterEntry.COLUMN_DATE_LAST_VIEW, currentTime);
-        context.getContentResolver().update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
+        context.getContentResolver().update(
+                ReadLaterEntry.buildUriForOneItem(currentUser, uid), contentValues, null, null);
     }
 
     /** Обновляет внешний идентификатор заметки с указанным _id.
@@ -217,9 +206,11 @@ public final class ReadLaterDbUtils {
     public static void updateItemRemoteId(@NonNull Context context,
                                           @IntRange(from = 0) int uid,
                                           @IntRange(from = 0) int remoteId) {
+        final int currentUser = UserInfoUtils.getCurentUser(context).getUserId();
         ContentValues contentValues = new ContentValues();
         contentValues.put(ReadLaterEntry.COLUMN_REMOTE_ID, remoteId);
-        context.getContentResolver().update(ReadLaterEntry.buildUriForOneItem(uid), contentValues, null, null);
+        context.getContentResolver().update(
+                ReadLaterEntry.buildUriForOneItem(currentUser, uid), contentValues, null, null);
     }
 
 
@@ -232,7 +223,9 @@ public final class ReadLaterDbUtils {
      * @throws UnsupportedOperationException если uid < 0
      */
     public static void deleteItem(@NonNull Context context, @IntRange(from = 0) int uid) {
-        context.getContentResolver().delete(ReadLaterContract.ReadLaterEntry.buildUriForOneItem(uid), null, null);
+        final int currentUser = UserInfoUtils.getCurentUser(context).getUserId();
+        context.getContentResolver().delete(
+                ReadLaterContract.ReadLaterEntry.buildUriForOneItem(currentUser, uid), null, null);
     }
 
     /** Производит удаление всех данных из базы для всех пользователей.
@@ -242,8 +235,9 @@ public final class ReadLaterDbUtils {
      * @throws NullPointerException если context == null
      */
     public static void deleteAll(@NonNull Context context) {
+        final int currentUser = UserInfoUtils.getCurentUser(context).getUserId();
         context.getContentResolver()
-                .delete(ReadLaterEntry.CONTENT_URI, null, null);
+                .delete(ReadLaterEntry.buildUriForUserItems(currentUser), null, null);
     }
 
     /** Выполяняет запрос count количества данных из базы с from позиции.
@@ -261,11 +255,12 @@ public final class ReadLaterDbUtils {
     public static Cursor queryRange(@NonNull Context context,
                                     @IntRange(from = 0) int from,
                                     @IntRange(from = 0) int count) {
+        final int currentUser = UserInfoUtils.getCurentUser(context).getUserId();
         return context.getContentResolver().query(
-                ReadLaterContract.ReadLaterEntry.CONTENT_URI,
+                ReadLaterContract.ReadLaterEntry.buildUriForUserItems(currentUser),
                 null,
-                QUERY_USER_ID,
-                new String[] { String.valueOf(UserInfoUtils.getCurentUser(context).getUserId()) },
+                null,
+                null,
                 String.format(Locale.US, QUERY_RANGE, count, from));
     }
 
@@ -282,8 +277,9 @@ public final class ReadLaterDbUtils {
     public static void changeItemOrder(@NonNull Context context,
                                        @IntRange(from = 0) int itemLocalId,
                                        @IntRange(from = 0) int newPosition) {
+        final int currentUser = UserInfoUtils.getCurentUser(context).getUserId();
         context.getContentResolver()
-                .update(ReadLaterEntry.buildUriForUpdateOrder(itemLocalId, newPosition), null, null, null);
+                .update(ReadLaterEntry.buildUriForUpdateOrder(currentUser, itemLocalId, newPosition), null, null, null);
     }
 
 }

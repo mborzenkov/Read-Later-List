@@ -24,7 +24,10 @@ import java.util.Locale;
 
 /** Совмещает в себе AsyncTask для выполнения фоновой синхронизации и Utility методы.
  *  Необходимо избегать вызова операций на основном потоке, если методы вызываются без AsyncTask.
- *  Методы могут вызывать NetworkOnMainThreadException если вызвана операция на основном потоке
+ *  Методы могут вызывать NetworkOnMainThreadException если вызвана операция на основном потоке.
+ *  Callback должен быть установлен в onPreExecute и начале doInBackground, иначе выполнение будет отменено.
+ *  Если Callback не установлен в onPostExecute, то информация об окончании не будет передана,
+ *      соответственно дата последней синхронизации не будет обновлена и синхронизация будет выполнена повторно.
  */
 class SyncAsyncTask extends AsyncTask<Void, Void, SyncAsyncTask.SyncResult> {
 

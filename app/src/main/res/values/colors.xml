@@ -20,8 +20,6 @@
 
     <!-- Требуется, чтобы HUE в endColor был > HUE в startColor -->
     <color name="gradient_start"    >#EB3636</color>
-    <color name="gradient_end"      >#e91e63</color>
-    <color name="gradient_middle"   >#009688</color>
 
     <color name="circle_stroke"     >#ffffff</color>
 

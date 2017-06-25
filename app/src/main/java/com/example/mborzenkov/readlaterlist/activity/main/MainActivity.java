@@ -42,6 +42,7 @@ import com.example.mborzenkov.readlaterlist.BuildConfig;
 import com.example.mborzenkov.readlaterlist.MyApplication;
 import com.example.mborzenkov.readlaterlist.R;
 import com.example.mborzenkov.readlaterlist.adt.Conflict;
+import com.example.mborzenkov.readlaterlist.adt.CustomColor;
 import com.example.mborzenkov.readlaterlist.adt.MainListFilter;
 import com.example.mborzenkov.readlaterlist.adt.ReadLaterItem;
 import com.example.mborzenkov.readlaterlist.adt.UserInfo;
@@ -718,7 +719,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onSortButtonClick(MainListFilter.SortType type) {
         MainListFilter filter = MainListFilterUtils.getCurrentFilter();
-        if (filter.getSortType().equals(type)) {
+        if (filter.getSortType() == type) {
             filter.nextSortOrder();
         } else {
             filter.setSortType(type);
@@ -750,13 +751,15 @@ public class MainActivity extends AppCompatActivity implements
     }
 
 
+
     /////////////////////////
     // Колбеки EditItemFragment
 
     @Override
     public void onRequestColorPicker(int color, ImageView sharedElement) {
         FragmentManager fragmentManager = getSupportFragmentManager();
-        ColorPickerFragment colorPickerFragment = ColorPickerFragment.getInstance(fragmentManager, color);
+        ColorPickerFragment colorPickerFragment =
+                ColorPickerFragment.getInstance(fragmentManager, new CustomColor(color));
         FragmentTransaction transaction = fragmentManager.beginTransaction();
 
         // Shared element
@@ -845,23 +848,23 @@ public class MainActivity extends AppCompatActivity implements
     // Колбеки ColorPickerCallbacks
 
     @Override
-    public int[] getFavoriteColors() {
+    public @NonNull int[] getFavoriteColors() {
         return FavoriteColorsUtils.getFavoriteColorsFromSharedPreferences(this, null);
     }
 
     @Override
-    public void saveFavoriteColor(int newColor, int position) {
-        FavoriteColorsUtils.saveFavoriteColor(this, null, newColor, position);
+    public void saveFavoriteColor(@NonNull CustomColor newColor, @IntRange(from = 0) int position) {
+        FavoriteColorsUtils.saveFavoriteColor(this, null, newColor.getColorRgb(), position);
     }
 
     @Override
-    public void onColorPicked(int newColor) {
+    public void onColorPicked(@NonNull CustomColor newColor) {
         popFragmentFromBackstack();
         FragmentManager fragmentManager = getSupportFragmentManager();
         EditItemViewPagerFragment editItem = (EditItemViewPagerFragment)
                 fragmentManager.findFragmentByTag(EditItemViewPagerFragment.TAG);
         if (editItem != null) {
-            editItem.setColor(newColor);
+            editItem.setColor(newColor.getColorRgb());
         }
     }
 

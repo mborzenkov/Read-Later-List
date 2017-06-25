@@ -12,7 +12,7 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
     /** Имя базы данных. */
     private static final String DATABASE_NAME = "readlaterlist.db";
     /** Версия базы данных. */
-    private static final int DATABASE_VERSION = 10; // Текущая: 10
+    private static final int DATABASE_VERSION = 12; // Текущая: 12
 
     public ReadLaterDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -40,6 +40,7 @@ class ReadLaterDbHelper extends SQLiteOpenHelper {
         final String sqlCreateFtsTable =
                 "CREATE VIRTUAL TABLE " + ReadLaterEntry.TABLE_NAME_FTS + " USING fts4 ("
                         + "content='" + ReadLaterEntry.TABLE_NAME   + "', "
+                        + ReadLaterEntry.COLUMN_USER_ID             + ", "
                         + ReadLaterEntry.COLUMN_LABEL               + ", "
                         + ReadLaterEntry.COLUMN_DESCRIPTION         + ");";
         sqLiteDatabase.execSQL(sqlCreateFtsTable);

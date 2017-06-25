@@ -11,6 +11,8 @@ import java.io.File;
 import java.util.List;
 
 /** {@link AsyncTask} для фоновой работы с резервными копиями.
+ * Callback должен быть установлен в onPreExecute и начале doInBackground, иначе выполнение будет отменено.
+ * Если Callback не установлен в onPostExecute, то информация об окончании не будет передана.
  */
 class BackupAsyncTask extends AsyncTask<Void, Void, Boolean> {
 

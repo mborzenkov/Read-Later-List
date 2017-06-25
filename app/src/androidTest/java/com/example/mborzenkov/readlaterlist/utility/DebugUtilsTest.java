@@ -49,7 +49,8 @@ public class DebugUtilsTest extends ProviderTestCase2<ReadLaterContentProvider> 
             DebugUtils.addPlaceholdersToDatabase(getMockContext(), firstInsert);
 
             // Проверяем, что данные в базе появились
-            Cursor cursor = provider.query(ReadLaterContract.ReadLaterEntry.CONTENT_URI, null, null, null, null);
+            Cursor cursor = provider.query(ReadLaterContract.ReadLaterEntry.buildUriForUserItems(USER_ID),
+                    null, null, null, null);
             assertTrue(cursor != null);
             assertEquals(firstInsert, cursor.getCount());
             cursor.close();
@@ -62,7 +63,8 @@ public class DebugUtilsTest extends ProviderTestCase2<ReadLaterContentProvider> 
             DebugUtils.addPlaceholdersToDatabase(getMockContext(), secondInsert);
 
             // Проверяем, что данные в базе появились
-            Cursor cursor = provider.query(ReadLaterContract.ReadLaterEntry.CONTENT_URI, null, null, null, null);
+            Cursor cursor = provider.query(ReadLaterContract.ReadLaterEntry.buildUriForUserItems(USER_ID),
+                    null, null, null, null);
             assertTrue(cursor != null);
             assertEquals(secondInsert, cursor.getCount());
             cursor.close();
@@ -75,7 +77,8 @@ public class DebugUtilsTest extends ProviderTestCase2<ReadLaterContentProvider> 
             DebugUtils.addPlaceholdersToDatabase(getMockContext(), thirdInsert);
 
             // Проверяем, что данные в базе появились
-            Cursor cursor = provider.query(ReadLaterContract.ReadLaterEntry.CONTENT_URI, null, null, null, null);
+            Cursor cursor = provider.query(ReadLaterContract.ReadLaterEntry.buildUriForUserItems(USER_ID),
+                    null, null, null, null);
             assertTrue(cursor != null);
             assertEquals(thirdInsert, cursor.getCount());
             cursor.close();
