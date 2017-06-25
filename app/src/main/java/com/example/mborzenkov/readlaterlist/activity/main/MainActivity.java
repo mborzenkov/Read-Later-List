@@ -719,7 +719,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onSortButtonClick(MainListFilter.SortType type) {
         MainListFilter filter = MainListFilterUtils.getCurrentFilter();
-        if (filter.getSortType().equals(type)) {
+        if (filter.getSortType() == type) {
             filter.nextSortOrder();
         } else {
             filter.setSortType(type);

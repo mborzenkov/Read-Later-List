@@ -13,20 +13,49 @@ public final class ReadLaterContract {
     public static final String CONTENT_AUTHORITY = "com.example.mborzenkov.readlaterlist";
     /** Uri для поставщика. */
     private static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
-    /** Путь к списку элементов ReadLater. */
-    public static final String PATH_ITEMS = "items";
-    /** Путь к элементу по remoteId. */
-    public static final String PATH_NOTE = "note";
-    /** Путь к обновлению порядка. */
-    public static final String PATH_ORDER = "setorder";
+
+    /** Представляет все возможные сегменты Uri. */
+    enum UriSegments {
+        /** Начальный сегмент, идентифицирующий все заметки. */
+        ITEMS("items", 0),
+        /** Сегмент с данными пользователя. */
+        USER("user", 2),
+        /** Сегмент с идентификатором заметки. */
+        ITEM_UID("uid", 4),
+        /** Сегмент с внутренним идентификатором заметки. */
+        ITEM_REMID("rid", 4),
+        /** Сегмент с новым значением порядка. */
+        ORDER("reorder", 6);
+
+        /** Строковое значение сегмента, применяется в Uri: .../ITEMS.toString()/USER.toString() == .../items/user */
+        private final String value;
+        /** Позиция, на которой находится значение, связанное с сегментом (см. getSegment). */
+        private final int segment;
+
+        UriSegments(String value, int segment) {
+            this.value = value;
+            this.segment = segment;
+        }
+
+        /** Возвращает позицию, на которой находится связанное с сегментом значение.
+         *
+         * @return Позиция, на которой находится связанное с сегментом значение, например:
+         *          USER.getSegment() == 2 потому что uri (authority)/items/user/123, где user_id == 123
+         *          ITEM_UID == 4 потому что uri (authority)/items/user/123/uid/500, где _id == 500
+         */
+        public int getSegment() {
+            return segment;
+        }
+
+        /** Возвращает строковое представление сегмента, используемое в uri. */
+        @Override
+        public String toString() {
+            return value;
+        }
+    }
 
     /** Описание таблиц. */
     public static final class ReadLaterEntry implements BaseColumns {
-
-        /** Uri для доступа к таблице items. */
-        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon()
-                .appendPath(PATH_ITEMS)
-                .build();
 
         /** Имя таблицы. */
         public static final String TABLE_NAME = "items";
@@ -51,27 +80,52 @@ public final class ReadLaterContract {
         /** Имя колонки с url картинки. */
         public static final String COLUMN_IMAGE_URL = "image_url";
         /** Имя колонки с ручным порядом в таблице порядокв. */
-        public static final String COLUMN_ORDER = "item_order";
+        public static final String COLUMN_ORDER = "man_order";
+
+        /** Создает Uri для доступа ко всем заметкам пользователя.
+         *
+         * @param userId идентификатор пользователя
+         *
+         * @return Uri для доступа
+         */
+        public static Uri buildUriForUserItems(int userId) {
+            return BASE_CONTENT_URI.buildUpon()
+                    .appendPath(UriSegments.ITEMS.toString())
+                    .appendPath(UriSegments.USER.toString())
+                    .appendPath(String.valueOf(userId))
+                    .build();
+        }
 
         /** Создает Uri для доступа к одному элменту по id.
          *
-         * @param id _id элемента
+         * @param userId идентификатор пользователя
+         * @param itemId _id элемента
+         *
          * @return Uri для доступа
          */
-        public static Uri buildUriForOneItem(int id) {
-            return CONTENT_URI.buildUpon()
-                    .appendPath(String.valueOf(id))
+        public static Uri buildUriForOneItem(int userId, int itemId) {
+            return BASE_CONTENT_URI.buildUpon()
+                    .appendPath(UriSegments.ITEMS.toString())
+                    .appendPath(UriSegments.USER.toString())
+                    .appendPath(String.valueOf(userId))
+                    .appendPath(UriSegments.ITEM_UID.toString())
+                    .appendPath(String.valueOf(itemId))
                     .build();
         }
 
         /** Создает Uri для доступа к одному элменту по его remoteId.
          *
+         * @param userId идентификатор пользователя
          * @param remoteId Внешний идентификатор элемента
+         *
          * @return Uri для доступа
          */
-        public static Uri buildUriForRemoteId(int remoteId) {
-            return CONTENT_URI.buildUpon()
-                    .appendPath(PATH_NOTE)
+        public static Uri buildUriForRemoteId(int userId, int remoteId) {
+            return BASE_CONTENT_URI.buildUpon()
+                    .appendPath(UriSegments.ITEMS.toString())
+                    .appendPath(UriSegments.USER.toString())
+                    .appendPath(String.valueOf(userId))
+                    .appendPath(UriSegments.ITEM_REMID.toString())
                     .appendPath(String.valueOf(remoteId))
                     .build();
         }
@@ -80,14 +134,20 @@ public final class ReadLaterContract {
          * По этому Uri в update content provider обновляет позицию элемента и позиции всех промежуточных элементов
          *      между старой позицией элемента и новой
          *
+         * @param userId идентификатор пользователя
          * @param itemId внутренний идентификатор элемента, _id
          * @param newPosition новая позиция (item_order)
+         *
          * @return Uri для доступа
          */
-        public static Uri buildUriForUpdateOrder(int itemId, int newPosition) {
-            return CONTENT_URI.buildUpon()
+        public static Uri buildUriForUpdateOrder(int userId, int itemId, int newPosition) {
+            return BASE_CONTENT_URI.buildUpon()
+                    .appendPath(UriSegments.ITEMS.toString())
+                    .appendPath(UriSegments.USER.toString())
+                    .appendPath(String.valueOf(userId))
+                    .appendPath(UriSegments.ITEM_UID.toString())
                     .appendPath(String.valueOf(itemId))
-                    .appendPath(PATH_ORDER)
+                    .appendPath(UriSegments.ORDER.toString())
                     .appendPath(String.valueOf(newPosition))
                     .build();
         }

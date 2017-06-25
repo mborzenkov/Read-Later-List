@@ -62,8 +62,7 @@ public class ReadLaterDbUtilsTest extends ProviderTestCase2<ReadLaterContentProv
         Cursor cursor;
 
         // Проверяем, что еще нет данных для этого пользователя
-        cursor = provider.query(ReadLaterEntry.CONTENT_URI, null,
-                ReadLaterEntry.COLUMN_USER_ID + "=?", new String[] { String.valueOf(USER_ID) }, null);
+        cursor = provider.query(ReadLaterEntry.buildUriForUserItems(USER_ID), null, null, null, null);
         assertTrue(cursor != null);
         assertEquals(0, cursor.getCount());
         cursor.close();
@@ -72,8 +71,7 @@ public class ReadLaterDbUtilsTest extends ProviderTestCase2<ReadLaterContentProv
         ReadLaterDbUtils.insertItem(getMockContext(), defaultItem);
 
         // Проверяем, что данные в базе появились
-        cursor = provider.query(ReadLaterEntry.CONTENT_URI, null,
-                ReadLaterEntry.COLUMN_USER_ID + "=?", new String[] { String.valueOf(USER_ID) }, null);
+        cursor = provider.query(ReadLaterEntry.buildUriForUserItems(USER_ID), null, null, null, null);
         assertTrue(cursor != null);
         assertTrue(cursor.moveToNext());
         assertEquals(defaultItem, dbAdapter.itemFromCursor(cursor));
@@ -89,8 +87,7 @@ public class ReadLaterDbUtilsTest extends ProviderTestCase2<ReadLaterContentProv
         Cursor cursor;
 
         // Проверяем, что еще нет данных для этого пользователя
-        cursor = provider.query(ReadLaterEntry.CONTENT_URI, null,
-                ReadLaterEntry.COLUMN_USER_ID + "=?", new String[] { String.valueOf(USER_ID) }, null);
+        cursor = provider.query(ReadLaterEntry.buildUriForUserItems(USER_ID), null, null, null, null);
         assertTrue(cursor != null);
         assertEquals(0, cursor.getCount());
         cursor.close();
@@ -102,8 +99,7 @@ public class ReadLaterDbUtilsTest extends ProviderTestCase2<ReadLaterContentProv
         ReadLaterDbUtils.bulkInsertItems(getMockContext(), items);
 
         // Проверяем, что данные в базе появились
-        cursor = provider.query(ReadLaterEntry.CONTENT_URI, null,
-                ReadLaterEntry.COLUMN_USER_ID + "=?", new String[] { String.valueOf(USER_ID) }, null);
+        cursor = provider.query(ReadLaterEntry.buildUriForUserItems(USER_ID), null, null, null, null);
         assertTrue(cursor != null);
         assertEquals(2, cursor.getCount());
         assertTrue(items.containsAll(dbAdapter.allItemsFromCursor(cursor)));
@@ -393,8 +389,12 @@ public class ReadLaterDbUtilsTest extends ProviderTestCase2<ReadLaterContentProv
      * @throws AssertionError если по запросу указанной позиции cursor == null или cursor.getCount() != 1
      */
     private int getItemIdAtPosition(@NonNull ContentProvider provider, @IntRange(from = 0) int position) {
-        Cursor cursor = provider.query(ReadLaterEntry.CONTENT_URI, null, ReadLaterEntry.COLUMN_ORDER + "=?",
-                new String[] { String.valueOf(position) }, null);
+        Cursor cursor = provider.query(
+                ReadLaterEntry.buildUriForUserItems(USER_ID),
+                null,
+                ReadLaterEntry.COLUMN_ORDER + "=?",
+                new String[] { String.valueOf(position) },
+                null);
         assertTrue(cursor != null);
         assertEquals(1, cursor.getCount());
         assertTrue(cursor.moveToNext());

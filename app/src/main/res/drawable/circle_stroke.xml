@@ -5,8 +5,7 @@
     android:shape="oval" >
 
     <solid
-        android:color="@android:color/transparent"
-        tools:color="@color/gradient_middle" />
+        android:color="@android:color/transparent"/>
 
     <stroke
         android:width="2dp"

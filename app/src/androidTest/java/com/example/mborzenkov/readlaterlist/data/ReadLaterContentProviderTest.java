@@ -52,7 +52,7 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
     @Test
     public void testGetType() {
         ContentProvider provider = getProvider();
-        assertEquals(null, provider.getType(ReadLaterEntry.CONTENT_URI));
+        assertEquals(null, provider.getType(ReadLaterEntry.buildUriForUserItems(USER_ID)));
     }
 
     @Test
@@ -60,7 +60,8 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
         final ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         final ContentProvider provider = getProvider();
 
-        Uri itemUri = provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
+        Uri itemUri = provider.insert(
+                ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(defaultItem));
         assertTrue(itemUri != null);
         assertEquals(1L, ContentUris.parseId(itemUri));
 
@@ -77,19 +78,20 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
         final ContentProvider provider = getProvider();
         final ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
 
-        ContentValues[] contentValues = new ContentValues[] { getValidContentValues(defaultItem),
-                getValidContentValues(secondItem) };
-        final int inserted = provider.bulkInsert(ReadLaterEntry.CONTENT_URI, contentValues);
+        ContentValues[] contentValues = new ContentValues[] { dbAdapter.contentValuesFromItem(defaultItem),
+                dbAdapter.contentValuesFromItem(secondItem) };
+        final int inserted = provider.bulkInsert(ReadLaterEntry.buildUriForUserItems(USER_ID), contentValues);
         assertEquals(2, inserted);
 
-        Cursor cursor = provider.query(ReadLaterEntry.buildUriForRemoteId(REMOTE_ID_DEFAULT), null, null, null, null);
+        Cursor cursor = provider.query(ReadLaterEntry.buildUriForRemoteId(USER_ID, REMOTE_ID_DEFAULT),
+                null, null, null, null);
         assertTrue(cursor != null);
         assertTrue(cursor.moveToNext());
         assertEquals(defaultItem, dbAdapter.itemFromCursor(cursor));
         assertFalse(cursor.moveToNext());
         cursor.close();
 
-        cursor = provider.query(ReadLaterEntry.buildUriForRemoteId(REMOTE_ID_SECOND), null, null, null, null);
+        cursor = provider.query(ReadLaterEntry.buildUriForRemoteId(USER_ID, REMOTE_ID_SECOND), null, null, null, null);
         assertTrue(cursor != null);
         assertTrue(cursor.moveToNext());
         assertEquals(secondItem, dbAdapter.itemFromCursor(cursor));
@@ -102,8 +104,8 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
         final ContentProvider provider = getProvider();
         final ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
 
-        provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
-        Cursor cursor = provider.query(ReadLaterEntry.CONTENT_URI, null, null, null, null);
+        provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(defaultItem));
+        Cursor cursor = provider.query(ReadLaterEntry.buildUriForUserItems(USER_ID), null, null, null, null);
         assertTrue(cursor != null);
         assertTrue(cursor.moveToNext());
         assertEquals(defaultItem, dbAdapter.itemFromCursor(cursor));
@@ -116,8 +118,9 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
         final ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
 
         // После insert
-        Uri itemUri = provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
-        provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(secondItem));
+        Uri itemUri = provider.insert(
+                ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(defaultItem));
+        provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(secondItem));
         assertTrue(itemUri != null);
         Cursor cursor = provider.query(itemUri, null, null, null, null);
         assertTrue(cursor != null);
@@ -128,7 +131,7 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
         cursor.close();
 
         // с buildUriForOneItem
-        cursor = provider.query(ReadLaterEntry.buildUriForOneItem(itemid), null, null, null, null);
+        cursor = provider.query(ReadLaterEntry.buildUriForOneItem(USER_ID, itemid), null, null, null, null);
         assertTrue(cursor != null);
         assertEquals(1, cursor.getCount());
         assertTrue(cursor.moveToNext());
@@ -141,17 +144,18 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
         final ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         final ContentProvider provider = getProvider();
 
-        provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
-        provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(secondItem));
-        Cursor cursor = provider.query(ReadLaterEntry.buildUriForRemoteId(REMOTE_ID_DEFAULT), null, null, null, null);
+        provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(defaultItem));
+        provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(secondItem));
+        Cursor cursor = provider.query(ReadLaterEntry.buildUriForRemoteId(USER_ID, REMOTE_ID_DEFAULT),
+                null, null, null, null);
         assertTrue(cursor != null);
         assertEquals(1, cursor.getCount());
         assertTrue(cursor.moveToNext());
         assertEquals(defaultItem, dbAdapter.itemFromCursor(cursor));
         cursor.close();
 
-        cursor = provider.query(ReadLaterEntry.buildUriForRemoteId(REMOTE_ID_DEFAULT), null,
-                ReadLaterEntry.COLUMN_USER_ID + "=?", new String[] { String.valueOf(USER_ID) }, null);
+        cursor = provider.query(
+                ReadLaterEntry.buildUriForRemoteId(USER_ID, REMOTE_ID_DEFAULT), null, null, null, null);
         assertTrue(cursor != null);
         assertEquals(1, cursor.getCount());
         assertTrue(cursor.moveToNext());
@@ -164,7 +168,8 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
         final ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         final ContentProvider provider = getProvider();
 
-        Uri itemUri = provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
+        Uri itemUri = provider.insert(
+                ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(defaultItem));
         assertTrue(itemUri != null);
         Cursor cursor = provider.query(itemUri, null, null, null, null);
         assertTrue(cursor != null);
@@ -178,9 +183,10 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
         assertFalse(cursor.moveToNext());
         cursor.close();
 
-        itemUri = provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
+        itemUri = provider.insert(
+                ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(defaultItem));
         assertTrue(itemUri != null);
-        provider.delete(ReadLaterEntry.CONTENT_URI, null, null);
+        provider.delete(ReadLaterEntry.buildUriForUserItems(USER_ID), null, null);
         cursor = provider.query(itemUri, null, null, null, null);
         assertTrue(cursor != null);
         assertFalse(cursor.moveToNext());
@@ -192,9 +198,10 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
         final ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         final ContentProvider provider = getProvider();
 
-        Uri itemUri = provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
+        Uri itemUri = provider.insert(
+                ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(defaultItem));
         assertTrue(itemUri != null);
-        int updated = provider.update(itemUri, getValidContentValues(secondItem), null, null);
+        int updated = provider.update(itemUri, dbAdapter.contentValuesFromItem(secondItem), null, null);
         assertEquals(1, updated);
         Cursor cursor = provider.query(itemUri, null, null, null, null);
         assertTrue(cursor != null);
@@ -208,13 +215,14 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
         final ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         final ContentProvider provider = getProvider();
 
-        final Uri itemUri = provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
+        final Uri itemUri = provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID),
+                dbAdapter.contentValuesFromItem(defaultItem));
         assertTrue(itemUri != null);
 
         ContentValues contentValues;
         // UPDATE, потому что только label
         final ReadLaterItem changedLabel = new ReadLaterItem.Builder(defaultItem).label("newLabel").build();
-        contentValues = getValidContentValues(changedLabel);
+        contentValues = dbAdapter.contentValuesFromItem(changedLabel);
         contentValues.remove(ReadLaterEntry.COLUMN_DESCRIPTION);
         int updated = provider.update(itemUri, contentValues, null, null);
         assertEquals(1, updated);
@@ -226,7 +234,7 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
 
         // UPDATE, потому что только description
         final ReadLaterItem changedDesc = new ReadLaterItem.Builder(changedLabel).description("newDesc").build();
-        contentValues = getValidContentValues(changedDesc);
+        contentValues = dbAdapter.contentValuesFromItem(changedDesc);
         contentValues.remove(ReadLaterEntry.COLUMN_LABEL);
         updated = provider.update(itemUri, contentValues, null, null);
         assertEquals(1, updated);
@@ -238,7 +246,7 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
 
         // UPDATE без FTS
         final ReadLaterItem noFts = new ReadLaterItem.Builder(changedDesc).color(Color.BLACK).build();
-        contentValues = getValidContentValues(noFts);
+        contentValues = dbAdapter.contentValuesFromItem(noFts);
         contentValues.remove(ReadLaterEntry.COLUMN_LABEL);
         contentValues.remove(ReadLaterEntry.COLUMN_DESCRIPTION);
         updated = provider.update(itemUri, contentValues, null, null);
@@ -252,6 +260,7 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
 
     @Test
     public void testUpdateOrder() {
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         final ContentProvider provider = getProvider();
         final int firstPos = 1;
         final int secndPos = 2;
@@ -259,9 +268,9 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
         final int totalItems = 3;
 
         // Создаем заметки
-        provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
-        provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(secondItem));
-        provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(secondItem));
+        provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(defaultItem));
+        provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(secondItem));
+        provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(secondItem));
 
         // Запоминаем id по текущим позициям
         final int item1Id = getItemIdAtPosition(provider, firstPos);
@@ -270,35 +279,35 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
 
         int updated;
         // Меняем элемент 1 на позицию SECND_POS, при этом элемент на позиции THIRD_POS не должен измениться
-        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(item1Id, secndPos), null, null, null);
+        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(USER_ID, item1Id, secndPos), null, null, null);
         assertEquals(totalItems - 1, updated);
         assertEquals(getItemIdAtPosition(provider, firstPos), item2Id);
         assertEquals(getItemIdAtPosition(provider, secndPos), item1Id);
         assertEquals(getItemIdAtPosition(provider, thirdPos), item3Id);
 
         // Меняем элемент 3 на позицию SECND_POS, при этом элемент на позиции FIRST_POS не должен измениться
-        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(item3Id, secndPos), null, null, null);
+        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(USER_ID, item3Id, secndPos), null, null, null);
         assertEquals(totalItems - 1, updated);
         assertEquals(getItemIdAtPosition(provider, firstPos), item2Id);
         assertEquals(getItemIdAtPosition(provider, secndPos), item3Id);
         assertEquals(getItemIdAtPosition(provider, thirdPos), item1Id);
 
         // Меняем элемент на позиции FIRST_POS на позицию THIRD_POS, при этом у остальных элементов станет позиция -1
-        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(item2Id, thirdPos), null, null, null);
+        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(USER_ID, item2Id, thirdPos), null, null, null);
         assertEquals(totalItems, updated);
         assertEquals(getItemIdAtPosition(provider, firstPos), item3Id);
         assertEquals(getItemIdAtPosition(provider, secndPos), item1Id);
         assertEquals(getItemIdAtPosition(provider, thirdPos), item2Id);
 
         // Меняем элемент на позиции THIRD_POS на позицию FIRST_POS, при этом у остальных элементов станет позиция +1
-        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(item2Id, firstPos), null, null, null);
+        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(USER_ID, item2Id, firstPos), null, null, null);
         assertEquals(totalItems, updated);
         assertEquals(getItemIdAtPosition(provider, firstPos), item2Id);
         assertEquals(getItemIdAtPosition(provider, secndPos), item3Id);
         assertEquals(getItemIdAtPosition(provider, thirdPos), item1Id);
 
         // Меняем элемент на позиции SECND_POS на SECND_POS
-        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(item3Id, secndPos), null, null, null);
+        updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(USER_ID, item3Id, secndPos), null, null, null);
         assertEquals(0, updated);
         assertEquals(getItemIdAtPosition(provider, firstPos), item2Id);
         assertEquals(getItemIdAtPosition(provider, secndPos), item3Id);
@@ -307,9 +316,10 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
 
     @Test
     public void testUpdateUnavailableItemId() {
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         final ContentProvider provider = getProvider();
-        provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
-        int updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(2, 1), null, null, null);
+        provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(defaultItem));
+        int updated = provider.update(ReadLaterEntry.buildUriForUpdateOrder(USER_ID, 2, 1), null, null, null);
         assertEquals(updated, 0);
     }
 
@@ -317,31 +327,34 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
     @SuppressWarnings("UnusedAssignment")
     @Test(expected = UnsupportedOperationException.class)
     public void testInsertUriException() {
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentProvider provider = getProvider();
-        provider.insert(Uri.EMPTY, getValidContentValues(defaultItem));
+        provider.insert(Uri.EMPTY, dbAdapter.contentValuesFromItem(defaultItem));
     }
 
     @SuppressWarnings("UnusedAssignment")
     @Test(expected = IllegalArgumentException.class)
     public void testInserNullValuesException() {
         ContentProvider provider = getProvider();
-        provider.insert(ReadLaterEntry.CONTENT_URI, null);
+        provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID), null);
     }
 
     @SuppressWarnings("UnusedAssignment")
     @Test(expected = IllegalArgumentException.class)
     public void testInserWrongValuesException() {
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentProvider provider = getProvider();
-        ContentValues contentValues = getValidContentValues(defaultItem);
+        ContentValues contentValues = dbAdapter.contentValuesFromItem(defaultItem);
         contentValues.remove(ReadLaterEntry.COLUMN_LABEL);
-        provider.insert(ReadLaterEntry.CONTENT_URI, contentValues);
+        provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID), contentValues);
     }
 
     @SuppressWarnings("UnusedAssignment")
     @Test(expected = UnsupportedOperationException.class)
     public void testBulkInsertUriException() {
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentProvider provider = getProvider();
-        provider.bulkInsert(Uri.EMPTY, new ContentValues[] { getValidContentValues(defaultItem) });
+        provider.bulkInsert(Uri.EMPTY, new ContentValues[] { dbAdapter.contentValuesFromItem(defaultItem) });
     }
 
     @SuppressWarnings("UnusedAssignment")
@@ -349,30 +362,34 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
     public void testBulkInserNullValuesException() {
         ContentProvider provider = getProvider();
         //noinspection ConstantConditions
-        provider.bulkInsert(ReadLaterEntry.CONTENT_URI, null);
+        provider.bulkInsert(ReadLaterEntry.buildUriForUserItems(USER_ID), null);
     }
 
     @SuppressWarnings("UnusedAssignment")
     @Test(expected = IllegalArgumentException.class)
     public void testBulkInserWrongValuesException() {
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentProvider provider = getProvider();
-        ContentValues contentValues = getValidContentValues(defaultItem);
+        ContentValues contentValues = dbAdapter.contentValuesFromItem(defaultItem);
         contentValues.remove(ReadLaterEntry.COLUMN_LABEL);
-        provider.bulkInsert(ReadLaterEntry.CONTENT_URI, new ContentValues[] { contentValues });
+        provider.bulkInsert(ReadLaterEntry.buildUriForUserItems(USER_ID), new ContentValues[] { contentValues });
     }
 
     @SuppressWarnings("UnusedAssignment")
     @Test(expected = UnsupportedOperationException.class)
     public void testUpdateUriException() {
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentProvider provider = getProvider();
-        provider.update(Uri.EMPTY, getValidContentValues(defaultItem), null, null);
+        provider.update(Uri.EMPTY, dbAdapter.contentValuesFromItem(defaultItem), null, null);
     }
 
     @SuppressWarnings("UnusedAssignment")
     @Test(expected = IllegalArgumentException.class)
     public void testUpdateNullValuesException() {
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentProvider provider = getProvider();
-        Uri itemUri = provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
+        Uri itemUri = provider.insert(
+                ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(defaultItem));
         assertTrue(itemUri != null);
         provider.update(itemUri, null, null, null);
     }
@@ -380,9 +397,10 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
     @SuppressWarnings("UnusedAssignment")
     @Test(expected = IllegalArgumentException.class)
     public void testUpdateWrongValuesException() {
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentProvider provider = getProvider();
-        ContentValues contentValues = getValidContentValues(defaultItem);
-        Uri itemUri = provider.insert(ReadLaterEntry.CONTENT_URI, contentValues);
+        ContentValues contentValues = dbAdapter.contentValuesFromItem(defaultItem);
+        Uri itemUri = provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID), contentValues);
         assertTrue(itemUri != null);
         contentValues.put(ReadLaterEntry.COLUMN_LABEL, (String) null);
         provider.update(itemUri, contentValues, null, null);
@@ -391,27 +409,30 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
     @SuppressWarnings("UnusedAssignment")
     @Test(expected = UnsupportedOperationException.class)
     public void testUpdateOrderNegative() {
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentProvider provider = getProvider();
-        provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
+        provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(defaultItem));
         final int itemId = getItemIdAtPosition(provider, 1);
-        provider.update(ReadLaterEntry.buildUriForUpdateOrder(itemId, -1), null, null, null);
+        provider.update(ReadLaterEntry.buildUriForUpdateOrder(USER_ID, itemId, -1), null, null, null);
     }
 
     @SuppressWarnings("UnusedAssignment")
     @Test(expected = IllegalArgumentException.class)
     public void testUpdateOrderMax() {
         final int bigOrder = 100000;
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentProvider provider = getProvider();
-        provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
+        provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(defaultItem));
         final int itemId = getItemIdAtPosition(provider, 1);
-        provider.update(ReadLaterEntry.buildUriForUpdateOrder(itemId, bigOrder), null, null, null);
+        provider.update(ReadLaterEntry.buildUriForUpdateOrder(USER_ID, itemId, bigOrder), null, null, null);
     }
 
     @SuppressWarnings("UnusedAssignment")
     @Test(expected = UnsupportedOperationException.class)
     public void testQueryUriException() {
+        ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
         ContentProvider provider = getProvider();
-        provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
+        provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(defaultItem));
         Cursor cursor = provider.query(Uri.EMPTY, null, null, null, null);
         assertTrue(cursor != null);
         cursor.close();
@@ -420,22 +441,10 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
     @SuppressWarnings("UnusedAssignment")
     @Test(expected = UnsupportedOperationException.class)
     public void testDeleteUriException() {
-        ContentProvider provider = getProvider();
-        provider.insert(ReadLaterEntry.CONTENT_URI, getValidContentValues(defaultItem));
-        provider.delete(Uri.EMPTY, null, null);
-    }
-
-    /** Возвращает ContentValues, пригодные для вставки в базу данных без изменений.
-     *
-     * @param item объект, на основании которого нужно подготовить ContentValues.
-     *
-     * @return ContentValues для вставки в базу данных, заполненные данными из объекта и с указанным user id = USER_ID
-     */
-    private ContentValues getValidContentValues(ReadLaterItem item) {
         ReadLaterItemDbAdapter dbAdapter = new ReadLaterItemDbAdapter();
-        ContentValues contentValues = dbAdapter.contentValuesFromItem(item);
-        contentValues.put(ReadLaterEntry.COLUMN_USER_ID, USER_ID);
-        return contentValues;
+        ContentProvider provider = getProvider();
+        provider.insert(ReadLaterEntry.buildUriForUserItems(USER_ID), dbAdapter.contentValuesFromItem(defaultItem));
+        provider.delete(Uri.EMPTY, null, null);
     }
 
     /** Возвращает _id элемента на указанной позиции.
@@ -449,7 +458,8 @@ public class ReadLaterContentProviderTest extends ProviderTestCase2<ReadLaterCon
      * @throws AssertionError если по запросу указанной позиции cursor == null или cursor.getCount() != 1
      */
     private int getItemIdAtPosition(@NonNull ContentProvider provider, @IntRange(from = 0) int position) {
-        Cursor cursor = provider.query(ReadLaterEntry.CONTENT_URI, null, ReadLaterEntry.COLUMN_ORDER + "=?",
+        Cursor cursor = provider.query(ReadLaterEntry.buildUriForUserItems(USER_ID),
+                null, ReadLaterEntry.COLUMN_ORDER + "=?",
                 new String[] { String.valueOf(position) }, null);
         assertTrue(cursor != null);
         assertEquals(1, cursor.getCount());

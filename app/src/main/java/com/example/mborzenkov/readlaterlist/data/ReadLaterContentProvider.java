@@ -1,41 +1,34 @@
 package com.example.mborzenkov.readlaterlist.data;
 
 import android.content.ContentProvider;
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.ReadLaterEntry;
+import com.example.mborzenkov.readlaterlist.data.ReadLaterContract.UriSegments;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /** Контент провайдер для работы с базой данных. */
 public class ReadLaterContentProvider extends ContentProvider {
 
-    /** Код запроса всех данных. */
-    private static final int CODE_READLATER_ITEMS = 100;
-    /** Код запроса отдельного элемента. */
-    private static final int CODE_READLATER_ITEMS_WITH_ID = 101;
+    /** Код запроса всех данных пользователя. */
+    private static final int CODE_ITEMS = 100;
+    /** Код запроса отдельного элемента по uid. */
+    private static final int CODE_ITEMS_ID = 101;
     /** Код запроса отдельного элемента по remoteId. */
-    private static final int CODE_READLATER_ITEMS_WITH_REMOTE_ID = 102;
+    private static final int CODE_ITEMS_REMOTEID = 102;
     /** Код запроса обновления порядка у элемента. */
-    private static final int CODE_READLATER_ITEMS_UPDATE_ORDER = 103;
-
-    /** Запрос для отдельного элемента по remoteId. */
-    private static final String QUERY_REMOTE_ID = ReadLaterEntry.COLUMN_REMOTE_ID + "=?";
-    /** Запрос для максимального значения порядка. */
-    private static final String QUERY_MAX_ORDER_POSITION =
-            "SELECT MAX(" + ReadLaterEntry.COLUMN_ORDER + ") FROM " + ReadLaterEntry.TABLE_NAME;
-    /** Запрос для отдельного элемента по id. */
-    private static final String QUERY_ID = "_id=?";
+    private static final int CODE_ITEMS_ORDER = 103;
 
     /** Матчер для сравнения запрашиваемых uri. */
     private static final UriMatcher sUriMatcher = buildUriMatcher();
@@ -50,17 +43,24 @@ public class ReadLaterContentProvider extends ContentProvider {
 
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         final String authority = ReadLaterContract.CONTENT_AUTHORITY;
-        // Uri для доступа ко всем данным
-        matcher.addURI(authority, ReadLaterContract.PATH_ITEMS, CODE_READLATER_ITEMS);
-        // Uri для доступа к отдельному элементу
-        matcher.addURI(authority, ReadLaterContract.PATH_ITEMS + "/#",
-                CODE_READLATER_ITEMS_WITH_ID);
-        matcher.addURI(authority, ReadLaterContract.PATH_ITEMS + "/" + ReadLaterContract.PATH_NOTE + "/#",
-                CODE_READLATER_ITEMS_WITH_REMOTE_ID);
-        matcher.addURI(authority, ReadLaterContract.PATH_ITEMS + "/#/" + ReadLaterContract.PATH_ORDER + "/#",
-                CODE_READLATER_ITEMS_UPDATE_ORDER);
-
+        // Uri для доступа ко всем данным пользователя
+        matcher.addURI(authority, UriSegments.ITEMS + "/"
+                + UriSegments.USER + "/#", CODE_ITEMS);
+        // Uri для доступа к отдельному элементу по uid
+        matcher.addURI(authority, UriSegments.ITEMS + "/"
+                + UriSegments.USER + "/#/"
+                + UriSegments.ITEM_UID + "/#", CODE_ITEMS_ID);
+        // Uri для доступа к отдельному элементу по remoteId
+        matcher.addURI(authority, UriSegments.ITEMS + "/"
+                + UriSegments.USER + "/#/"
+                + UriSegments.ITEM_REMID + "/#", CODE_ITEMS_REMOTEID);
+        // Uri для обновления порядка у элемента
+        matcher.addURI(authority, UriSegments.ITEMS + "/"
+                + UriSegments.USER + "/#/"
+                + UriSegments.ITEM_UID + "/#/"
+                + UriSegments.ORDER + "/#", CODE_ITEMS_ORDER);
         return matcher;
+
     }
 
     @Override
@@ -79,47 +79,53 @@ public class ReadLaterContentProvider extends ContentProvider {
     /** {@inheritDoc}
      *
      * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     * @throws UnsupportedOperationException если запрос CODE_ITEMS_ID и selection не пустой,
+     *      т.к. uri подразумевает запрос одной заметки по уникальному идентификатору, selection это ошибка
      */
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
                         @Nullable String[] selectionArgs, @Nullable String sortOrder) {
-        // Обработчик запросов select
-        Cursor cursor;
-        switch (sUriMatcher.match(uri)) {
-            case CODE_READLATER_ITEMS:
-                cursor = mReadLaterDbHelper.getReadableDatabase().query(
+
+        final SQLiteDatabase db = mReadLaterDbHelper.getReadableDatabase();
+        final Map<UriSegments, Integer> uriMatch = analyzeUri(uri);
+        final Cursor returnCursor;
+
+        switch (uriMatch.get(UriSegments.ITEMS)) {
+            case CODE_ITEMS:
+                returnCursor = db.query(
                         ReadLaterEntry.TABLE_NAME,
                         projection,
-                        selection,
+                        appendSelectionWithValues(selection,
+                                ReadLaterEntry.COLUMN_USER_ID, String.valueOf(uriMatch.get(UriSegments.USER))),
                         selectionArgs,
                         null,
                         null,
                         sortOrder);
                 break;
-            case CODE_READLATER_ITEMS_WITH_ID:
-                String[] id = new String[] {uri.getPathSegments().get(1)};
-                cursor = mReadLaterDbHelper.getReadableDatabase().query(
+            case CODE_ITEMS_ID:
+                if ((selection != null) && (!selection.trim().isEmpty())) {
+                    throw new UnsupportedOperationException(
+                            "Error @ ReadLaterContentProvider.query: for uri " + uri + " selection == " + selection);
+                }
+                returnCursor = db.query(
                         ReadLaterEntry.TABLE_NAME,
                         projection,
-                        QUERY_ID,
-                        id,
+                        appendSelectionWithValues(selection,
+                                ReadLaterEntry.COLUMN_USER_ID, String.valueOf(uriMatch.get(UriSegments.USER)),
+                                ReadLaterEntry._ID, String.valueOf(uriMatch.get(UriSegments.ITEM_UID))),
+                        null,
                         null,
                         null,
                         null);
                 break;
-            case CODE_READLATER_ITEMS_WITH_REMOTE_ID:
-                StringBuilder newSelection = new StringBuilder(QUERY_REMOTE_ID);
-                List<String> newSelectionArgs = new ArrayList<>();
-                newSelectionArgs.add(uri.getPathSegments().get(2));
-                if ((selection != null) && (selectionArgs != null) && (!selection.isEmpty())) {
-                    newSelection.append(" AND ").append(selection);
-                    newSelectionArgs.addAll(Arrays.asList(selectionArgs));
-                }
-                cursor = mReadLaterDbHelper.getReadableDatabase().query(
+            case CODE_ITEMS_REMOTEID:
+                returnCursor = db.query(
                         ReadLaterEntry.TABLE_NAME,
                         projection,
-                        newSelection.toString(),
-                        newSelectionArgs.toArray(new String[newSelectionArgs.size()]),
+                        appendSelectionWithValues(selection,
+                                ReadLaterEntry.COLUMN_USER_ID, String.valueOf(uriMatch.get(UriSegments.USER)),
+                                ReadLaterEntry.COLUMN_REMOTE_ID, String.valueOf(uriMatch.get(UriSegments.ITEM_REMID))),
+                        selectionArgs,
                         null,
                         null,
                         sortOrder);
@@ -128,81 +134,105 @@ public class ReadLaterContentProvider extends ContentProvider {
                 throw new UnsupportedOperationException("Error @ ReadLaterContentProvider.query: unknown uri " + uri);
         }
 
-        return cursor;
+        return returnCursor;
+
     }
 
     /** {@inheritDoc}
      *
      * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     * @throws UnsupportedOperationException если запрос CODE_ITEMS_ID и selection не пустой,
+     *      т.к. CODE_ITEMS_ID подразумевает запрос одной заметки по уникальному идентификатору, selection это ошибка
      */
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
-        // Обработчик запросов delete
-        int itemDeleted;
-        SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
 
-        // if (null == selection) selection = "1";
+        final SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+        final Map<UriSegments, Integer> uriMatch = analyzeUri(uri);
+        final int itemsDeleted;
 
-        switch (sUriMatcher.match(uri)) {
-            case CODE_READLATER_ITEMS:
-                itemDeleted = db.delete(ReadLaterEntry.TABLE_NAME, null, null);
-                db.delete(ReadLaterEntry.TABLE_NAME_FTS, null, null);
-
-                /* Возможно, пересбор таблиц - не лучшее решение, но по какой-то причине ни вызов VACUUM, ни
-                 * PRAGMA auto_vacuum = FULL не уменьшают размер базы данных. Это приводит к тому, что добавление
-                 * тысяч строк несколько раз превращает базу в 2Гб и последующим ошибкам окончания доступной памяти.
-                 * Сброс таблиц и создание их заново решает эту проблему, плюс работает быстро.
-                 */
-                // mReadLaterDbHelper.resetDb(db);
-                /* Пересбор таблиц действительно было не лучшим решением, так как при быстром тестировании частые
-                 * уничтожения таблиц приводят вообще к непредвиденным результатам. Все крашится.
-                 * Рост базы в таком случае уже не так страшен.
-                 */
+        switch (uriMatch.get(UriSegments.ITEMS)) {
+            case CODE_ITEMS:
+                db.beginTransaction();
+                try {
+                    itemsDeleted = db.delete(
+                            ReadLaterEntry.TABLE_NAME,
+                            appendSelectionWithValues(selection,
+                                    ReadLaterEntry.COLUMN_USER_ID, String.valueOf(uriMatch.get(UriSegments.USER))),
+                            selectionArgs);
+                    db.delete(
+                            ReadLaterEntry.TABLE_NAME_FTS,
+                            appendSelectionWithValues(selection,
+                                    ReadLaterEntry.COLUMN_USER_ID, String.valueOf(uriMatch.get(UriSegments.USER))),
+                            selectionArgs);
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
                 break;
-            case CODE_READLATER_ITEMS_WITH_ID:
-                String[] id = new String[] {uri.getPathSegments().get(1)};
-                itemDeleted = db.delete(ReadLaterEntry.TABLE_NAME, QUERY_ID, id);
-                db.delete(ReadLaterEntry.TABLE_NAME_FTS, "docid=?", id);
+            case CODE_ITEMS_ID:
+                if ((selection != null) && (!selection.trim().isEmpty())) {
+                    throw new UnsupportedOperationException(
+                            "Error @ ReadLaterContentProvider.delete: for uri " + uri + " selection == " + selection);
+                }
+                db.beginTransaction();
+                try {
+                    itemsDeleted = db.delete(
+                            ReadLaterEntry.TABLE_NAME,
+                            appendSelectionWithValues(selection,
+                                    ReadLaterEntry.COLUMN_USER_ID, String.valueOf(uriMatch.get(UriSegments.USER)),
+                                    ReadLaterEntry._ID, String.valueOf(uriMatch.get(UriSegments.ITEM_UID))),
+                            null);
+                    db.delete(
+                            ReadLaterEntry.TABLE_NAME_FTS,
+                            appendSelectionWithValues(selection,
+                                    ReadLaterEntry.COLUMN_USER_ID, String.valueOf(uriMatch.get(UriSegments.USER)),
+                                    "docid", String.valueOf(uriMatch.get(UriSegments.ITEM_UID))),
+                            null);
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
                 break;
             default:
                 throw new UnsupportedOperationException("Error @ ReadLaterContentProvider.delete: unknown uri " + uri);
         }
 
-        return itemDeleted;
+        return itemsDeleted;
     }
 
     /** {@inheritDoc}
      *
      * @throws UnsupportedOperationException если uri не соответствует разрешенным
      * @throws IllegalArgumentException если values == null или не содержит всех необходимых данных
+     * @throws IllegalArgumentException если values содержит ReadLaterEntry.COLUMN_USER_ID
      */
     @Override
-    public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
-
+    public Uri insert(@NonNull Uri uri, ContentValues values) {
         if (values == null) {
             throw new IllegalArgumentException("Error @ ReadLaterContentProvider.insert: ContentValues == null");
+        } else if (values.containsKey(ReadLaterEntry.COLUMN_USER_ID)) {
+            throw new IllegalArgumentException(
+                    "Error @ ReadLaterContentProvider.insert: ContentValues should not contain USER_ID - " + values);
         }
 
-        // Обработчик зарпосов insert
-        Uri returnUri;
+        final SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+        final Map<UriSegments, Integer> uriMatch = analyzeUri(uri);
+        final Uri returnUri;
 
-        switch (sUriMatcher.match(uri)) {
-            case CODE_READLATER_ITEMS:
-                SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+        switch (uriMatch.get(UriSegments.ITEMS)) {
+            case CODE_ITEMS:
 
-                // SELECT MAX ORDER
-                Cursor maxOrderCursor = db.rawQuery(QUERY_MAX_ORDER_POSITION, null);
-                maxOrderCursor.moveToFirst();
-                int maxOrder = maxOrderCursor.getInt(0);
-                maxOrderCursor.close();
-                values.put(ReadLaterEntry.COLUMN_ORDER, maxOrder + 1);
+                final int userId = uriMatch.get(UriSegments.USER);
+                values.put(ReadLaterEntry.COLUMN_ORDER, getMaxOrder(uri) + 1);
+                values.put(ReadLaterEntry.COLUMN_USER_ID, userId);
 
                 db.beginTransaction();
                 try {
                     // INSERT INTO TABLE_ITEMS
                     long id = db.insert(ReadLaterEntry.TABLE_NAME, null, values);
                     if (id > 0) {
-                        returnUri =  ContentUris.withAppendedId(ReadLaterEntry.CONTENT_URI, id);
+                        returnUri = ReadLaterEntry.buildUriForOneItem(userId, (int) id);
                     } else {
                         throw new IllegalArgumentException("Error @ ReadLaterContentProvider.insert: when inserting "
                                 + values);
@@ -211,6 +241,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                     // INSERT INTO TABLE_FTS
                     ContentValues ftsValues = new ContentValues();
                     ftsValues.put("docid", id);
+                    ftsValues.put(ReadLaterEntry.COLUMN_USER_ID, userId);
                     ftsValues.put(ReadLaterEntry.COLUMN_LABEL, values.getAsString(ReadLaterEntry.COLUMN_LABEL));
                     ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION,
                             values.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
@@ -232,34 +263,39 @@ public class ReadLaterContentProvider extends ContentProvider {
      *
      * @throws UnsupportedOperationException если uri не соответствует разрешенным
      * @throws IllegalArgumentException если values == null
+     * @throws IllegalArgumentException если любой из values содержит ReadLaterEntry.COLUMN_USER_ID
      */
     @Override
     public int bulkInsert(@NonNull Uri uri, @Nullable ContentValues[] values) {
-
         if (values == null) {
             throw new IllegalArgumentException("Error @ ReadLaterContentProvider.bulkInsert: ContentValues == null");
         }
 
-        // Обработчик зарпосов bullk insert
-        int inserted = 0;
+        final SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+        final Map<UriSegments, Integer> uriMatch = analyzeUri(uri);
 
-        switch (sUriMatcher.match(uri)) {
-            case CODE_READLATER_ITEMS:
-                SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+        switch (uriMatch.get(UriSegments.ITEMS)) {
+            case CODE_ITEMS:
 
-                // SELECT MAX ORDER
-                Cursor maxOrderCursor = db.rawQuery(QUERY_MAX_ORDER_POSITION, null);
-                maxOrderCursor.moveToFirst();
-                int maxOrder = maxOrderCursor.getInt(0);
-                maxOrderCursor.close();
+                final int userId = uriMatch.get(UriSegments.USER);
+                int maxOrder = getMaxOrder(uri);
+                int inserted = 0;
 
                 db.beginTransaction();
                 try {
                     for (ContentValues value : values) {
+
+                        if (value.containsKey(ReadLaterEntry.COLUMN_USER_ID)) {
+                            throw new IllegalArgumentException(
+                                    "Error @ ReadLaterContentProvider.bulkInsert: value should not contain USER_ID - "
+                                            + value);
+                        }
+
                         maxOrder++;
 
                         // INSERT INTO TABLE_ITEMS
                         value.put(ReadLaterEntry.COLUMN_ORDER, maxOrder);
+                        value.put(ReadLaterEntry.COLUMN_USER_ID, userId);
                         long id = db.insert(ReadLaterEntry.TABLE_NAME, null, value);
                         if (id < 0) {
                             throw new IllegalArgumentException("Error @ ReadLaterContentProvider.bulkInsert: inserting "
@@ -269,6 +305,7 @@ public class ReadLaterContentProvider extends ContentProvider {
                         // INSERT INTO TABLE_FTS
                         ContentValues ftsValues = new ContentValues();
                         ftsValues.put("docid", id);
+                        ftsValues.put(ReadLaterEntry.COLUMN_USER_ID, userId);
                         ftsValues.put(ReadLaterEntry.COLUMN_LABEL, value.getAsString(ReadLaterEntry.COLUMN_LABEL));
                         ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION,
                                 value.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
@@ -279,80 +316,94 @@ public class ReadLaterContentProvider extends ContentProvider {
                 } finally {
                     db.endTransaction();
                 }
-                break;
+                return inserted;
             default:
                 throw new UnsupportedOperationException("Error @ ReadLaterContentProvider.bulkInsert: unknown uri "
                         + uri);
         }
 
-        return inserted;
     }
 
     /** {@inheritDoc}
      *
      * @throws UnsupportedOperationException если uri не соответствует разрешенным
-     * @throws UnsupportedOperationException если uri == CODE_READLATER_ITEMS_UPDATE_ORDER и позиция < -1
-     * @throws IllegalArgumentException если uri != CODE_READLATER_ITEMS_UPDATE_ORDER и values == null
-     * @throws IllegalArgumentException если values не соответствуют контракту
-     * @throws IllegalArgumentException если uri == CODE_READLATER_ITEMS_UPDATE_ORDER и новая позиция > максимальной
+     * @throws UnsupportedOperationException если uri == CODE_ITEMS_ID или CODE_ITEMS_ORDER и selection не пустой,
+     *      т.к. uri подразумевает запрос одной заметки по уникальному идентификатору, selection это ошибка
+     * @throws UnsupportedOperationException если uri == CODE_ITEMS_ORDER и позиция < -1
+     * @throws IllegalArgumentException если values содержит ReadLaterEntry.COLUMN_USER_ID
+     * @throws IllegalArgumentException если uri != CODE_ITEMS_ORDER и values == null
+     * @throws IllegalArgumentException если uri == CODE_ITEMS_ORDER и новая позиция > максимальной
+     * @throws SQLiteConstraintException если не удалось выполнить update
      */
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues values,
                       @Nullable String selection, @Nullable String[] selectionArgs) {
+        if ((values != null) && (values.containsKey(ReadLaterEntry.COLUMN_USER_ID))) {
+            throw new IllegalArgumentException(
+                    "Error @ ReadLaterContentProvider.update: ContentValues should not contain USER_ID - " + values);
+        }
 
-        // Обработчик запросов update
-        int itemUpdated = 0;
-        SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
-        String itemIdString;
+        final SQLiteDatabase db = mReadLaterDbHelper.getWritableDatabase();
+        final Map<UriSegments, Integer> uriMatch = analyzeUri(uri);
+        final int itemsUpdated;
 
-        switch (sUriMatcher.match(uri)) {
-            case CODE_READLATER_ITEMS_WITH_ID:
-
+        switch (uriMatch.get(UriSegments.ITEMS)) {
+            case CODE_ITEMS_ID:
                 if (values == null) {
                     throw new IllegalArgumentException(
-                            "Error @ ReadLaterContentProvider.bulkInsert: ContentValues == null");
+                            "Error @ ReadLaterContentProvider.update: update 1 item and ContentValues == null");
+                } else if ((selection != null) && (!selection.trim().isEmpty())) {
+                    throw new UnsupportedOperationException(
+                            "Error @ ReadLaterContentProvider.update: for uri " + uri + " selection == " + selection);
                 }
 
-                itemIdString = uri.getPathSegments().get(1);
+                // Решаем, нужно ли будет обновлять fts и создаем ftsValues
+                boolean updateFts = false;
+                ContentValues ftsValues = new ContentValues();
+                if (values.containsKey(ReadLaterEntry.COLUMN_LABEL)) {
+                    ftsValues.put(ReadLaterEntry.COLUMN_LABEL,
+                            values.getAsString(ReadLaterEntry.COLUMN_LABEL));
+                    updateFts = true;
+                }
+                if (values.containsKey(ReadLaterEntry.COLUMN_DESCRIPTION)) {
+                    ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION,
+                            values.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
+                    updateFts = true;
+                }
+
                 db.beginTransaction();
                 try {
-                    // INSERT INTO TABLE_ITEMS
-                    itemUpdated = db.update(ReadLaterEntry.TABLE_NAME, values, QUERY_ID, new String[] { itemIdString });
-
-                    // INSERT INTO TABLE_FTS
-                    boolean updateFts = false;
-                    ContentValues ftsValues = new ContentValues();
-                    if (values.containsKey(ReadLaterEntry.COLUMN_LABEL)) {
-                        ftsValues.put(ReadLaterEntry.COLUMN_LABEL,
-                                values.getAsString(ReadLaterEntry.COLUMN_LABEL));
-                        updateFts = true;
-                    }
-                    if (values.containsKey(ReadLaterEntry.COLUMN_DESCRIPTION)) {
-                        ftsValues.put(ReadLaterEntry.COLUMN_DESCRIPTION,
-                                values.getAsString(ReadLaterEntry.COLUMN_DESCRIPTION));
-                        updateFts = true;
-                    }
+                    itemsUpdated = db.update(
+                            ReadLaterEntry.TABLE_NAME,
+                            values,
+                            appendSelectionWithValues(selection,
+                                    ReadLaterEntry.COLUMN_USER_ID, String.valueOf(uriMatch.get(UriSegments.USER)),
+                                    ReadLaterEntry._ID, String.valueOf(uriMatch.get(UriSegments.ITEM_UID))),
+                            null);
                     if (updateFts) {
-                        db.update(ReadLaterEntry.TABLE_NAME_FTS, ftsValues, "docid=?", new String[] { itemIdString });
+                        db.update(
+                                ReadLaterEntry.TABLE_NAME_FTS,
+                                ftsValues,
+                                appendSelectionWithValues(selection,
+                                        ReadLaterEntry.COLUMN_USER_ID, String.valueOf(uriMatch.get(UriSegments.USER)),
+                                        "docid=?", String.valueOf(uriMatch.get(UriSegments.ITEM_UID))),
+                                null);
                     }
-
                     db.setTransactionSuccessful();
-                } catch (SQLiteConstraintException e) {
-                    throw new IllegalArgumentException("Error @ ReadLaterContentProvider.update: when inserting "
-                        + values.toString(), e);
                 } finally {
                     db.endTransaction();
                 }
                 break;
-            case CODE_READLATER_ITEMS_UPDATE_ORDER:
-                itemIdString = uri.getPathSegments().get(1);
-                final int newPosition = Integer.parseInt(uri.getPathSegments().get(3));
+            case CODE_ITEMS_ORDER:
+                if ((selection != null) && (!selection.trim().isEmpty())) {
+                    throw new UnsupportedOperationException(
+                            "Error @ ReadLaterContentProvider.update: for uri " + uri + " selection == " + selection);
+                }
 
-                // SELECT MAX ORDER
-                Cursor maxOrderCursor = db.rawQuery(QUERY_MAX_ORDER_POSITION, null);
-                maxOrderCursor.moveToFirst();
-                int maxOrder = maxOrderCursor.getInt(0);
-                maxOrderCursor.close();
+                final int userId = uriMatch.get(UriSegments.USER);
+                final int maxOrder = getMaxOrder(ReadLaterEntry.buildUriForUserItems(userId));
+                final int newPosition = uriMatch.get(UriSegments.ORDER);
+                final int itemId = uriMatch.get(UriSegments.ITEM_UID);
 
                 if (newPosition > maxOrder) {
                     throw new IllegalArgumentException("Error @ ReadLaterContentProvider.update: position > MAX :: "
@@ -361,26 +412,25 @@ public class ReadLaterContentProvider extends ContentProvider {
 
                 db.beginTransaction();
                 try {
-
-                    final String[] columnOrder = new String[] {ReadLaterEntry.COLUMN_ORDER};
-
                     // Позиция элемента itemId
-                    Cursor curPosCursor = db.query(ReadLaterEntry.TABLE_NAME, columnOrder, QUERY_ID,
-                            new String[] { itemIdString }, null, null, null);
-                    if (curPosCursor.moveToFirst()) {
-                        final int oldPosition = curPosCursor.getInt(0);
-                        curPosCursor.close();
+                    int oldPosition = getMaxOrder(ReadLaterEntry.buildUriForOneItem(userId, itemId));
+                    if ((oldPosition > 0) && (oldPosition != newPosition)) {
+                        // Обновляем все соседние элементы
+                        db.execSQL(getRawQueryForUpdateOrder(oldPosition, newPosition));
+                        ContentValues updateOrderVal = new ContentValues();
+                        updateOrderVal.put(ReadLaterEntry.COLUMN_ORDER, newPosition);
 
-                        // Если позиция изменилась, UPDATE
-                        if (oldPosition != newPosition) {
-                            db.execSQL(
-                                    getRawQueryForUpdateOrder(oldPosition, newPosition));
-                            ContentValues updateOrderVal = new ContentValues();
-                            updateOrderVal.put(ReadLaterEntry.COLUMN_ORDER, newPosition);
-                            db.update(ReadLaterEntry.TABLE_NAME,
-                                    updateOrderVal, QUERY_ID, new String[] { itemIdString });
-                            itemUpdated = Math.abs(oldPosition - newPosition) + 1;
-                        }
+                        // Обновляем текущий элемент
+                        db.update(
+                                ReadLaterEntry.TABLE_NAME,
+                                updateOrderVal,
+                                appendSelectionWithValues(selection,
+                                        ReadLaterEntry.COLUMN_USER_ID, String.valueOf(userId),
+                                        ReadLaterEntry._ID, String.valueOf(itemId)),
+                                null);
+                        itemsUpdated = Math.abs(oldPosition - newPosition) + 1;
+                    } else {
+                        itemsUpdated = 0;
                     }
                     db.setTransactionSuccessful();
                 } finally {
@@ -391,7 +441,113 @@ public class ReadLaterContentProvider extends ContentProvider {
                 throw new UnsupportedOperationException("Error @ ReadLaterContentProvider.update: unknown uri " + uri);
         }
 
-        return itemUpdated;
+        return itemsUpdated;
+    }
+
+    /** Возвращает значения сегментов из uri.
+     *
+     * @param uri uri для анализа
+     *
+     * @return соответствие сегментов и значений:
+     *      CODE_ITEMS          -> ITEMS::CODE_READLATER_ITEMS, USER::id
+     *      CODE_ITEMS_ID       -> ITEMS::CODE_ITEMS_ID,        USER::id, ITEM_UID::uid
+     *      CODE_ITEMS_REMOTEID -> ITEMS::CODE_ITEMS_REMOTEID,  USER::id, ITEM_REMID::rid
+     *      CODE_ITEMS_ORDER    -> ITEMS::CODE_ITEMS_OREDER,    USER::id, ITEM_UID::uid, ORDER::neword
+     *      ???                 -> ITEMS::-1 - если uri не соответствует указанным выше
+     *
+     * @throws NullPointerException если uri == null
+     */
+    private @NonNull Map<UriSegments, Integer> analyzeUri(@NonNull Uri uri) {
+
+        Map<UriSegments, Integer> result = new HashMap<>();
+
+        final int match = sUriMatcher.match(uri);
+        result.put(UriSegments.ITEMS, match);
+
+        final List<String> pathSegments = uri.getPathSegments();
+        switch (match) {
+            case CODE_ITEMS:
+                result.put(UriSegments.USER, Integer.valueOf(pathSegments.get(UriSegments.USER.getSegment())));
+                break;
+            case CODE_ITEMS_ID:
+                result.put(UriSegments.USER, Integer.valueOf(pathSegments.get(UriSegments.USER.getSegment())));
+                result.put(UriSegments.ITEM_UID, Integer.valueOf(pathSegments.get(UriSegments.ITEM_UID.getSegment())));
+                break;
+            case CODE_ITEMS_REMOTEID:
+                result.put(UriSegments.USER, Integer.valueOf(pathSegments.get(UriSegments.USER.getSegment())));
+                result.put(UriSegments.ITEM_REMID,
+                        Integer.valueOf(pathSegments.get(UriSegments.ITEM_REMID.getSegment())));
+                break;
+            case CODE_ITEMS_ORDER:
+                result.put(UriSegments.USER, Integer.valueOf(pathSegments.get(UriSegments.USER.getSegment())));
+                result.put(UriSegments.ITEM_UID, Integer.valueOf(pathSegments.get(UriSegments.ITEM_UID.getSegment())));
+                result.put(UriSegments.ORDER, Integer.valueOf(pathSegments.get(UriSegments.ORDER.getSegment())));
+                break;
+            default:
+                break;
+        }
+        return result;
+
+    }
+
+    /** Добавляет в начало к selection запрос пары "values[i] = values[i+1]".
+     * Этот метод НЕ безопасен к SQL Injection.
+     * Все values вставляются as-is,поэтому следует дополнительно следить за этим.
+     *
+     * @param selection строка отбора без ключевого слова WHERE
+     * @param values значения, которые нужно добавить, должно быть четное количество
+     *               каждый четный индекс - ключ
+     *               каждый нечетный индекс - значение
+     *
+     * @return Если selection == null || selection.trim().isEmpty(), возвращает "values[i] = values[i+1] AND ...";
+     *         Иначе заменяет на "values[i] = values[i+1] AND ... AND (selection)"
+     *
+     * @throws IllegalArgumentException если values.length == 0 || values.length % 2 != 0
+     * @throws NullPointerException если values == null
+     */
+    private @NonNull String appendSelectionWithValues(@Nullable String selection,
+                                                      @NonNull String... values) {
+        if ((values.length == 0) || (values.length % 2 != 0)) {
+            throw new IllegalArgumentException(
+                    "Error @ ReadLaterContentProvider.appendSelectionWithValues :: values.length == " + values.length);
+        }
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < values.length; i += 2) {
+            if (i != 0) {
+                builder.append(" AND ");
+            }
+            builder.append(values[i]).append(" = ").append(values[i + 1]);
+
+        }
+        if ((selection != null) && (!selection.trim().isEmpty())) {
+            builder.append(" AND (").append(selection).append(')');
+        }
+        return builder.toString();
+    }
+
+    /** Возвращает максимальное значение порядка для указанной uri.
+     *
+     * @param uri uri для доступа к данным: CODE_ITEMS, CODE_ITEMS_ID или CODE_ITEMS_REMOTEID
+     *
+     * @return максимальное значение порядка для указанной uri или -1, если порядки не были найдены
+     *
+     * @throws UnsupportedOperationException если uri не соответствует разрешенным
+     * @throws NullPointerException если uri == null
+     */
+    private @IntRange(from = -1) int getMaxOrder(@NonNull Uri uri) {
+        Cursor maxOrderCursor = query(
+                uri,
+                new String[] {"MAX (" + ReadLaterEntry.COLUMN_ORDER + ")"},
+                null,
+                null,
+                null);
+        int maxOrder = -1;
+        if (maxOrderCursor != null) {
+            maxOrderCursor.moveToFirst();
+            maxOrder = maxOrderCursor.getInt(0);
+            maxOrderCursor.close();
+        }
+        return maxOrder;
     }
 
     /** Возвращает запрос на изменение порядка элемента.

@@ -20,9 +20,6 @@ class ItemListLoaderManager  {
 
     /** ID Используемого LoadManager'а. */
     static final int ITEM_LOADER_ID = 13;
-    /** Запрос на заметки пользователя. */
-    private static final String QUERY_USER_ID = String.format("%s = ?",
-            ReadLaterEntry.COLUMN_USER_ID);
 
     /** Используемые колонки базы данных. */
     private static final String[] MAIN_LIST_PROJECTION = {
@@ -69,16 +66,17 @@ class ItemListLoaderManager  {
      */
     CursorLoader getNewCursorLoader() {
 
+        final int userId = UserInfoUtils.getCurentUser(mItemListFragment.getContext()).getUserId();
+
         MainListFilter filter = MainListFilterUtils.getCurrentFilter();
-        StringBuilder selection = new StringBuilder(QUERY_USER_ID);
+        StringBuilder selection = new StringBuilder();
         List<String> selectionArgs = new ArrayList<>();
-        selectionArgs.add(String.valueOf(UserInfoUtils.getCurentUser(mItemListFragment.getContext()).getUserId()));
         String sortOrder = "";
         if (filter != null) {
             sortOrder = filter.getSqlSortOrder();
             String filterSelection = filter.getSqlSelection(mItemListFragment.getContext());
             if (!filterSelection.isEmpty()) {
-                selection.append(" AND ").append(filterSelection);
+                selection.append(filterSelection);
                 selectionArgs.addAll(Arrays.asList(filter.getSqlSelectionArgs(mItemListFragment.getContext())));
             }
         }
@@ -93,7 +91,7 @@ class ItemListLoaderManager  {
         Log.d("SELECTION", String.format("%s, %s", selection.toString(), Arrays.toString(selectionArgs.toArray())));
         Log.d("ORDERING", sortOrder);
         return new CursorLoader(mItemListFragment.getContext(),
-                ReadLaterEntry.CONTENT_URI, MAIN_LIST_PROJECTION,
+                ReadLaterEntry.buildUriForUserItems(userId), MAIN_LIST_PROJECTION,
                 selection.toString(),
                 selectionArgs.toArray(new String[selectionArgs.size()]),
                 sortOrder);
